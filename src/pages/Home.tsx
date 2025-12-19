@@ -234,4 +234,557 @@ export default function Home() {
         </section>
 
         {/* DECODE */}
-        <section
+        <section className="bc2-section" id="decode" aria-labelledby="decode-title">
+          <div className="bc2-sectionHeader">
+            <div className="bc2-kicker">{COPY.decode.kicker}</div>
+            <h2 className="bc2-h2" id="decode-title">
+              {COPY.decode.title}
+            </h2>
+            <p className="bc2-p">{COPY.decode.subtitle}</p>
+          </div>
+
+          <div className="bc2-split">
+            {/* Controls */}
+            <div className="bc2-panel" aria-label="Decode controls">
+              <div className="bc2-panelTitle">Pick your 3 inputs</div>
+
+              <Field label="Goal">
+                <div className="bc2-chipGrid" role="radiogroup" aria-label="Choose a goal">
+                  {(Object.keys(LABELS.goal) as GoalKey[]).map((k) => (
+                    <Chip
+                      key={k}
+                      label={LABELS.goal[k]}
+                      active={goal === k}
+                      onClick={() => setGoal(k)}
+                    />
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="Timeline">
+                <div className="bc2-chipRow" role="radiogroup" aria-label="Choose a timeline">
+                  {(Object.keys(LABELS.timeline) as TimelineKey[]).map((k) => (
+                    <Chip
+                      key={k}
+                      label={LABELS.timeline[k]}
+                      active={timeline === k}
+                      onClick={() => setTimeline(k)}
+                    />
+                  ))}
+                </div>
+              </Field>
+
+              <Field label="What gets in the way">
+                <div className="bc2-chipGrid" role="radiogroup" aria-label="Choose friction">
+                  {(Object.keys(LABELS.friction) as FrictionKey[]).map((k) => (
+                    <Chip
+                      key={k}
+                      label={LABELS.friction[k]}
+                      active={friction === k}
+                      onClick={() => setFriction(k)}
+                    />
+                  ))}
+                </div>
+              </Field>
+
+              <div className="bc2-fine">{COPY.decode.safetyLine}</div>
+            </div>
+
+            {/* Output */}
+            <div className="bc2-output" aria-label="Decode output">
+              <div className="bc2-outputTop">
+                <div className="bc2-outputKicker">{COPY.decode.outputTitle}</div>
+                <div className="bc2-outputSummary">
+                  {LABELS.goal[goal]} · {LABELS.timeline[timeline]} · {LABELS.friction[friction]}
+                </div>
+              </div>
+
+              <div className="bc2-outBlock" role="group" aria-label="Decoded truth">
+                <div className="bc2-outLabel">{COPY.decode.decodedLabel}</div>
+                <div className="bc2-outText">{decodeOut.decoded}</div>
+              </div>
+
+              <div className="bc2-outBlock" role="group" aria-label="Next best move">
+                <div className="bc2-outLabel">{COPY.decode.nextLabel}</div>
+                <div className="bc2-outText">{decodeOut.next}</div>
+              </div>
+
+              <div className="bc2-ctaRow" aria-label="Decode actions">
+                <PrimaryLink to={goalRoute}>{COPY.decode.cta}</PrimaryLink>
+                <SecondaryLink to={ROUTES.start}>Back to top</SecondaryLink>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* MECHANISM */}
+        <section className="bc2-section" aria-labelledby="mech-title">
+          <div className="bc2-sectionHeader">
+            <div className="bc2-kicker">{COPY.mechanism.kicker}</div>
+            <h2 className="bc2-h2" id="mech-title">
+              {COPY.mechanism.title}
+            </h2>
+            <p className="bc2-p">{COPY.mechanism.subtitle}</p>
+          </div>
+
+          <div className="bc2-eq" aria-label="Mechanism equation">
+            <EqPill>{COPY.mechanism.equation[0]}</EqPill>
+            <EqOp>+</EqOp>
+            <EqPill>{COPY.mechanism.equation[1]}</EqPill>
+            <EqOp>+</EqOp>
+            <EqPill>{COPY.mechanism.equation[2]}</EqPill>
+            <EqOp>=</EqOp>
+            <EqResult>{COPY.mechanism.equation[3]}</EqResult>
+          </div>
+        </section>
+
+        {/* CLOSE */}
+        <section className="bc2-section bc2-close" aria-labelledby="close-title">
+          <div>
+            <h2 className="bc2-h2" id="close-title">
+              {COPY.close.title}
+            </h2>
+            <p className="bc2-p">{COPY.close.subtitle}</p>
+
+            <div className="bc2-ctaRow">
+              <PrimaryLink to={ROUTES.start}>{COPY.close.primaryCta}</PrimaryLink>
+              <a className="bc2-btn bc2-btnSecondary" href="#decode">
+                {COPY.close.secondaryCta}
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <footer className="bc2-footer">
+          <div className="bc2-footerLine">{COPY.footer.line}</div>
+          <div className="bc2-footerSmall">© {new Date().getFullYear()} BALANCE Cipher</div>
+        </footer>
+      </div>
+    </main>
+  );
+}
+
+/* UI components */
+
+function PrimaryLink(props: { to: string; children: React.ReactNode }) {
+  return (
+    <Link className="bc2-btn bc2-btnPrimary" to={props.to}>
+      {props.children}
+    </Link>
+  );
+}
+
+function SecondaryLink(props: { to: string; children: React.ReactNode }) {
+  return (
+    <Link className="bc2-btn bc2-btnSecondary" to={props.to}>
+      {props.children}
+    </Link>
+  );
+}
+
+function Field(props: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="bc2-field">
+      <div className="bc2-fieldLabel">{props.label}</div>
+      {props.children}
+    </div>
+  );
+}
+
+function Chip(props: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      className={`bc2-chip ${props.active ? "isActive" : ""}`}
+      role="radio"
+      aria-checked={props.active}
+      onClick={props.onClick}
+    >
+      {props.label}
+    </button>
+  );
+}
+
+function EqPill(props: { children: React.ReactNode }) {
+  return <span className="bc2-eqPill">{props.children}</span>;
+}
+
+function EqOp(props: { children: React.ReactNode }) {
+  return (
+    <span className="bc2-eqOp" aria-hidden="true">
+      {props.children}
+    </span>
+  );
+}
+
+function EqResult(props: { children: React.ReactNode }) {
+  return <span className="bc2-eqResult">{props.children}</span>;
+}
+
+/* CSS — deliberately leaner than V1 to reduce “busy” */
+
+const CSS = `
+:root{
+  --bg:#050B18;
+  --panel: rgba(255,255,255,0.04);
+  --panel2: rgba(0,0,0,0.22);
+  --border: rgba(255,255,255,0.10);
+  --teal: rgba(0,255,220,0.92);
+  --teal2: rgba(0,190,255,0.82);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.74);
+  --shadow: 0 18px 50px rgba(0,0,0,0.35);
+  --r16: 16px;
+  --r18: 18px;
+  --r20: 20px;
+}
+
+.bc2-page{
+  min-height:100vh;
+  background: var(--bg);
+  color: var(--text);
+  position:relative;
+  overflow-x:hidden;
+}
+
+.bc2-bg{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 18% 10%, rgba(0,255,220,0.16), transparent 55%),
+    radial-gradient(780px 520px at 86% 18%, rgba(0,190,255,0.10), transparent 55%),
+    radial-gradient(900px 760px at 50% 96%, rgba(255,180,70,0.05), transparent 55%);
+}
+
+.bc2-container{
+  position:relative;
+  max-width: 1020px;
+  margin:0 auto;
+  padding: 24px 16px 40px;
+}
+
+.bc2-card{
+  border-radius: var(--r20);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.bc2-badgeRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+}
+.bc2-badge{
+  font-size:12px;
+  letter-spacing:0.10em;
+  text-transform:uppercase;
+  padding:7px 10px;
+  border-radius:999px;
+  background: rgba(0,255,220,0.10);
+  border:1px solid rgba(0,255,220,0.25);
+}
+.bc2-badgeMuted{ font-size:12px; color: rgba(255,255,255,0.70); }
+
+.bc2-h1{
+  font-size: clamp(28px, 4vw, 44px);
+  line-height:1.08;
+  margin: 10px 0 8px;
+  letter-spacing:-0.02em;
+}
+
+.bc2-benefit{
+  display:inline-block;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0,255,220,0.08);
+  border: 1px solid rgba(0,255,220,0.18);
+  margin-bottom: 10px;
+}
+
+.bc2-lead{
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.80);
+  max-width: 880px;
+}
+
+.bc2-ctaRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin-top: 10px;
+}
+
+.bc2-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  text-decoration:none;
+  font-weight: 900;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+.bc2-btn:focus-visible{
+  outline: 2px solid rgba(0,255,220,0.65);
+  outline-offset: 3px;
+}
+.bc2-btn:hover{ transform: translateY(-1px); }
+
+.bc2-btnPrimary{
+  color: rgba(0,0,0,0.92);
+  background: linear-gradient(180deg, var(--teal), var(--teal2));
+  box-shadow: 0 12px 28px rgba(0,255,220,0.16);
+}
+.bc2-btnSecondary{
+  color: rgba(255,255,255,0.90);
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.12);
+}
+
+.bc2-microTrust{
+  margin-top:10px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.66);
+}
+
+.bc2-section{
+  margin-top: 14px;
+  border-radius: var(--r20);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  padding: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.22);
+}
+
+.bc2-sectionHeader{
+  max-width: 900px;
+  margin-bottom: 12px;
+}
+
+.bc2-kicker{
+  font-size: 12px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(0,255,220,0.75);
+  margin-bottom: 10px;
+}
+
+.bc2-h2{
+  margin: 0 0 8px;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+
+.bc2-p{
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+
+.bc2-bulletGrid{
+  display:grid;
+  gap:10px;
+  margin-top: 10px;
+}
+.bc2-bullet{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding: 12px;
+  border-radius: var(--r16);
+  background: var(--panel2);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.bc2-bulletDot{
+  width: 9px; height: 9px;
+  border-radius: 999px;
+  background: rgba(0,255,220,0.85);
+  box-shadow: 0 0 18px rgba(0,255,220,0.24);
+  margin-top: 5px;
+  flex: 0 0 auto;
+}
+.bc2-bulletText{
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.80);
+}
+
+.bc2-split{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items:start;
+  margin-top: 12px;
+}
+
+.bc2-panel{
+  border-radius: var(--r18);
+  padding: 14px;
+  background: var(--panel2);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.bc2-panelTitle{
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.bc2-field{ margin-bottom: 12px; }
+.bc2-fieldLabel{
+  font-size: 12px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.70);
+  margin-bottom: 10px;
+}
+
+.bc2-chipRow{ display:flex; flex-wrap:wrap; gap:10px; }
+.bc2-chipGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:10px;
+}
+
+.bc2-chip{
+  width:100%;
+  border-radius: 14px;
+  padding: 12px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.90);
+  font-weight: 900;
+  cursor:pointer;
+  text-align:left;
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.bc2-chip:hover{ transform: translateY(-1px); }
+.bc2-chip:focus-visible{
+  outline: 2px solid rgba(0,255,220,0.65);
+  outline-offset: 3px;
+}
+.bc2-chip.isActive{
+  background: rgba(0,255,220,0.10);
+  border: 1px solid rgba(0,255,220,0.26);
+  box-shadow: 0 14px 30px rgba(0,255,220,0.10);
+}
+
+.bc2-fine{
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.62);
+}
+
+.bc2-output{
+  border-radius: var(--r18);
+  padding: 14px;
+  background: radial-gradient(520px 320px at 30% 20%, rgba(0,255,220,0.10), transparent 55%),
+              rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.bc2-outputTop{ margin-bottom: 10px; }
+.bc2-outputKicker{
+  font-size: 12px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 8px;
+}
+.bc2-outputSummary{
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.86);
+}
+
+.bc2-outBlock{
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.10);
+  margin-top: 10px;
+}
+.bc2-outLabel{
+  font-size: 11px;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 8px;
+}
+.bc2-outText{
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.82);
+}
+
+.bc2-eq{
+  border-radius: var(--r18);
+  padding: 14px;
+  background: var(--panel2);
+  border: 1px solid rgba(255,255,255,0.12);
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px;
+  margin-top: 10px;
+}
+.bc2-eqPill{
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-weight: 900;
+  font-size: 13px;
+}
+.bc2-eqOp{
+  font-size: 16px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.75);
+}
+.bc2-eqResult{
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(0,255,220,0.10);
+  border: 1px solid rgba(0,255,220,0.22);
+  font-weight: 950;
+  font-size: 13px;
+}
+
+.bc2-close{
+  background: rgba(0,255,220,0.06);
+  border: 1px solid rgba(0,255,220,0.16);
+}
+
+.bc2-footer{
+  margin-top: 14px;
+  padding: 10px 4px 2px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  color: rgba(255,255,255,0.60);
+}
+.bc2-footerLine{ font-size: 12px; }
+.bc2-footerSmall{ font-size: 12px; }
+
+@media (max-width: 880px){
+  .bc2-split{ grid-template-columns: 1fr; }
+  .bc2-chipGrid{ grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .bc2-btn, .bc2-chip{ transition:none; }
+  .bc2-btn:hover, .bc2-chip:hover{ transform:none; }
+}
+`;

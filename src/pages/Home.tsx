@@ -3,18 +3,11 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 /**
- * BALANCE CIPHER — Landing Page (Stable + Creation Mode)
- *
- * Key behavior change:
- * - "Start decoding" = in-page scroll to Decode Preview (does NOT navigate).
- * - "See how it works" = in-page scroll to How it works (does NOT navigate).
- * - "Apply this decode" = safe link:
- *    - if BALANCE_APP.baseUrl is set, opens app with query params
- *    - otherwise falls back to internal route (no breaking)
- *
- * Important:
- * - This file does not depend on App.tsx or the emblem.
- * - If something goes wrong, roll back Home.tsx only. Do not edit App.tsx to “fix” Home.
+ * BALANCE CIPHER — Landing Page (TikTok-native + adult)
+ * - Fast hook (less formal, more momentum)
+ * - "Tap to Reveal" decode moment (alive, not stiff)
+ * - Decode Preview stays the centerpiece
+ * - No dependency sprawl; no App.tsx coupling
  */
 
 const ROUTES = {
@@ -23,20 +16,15 @@ const ROUTES = {
   vitReact: "/vit-react",
 } as const;
 
-/**
- * Optional: deep-link to the BALANCE App.
- * Leave baseUrl blank for now to keep everything internal and stable.
- */
-const BALANCE_APP = {
-  baseUrl: "", // e.g. "https://your-balance-app.vercel.app" (leave blank for now)
-  demoPath: "/?demo=1&level=1&stop=1",
-  applyPath: "/?start=decode",
-} as const;
-
 const ANCHORS = {
-  first3: "bc-first3",
   decode: "bc-decode",
   how: "bc-how",
+  next: "bc-next",
+} as const;
+
+const BALANCE_APP = {
+  baseUrl: "", // optional later: "https://your-balance-app.vercel.app"
+  applyPath: "/?start=decode",
 } as const;
 
 type GoalKey = "raise" | "approve" | "lower" | "calm";
@@ -67,38 +55,48 @@ const LABELS: {
 };
 
 const COPY = {
-  brand: { productName: "BALANCE Cipher", kicker: "Cipher + Co-Pilot" },
-
   hero: {
-    headline: "Are you ready to start decoding?",
-    benefitLine: "Decode your credit into one clear next move—today.",
+    kicker: "BALANCE Cipher",
+    headline: "Stop guessing. Start decoding.",
     subhead:
-      "You’re not broken. You were never given a map. The BALANCE Cipher is the map—and your AI Co-Pilot is the only guide that has the goods to decode it through the BALANCE Formula into plain language and a next best move you can actually do.",
-    primaryCta: "Start decoding",
-    secondaryCta: "See how it works",
-    spine: "Solve it. Do the next move. Repeat.",
-    seal: "The Cipher is the map. The Co-Pilot decodes it—through the BALANCE Formula—into steps.",
+      "This is not another tip list. The Cipher is the map. Your AI Co-Pilot has the goods to decode it through the BALANCE Formula—into plain language and one next move you can do today.",
+    micro: "Decoding is solving. Not fixing.",
+    ctaPrimary: "Start decoding",
+    ctaSecondary: "Show me how it works",
+    trust: "Adult. Calm. No hype. No shame.",
   },
 
-  contrast: {
-    title: "Why this feels different",
-    leftTitle: "Yesterday",
-    leftBody: "Random tips, confusion, drift. You start… then life happens.",
-    rightTitle: "Today",
-    rightBody:
-      "The Co-Pilot decodes the Cipher through the BALANCE Formula—so clarity shows up fast and momentum holds.",
-    acceleration:
-      "Without the Cipher, decoding stays slow and frustrating. With the Cipher plus your AI Co-Pilot, what used to take days or weeks to figure out can become minutes to clarity.",
-  },
-
-  firstThree: {
-    kicker: "First 3 minutes",
-    title: "What you get immediately",
-    subtitle: "No long lesson. No overwhelm. Clarity first—then momentum.",
+  painSnap: {
+    title: "If this is you, you’re in the right place",
     bullets: [
-      { title: "Your biggest lever right now", body: "The factor that matters most today, in plain language." },
-      { title: "Your next best move", body: "One clean action you can do now to create measurable progress." },
-      { title: "What to ignore for now", body: "Noise gets removed so you don’t waste energy on low-impact moves." },
+      "You start… then life happens.",
+      "You Google, you scroll, you get 20 answers… and still feel stuck.",
+      "You know what you should do, but follow-through keeps breaking.",
+    ],
+    line:
+      "The difference is not motivation. It is having the right decoder—so clarity shows up fast and momentum holds.",
+  },
+
+  tapReveal: {
+    title: "Tap once. Get the truth.",
+    subtitle:
+      "This is what “AI-powered” actually means here: fast translation into a next best move.",
+    button: "Tap to reveal a decode",
+    revealedLabel: "Decoded in plain language",
+    revealedBody:
+      "You don’t need 15 steps today. You need the one lever that matters most right now—and a clean move you can finish.",
+    revealedNextLabel: "Next best move",
+    revealedNextBody:
+      "Pick one lever. Do one action. Record progress. Repeat tomorrow. That’s how the Cipher becomes results.",
+  },
+
+  next: {
+    kicker: "What happens next",
+    title: "A simple 3-step loop that actually holds",
+    steps: [
+      { title: "Decode", body: "Your Co-Pilot turns the Cipher into plain language." },
+      { title: "Do one move", body: "One action you can finish today (not 12 actions)." },
+      { title: "Momentum holds", body: "The plan stays alive after day one." },
     ] as Pillar[],
   },
 
@@ -106,46 +104,40 @@ const COPY = {
     kicker: "Decode preview",
     title: "Try a 10-second decode",
     subtitle:
-      "Pick what you want, how fast you want it, and what keeps getting in the way. Your Co-Pilot translates that into clarity and a next best move.",
-    outputTitle: "Decoded output",
+      "Pick what you want, your timeline, and what keeps getting in the way. Your Co-Pilot translates that into clarity and a next best move.",
+    outputTitle: "Your decode",
     decodedLabel: "Decoded truth",
     nextLabel: "Next best move",
-    safetyLine: "Adult. Calm. No hype. No shame. One clear move at a time.",
     ctaPrimary: "Apply this decode",
     ctaSecondary: "Start with the basics",
-    codeTitle: "Free trial access (Levels 1–40)",
-    codeSubtitle:
-      "Generate a code and carry it into the app later. This page only generates and passes it forward.",
-    codeCta: "Generate access code",
-    codeCopy: "Copy code",
   },
 
-  mechanism: {
+  how: {
     kicker: "How it works",
     title: "The linkage is the product",
     subtitle:
-      "A cipher is sophisticated. That’s the point. The magic is that it unlocks simple concepts and simple wording—when the right decoder is present.",
+      "A cipher is sophisticated. That’s the point. It unlocks simple concepts and simple wording—when the right decoder is present.",
     equation: { left: "AI Co-Pilot", plus1: "BALANCE Cipher", plus2: "BALANCE Formula", equals: "Solutions" },
     pillars: [
       { title: "Cipher", body: "A sophisticated map that unlocks simple, usable truth." },
-      { title: "Co-Pilot", body: "The only guide that has the goods to decode the Cipher into plain language and a next best move." },
-      { title: "Formula", body: "Turns what you already know into a realistic plan you can execute." },
+      { title: "Co-Pilot", body: "The only guide that has the goods to decode the Cipher into a next best move." },
+      { title: "Formula", body: "Turns complexity into a plan you can execute without overwhelm." },
     ] as Pillar[],
   },
 
   outcomes: {
     title: "What changes today",
-    subtitle:
-      "Most people don’t fail because they don’t care. They fail because clarity disappears and follow-through breaks.",
+    subtitle: "Not someday. Today.",
     cards: [
-      { title: "Minutes to clarity", body: "Stop guessing what matters and what to do first." },
-      { title: "One next best move", body: "No overload. One clean action at a time." },
-      { title: "Momentum that holds", body: "The plan stays alive after day one, even when life gets busy." },
+      { title: "Minutes to clarity", body: "No more guessing what matters first." },
+      { title: "One next best move", body: "A clean step you can actually finish." },
+      { title: "Follow-through that sticks", body: "Momentum holds after day one." },
     ] as Card[],
   },
 
   footer: {
-    line: "The Cipher gives you the map. The Co-Pilot has the goods to decode it—through the BALANCE Formula—into simple steps.",
+    line:
+      "The Cipher gives you the map. The Co-Pilot has the goods to decode it—through the BALANCE Formula—into simple steps.",
   },
 } as const;
 
@@ -163,59 +155,14 @@ function safeJoinUrl(baseUrl: string, pathWithQuery: string): string {
   return `${baseNoSlash}${path}`;
 }
 
-function buildAppApplyHref(args: { goal: GoalKey; timeline: TimelineKey; friction: FrictionKey; trialCode?: string }): string {
+function buildAppApplyHref(args: { goal: GoalKey; timeline: TimelineKey; friction: FrictionKey }): string {
   const urlBase = safeJoinUrl(BALANCE_APP.baseUrl, BALANCE_APP.applyPath);
   if (!urlBase) return "";
   const qp = new URLSearchParams();
   qp.set("goal", args.goal);
   qp.set("timeline", args.timeline);
   qp.set("friction", args.friction);
-  if (args.trialCode) qp.set("trial", args.trialCode);
   return `${urlBase}${urlBase.includes("?") ? "&" : "?"}${qp.toString()}`;
-}
-
-function randomBase32(length: number): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = new Uint8Array(length);
-  const c = (globalThis as unknown as { crypto?: { getRandomValues?: (arr: Uint8Array) => Uint8Array } }).crypto;
-
-  if (c?.getRandomValues) c.getRandomValues(bytes);
-  else for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
-
-  let out = "";
-  for (let i = 0; i < bytes.length; i += 1) out += alphabet[bytes[i] % alphabet.length];
-  return out;
-}
-
-function generateTrialCode(): string {
-  return `BC-${randomBase32(6)}-${randomBase32(4)}`;
-}
-
-async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    // fallback below
-  }
-
-  try {
-    const el = document.createElement("textarea");
-    el.value = text;
-    el.style.position = "fixed";
-    el.style.left = "-9999px";
-    el.style.top = "-9999px";
-    document.body.appendChild(el);
-    el.focus();
-    el.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(el);
-    return ok;
-  } catch {
-    return false;
-  }
 }
 
 function getGoalRoute(goal: GoalKey): string {
@@ -239,31 +186,31 @@ function buildDecodeOutput(goal: GoalKey, timeline: TimelineKey, friction: Frict
   switch (goal) {
     case "raise":
       decoded =
-        "Raising your score is not a mystery. It is usually one or two levers: on-time payments and how much of your available credit you are using.";
-      next = "Pick one lever first. Then do one clean step today that moves that lever forward.";
+        "Raising your score is usually one or two levers: on-time payments and how much credit you’re using.";
+      next = "Pick one lever first. Do one clean step today that moves it.";
       break;
     case "approve":
       decoded =
-        "Approval is not luck. It is proof. Lenders want a clean story: stability, ability to pay, and no hidden risks.";
-      next = "Choose what you want approval for and your timeline. Then answer a few simple questions so your Co-Pilot can map the path.";
+        "Approval is proof, not luck. Lenders want a clean story: stability, ability to pay, low risk.";
+      next = "Choose what you want approval for. Then follow one step that strengthens your story.";
       break;
     case "lower":
       decoded =
-        "Lower rates come when your profile looks less risky. That usually means a stronger score, lower pressure, and cleaner history.";
-      next = "Identify your current rate and what you owe. Then do one step that reduces risk and improves your leverage.";
+        "Lower rates come when you look less risky. That usually means a stronger score and lower pressure.";
+      next = "Identify your current rate. Then do one step that reduces risk and improves leverage.";
       break;
     case "calm":
     default:
       decoded =
-        "The chaos does not stop when you try harder. It stops when you have one clear plan and one next move you can actually finish.";
-      next = "Name the loudest pressure point. Then let the Co-Pilot decode it into one short plan and one action you can complete today.";
+        "Chaos doesn’t stop when you try harder. It stops when you have one clear plan and one move you can finish.";
+      next = "Name the loudest pressure point. Then take one small step you can complete today.";
       break;
   }
 
   const timelineAdd =
     timeline === "fast"
-      ? "We prioritize the highest-impact move you can do now—fast clarity, fast momentum."
-      : "We build a steady path you can repeat—clarity first, then consistency.";
+      ? "We prioritize the highest-impact move you can do now."
+      : "We build a steady path you can repeat without burnout.";
 
   let frictionAdd = "";
   let frictionNext = "";
@@ -271,20 +218,20 @@ function buildDecodeOutput(goal: GoalKey, timeline: TimelineKey, friction: Frict
   switch (friction) {
     case "confused":
       frictionAdd = "If you feel confused, we remove jargon and focus on one lever only.";
-      frictionNext = "Keep it simple: one lever, one next move. That is the win.";
+      frictionNext = "One lever. One move. That’s the win.";
       break;
     case "overwhelmed":
       frictionAdd = "If you feel overwhelmed, we shrink the problem until it fits into 10 minutes.";
       frictionNext = "Make it small enough to finish. Done creates confidence.";
       break;
     case "noPlan":
-      frictionAdd = "If you have no plan, we turn the mess into a clean 3-step map you can follow.";
-      frictionNext = "You do not need a perfect plan. You need the next best move.";
+      frictionAdd = "If you have no plan, we turn the mess into a clean 3-step map.";
+      frictionNext = "You don’t need perfect. You need next.";
       break;
     case "noFollowThrough":
     default:
       frictionAdd = "If follow-through breaks, we set a small step and a simple check-in so momentum holds.";
-      frictionNext = "Choose a step you can finish today. Then repeat tomorrow.";
+      frictionNext = "Choose a step you can finish today. Repeat tomorrow.";
       break;
   }
 
@@ -295,30 +242,15 @@ export default function Home() {
   const [goal, setGoal] = useState<GoalKey>("raise");
   const [timeline, setTimeline] = useState<TimelineKey>("fast");
   const [friction, setFriction] = useState<FrictionKey>("overwhelmed");
-
-  const [trialCode, setTrialCode] = useState<string>("");
-  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [revealed, setRevealed] = useState<boolean>(false);
 
   const goalRoute = useMemo(() => getGoalRoute(goal), [goal]);
   const decodeOut = useMemo(() => buildDecodeOutput(goal, timeline, friction), [goal, timeline, friction]);
 
   const applyDecodeHref = useMemo(
-    () => buildAppApplyHref({ goal, timeline, friction, trialCode: trialCode || undefined }),
-    [goal, timeline, friction, trialCode]
+    () => buildAppApplyHref({ goal, timeline, friction }),
+    [goal, timeline, friction]
   );
-
-  const onGenerateCode = () => {
-    const code = generateTrialCode();
-    setTrialCode(code);
-    setCopyStatus("idle");
-  };
-
-  const onCopyCode = async () => {
-    if (!trialCode) return;
-    const ok = await copyToClipboard(trialCode);
-    setCopyStatus(ok ? "copied" : "failed");
-    window.setTimeout(() => setCopyStatus("idle"), 1600);
-  };
 
   const goalKeys: GoalKey[] = ["raise", "approve", "lower", "calm"];
   const timelineKeys: TimelineKey[] = ["fast", "steady"];
@@ -333,93 +265,110 @@ export default function Home() {
         {/* HERO */}
         <header className="bc-hero">
           <div className="bc-heroCard">
-            <div className="bc-badgeRow">
-              <span className="bc-badge">{COPY.brand.productName}</span>
-              <span className="bc-badgeMuted">{COPY.brand.kicker}</span>
+            <div className="bc-heroTop">
+              <span className="bc-kickerPill">{COPY.hero.kicker}</span>
+              <span className="bc-trust">{COPY.hero.trust}</span>
             </div>
 
             <h1 className="bc-h1">{COPY.hero.headline}</h1>
-
-            <div className="bc-benefitLine" aria-label="Immediate benefit">
-              {COPY.hero.benefitLine}
-            </div>
-
             <p className="bc-lead">{COPY.hero.subhead}</p>
 
-            <div className="bc-seal" aria-label="Cipher and Co-Pilot linkage">
-              {COPY.hero.seal}
-            </div>
-
-            <div className="bc-contrastHeader">
-              <div className="bc-kickerInline">{COPY.contrast.title}</div>
-            </div>
-
-            <div className="bc-contrastGrid" role="list" aria-label="Yesterday versus Today">
-              <div className="bc-contrastCard" role="listitem">
-                <div className="bc-contrastTitle">{COPY.contrast.leftTitle}</div>
-                <div className="bc-contrastBody">{COPY.contrast.leftBody}</div>
-              </div>
-
-              <div className="bc-contrastCard bc-contrastToday" role="listitem">
-                <div className="bc-contrastTitle">{COPY.contrast.rightTitle}</div>
-                <div className="bc-contrastBody">{COPY.contrast.rightBody}</div>
-              </div>
-            </div>
-
-            <div className="bc-callout" role="note" aria-label="Decoding acceleration">
-              <span className="bc-dot" aria-hidden="true" />
-              <span className="bc-calloutText">{COPY.contrast.acceleration}</span>
+            <div className="bc-heroMicro">
+              <span className="bc-microDot" aria-hidden="true" />
+              <span>{COPY.hero.micro}</span>
             </div>
 
             <div className="bc-ctaRow" aria-label="Primary actions">
-              <ActionButton
-                variant="primary"
-                onClick={() => scrollToId(ANCHORS.decode)}
-                title="Start decoding (scroll to the decode preview)"
-              >
-                {COPY.hero.primaryCta}
+              <ActionButton variant="primary" onClick={() => scrollToId(ANCHORS.decode)} title="Start decoding (scroll)">
+                {COPY.hero.ctaPrimary}
               </ActionButton>
 
-              <ActionButton
-                variant="secondary"
-                onClick={() => scrollToId(ANCHORS.how)}
-                title="See how it works (scroll)"
-              >
-                {COPY.hero.secondaryCta}
+              <ActionButton variant="secondary" onClick={() => scrollToId(ANCHORS.how)} title="How it works (scroll)">
+                {COPY.hero.ctaSecondary}
               </ActionButton>
             </div>
+          </div>
 
-            <div className="bc-support">{COPY.hero.spine}</div>
+          {/* “Snap” strip (TikTok-native: fast recognition) */}
+          <div className="bc-snapStrip" aria-label="Recognition strip">
+            <div className="bc-snapTitle">{COPY.painSnap.title}</div>
+            <ul className="bc-snapList">
+              {COPY.painSnap.bullets.map((b: string) => (
+                <li key={b} className="bc-snapItem">
+                  <span className="bc-snapDot" aria-hidden="true" />
+                  <span>{b}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="bc-snapLine">{COPY.painSnap.line}</div>
           </div>
         </header>
 
-        {/* First 3 minutes */}
-        <section className="bc-section" id={ANCHORS.first3} aria-labelledby="first3-title">
+        {/* Tap-to-Reveal (makes it feel alive) */}
+        <section className="bc-section bc-reveal" aria-label="Tap to reveal decode">
           <div className="bc-sectionHeader">
-            <div className="bc-kicker">{COPY.firstThree.kicker}</div>
-            <h2 className="bc-h2" id="first3-title">
-              {COPY.firstThree.title}
-            </h2>
-            <p className="bc-p">{COPY.firstThree.subtitle}</p>
+            <div className="bc-kicker">{COPY.tapReveal.title}</div>
+            <h2 className="bc-h2">Your first “this is different” moment</h2>
+            <p className="bc-p">{COPY.tapReveal.subtitle}</p>
           </div>
 
-          <div className="bc-grid3" role="list" aria-label="First three minutes deliverables">
-            {COPY.firstThree.bullets.map((b: Pillar) => (
-              <div className="bc-stepCard" key={b.title} role="listitem">
-                <div className="bc-stepTitle">{b.title}</div>
-                <div className="bc-stepBody">{b.body}</div>
+          <div className="bc-revealCard">
+            {!revealed ? (
+              <button
+                type="button"
+                className="bc-revealBtn"
+                onClick={() => setRevealed(true)}
+                aria-label="Tap to reveal a decode"
+              >
+                <span className="bc-play" aria-hidden="true" />
+                <span className="bc-revealBtnText">{COPY.tapReveal.button}</span>
+                <span className="bc-revealHint">One tap. No lecture.</span>
+              </button>
+            ) : (
+              <div className="bc-revealed">
+                <div className="bc-revRow">
+                  <div className="bc-revLabel">{COPY.tapReveal.revealedLabel}</div>
+                  <div className="bc-revText">{COPY.tapReveal.revealedBody}</div>
+                </div>
+                <div className="bc-revRow">
+                  <div className="bc-revLabel">{COPY.tapReveal.revealedNextLabel}</div>
+                  <div className="bc-revText">{COPY.tapReveal.revealedNextBody}</div>
+                </div>
+                <div className="bc-revActions">
+                  <ActionButton variant="primary" onClick={() => scrollToId(ANCHORS.decode)}>
+                    Go to the full decode
+                  </ActionButton>
+                  <ActionButton variant="secondary" onClick={() => setRevealed(false)}>
+                    Reset
+                  </ActionButton>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* What happens next */}
+        <section className="bc-section" id={ANCHORS.next} aria-labelledby="next-title">
+          <div className="bc-sectionHeader">
+            <div className="bc-kicker">{COPY.next.kicker}</div>
+            <h2 className="bc-h2" id="next-title">{COPY.next.title}</h2>
+          </div>
+
+          <div className="bc-loop" role="list" aria-label="Decode loop">
+            {COPY.next.steps.map((s: Pillar) => (
+              <div className="bc-loopCard" key={s.title} role="listitem">
+                <div className="bc-loopTitle">{s.title}</div>
+                <div className="bc-loopBody">{s.body}</div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Decode Preview */}
+        {/* Decode Preview (main conversion engine) */}
         <section className="bc-section" id={ANCHORS.decode} aria-labelledby="decode-title">
           <div className="bc-sectionHeader">
             <div className="bc-kicker">{COPY.decodePreview.kicker}</div>
-            <h2 className="bc-h2" id="decode-title">
-              {COPY.decodePreview.title}
-            </h2>
+            <h2 className="bc-h2" id="decode-title">{COPY.decodePreview.title}</h2>
             <p className="bc-p">{COPY.decodePreview.subtitle}</p>
           </div>
 
@@ -453,8 +402,6 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              <div className="bc-finePrint">{COPY.decodePreview.safetyLine}</div>
             </div>
 
             <div className="bc-panel" aria-label="Decode preview output">
@@ -463,46 +410,23 @@ export default function Home() {
                 {LABELS.goal[goal]} · {LABELS.timeline[timeline]} · {LABELS.friction[friction]}
               </div>
 
-              <div className="bc-outputBlock" role="group" aria-label="Decoded output">
+              <div className="bc-outputBlock">
                 <div className="bc-outputLabel">{COPY.decodePreview.decodedLabel}</div>
                 <div className="bc-outputText">{decodeOut.decoded}</div>
               </div>
 
-              <div className="bc-outputBlock" role="group" aria-label="Next best move">
+              <div className="bc-outputBlock">
                 <div className="bc-outputLabel">{COPY.decodePreview.nextLabel}</div>
                 <div className="bc-outputText">{decodeOut.next}</div>
               </div>
 
-              <div className="bc-codeBlock" role="group" aria-label="Free trial access code">
-                <div className="bc-codeTitle">{COPY.decodePreview.codeTitle}</div>
-                <div className="bc-codeSub">{COPY.decodePreview.codeSubtitle}</div>
-
-                <div className="bc-codeRow">
-                  <div className={`bc-codePill ${trialCode ? "hasCode" : ""}`}>{trialCode || "No code generated yet"}</div>
-
-                  <button type="button" className="bc-miniBtn" onClick={onGenerateCode}>
-                    {COPY.decodePreview.codeCta}
-                  </button>
-
-                  <button type="button" className="bc-miniBtn" onClick={onCopyCode} disabled={!trialCode} aria-disabled={!trialCode}>
-                    {COPY.decodePreview.codeCopy}
-                  </button>
-                </div>
-
-                {copyStatus !== "idle" && (
-                  <div className={`bc-codeStatus ${copyStatus}`}>
-                    {copyStatus === "copied" ? "Code copied." : "Copy failed. You can still select and copy it."}
-                  </div>
-                )}
-              </div>
-
-              <div className="bc-ctaRow" aria-label="Decode preview actions">
+              <div className="bc-ctaRow">
                 <ActionLink
                   variant="primary"
                   external
                   href={applyDecodeHref}
                   fallbackTo={goalRoute}
-                  title="Apply this decode (deep-link optional, internal fallback)"
+                  title="Apply this decode (deep-link optional)"
                 >
                   {COPY.decodePreview.ctaPrimary}
                 </ActionLink>
@@ -518,25 +442,23 @@ export default function Home() {
         {/* How it works */}
         <section className="bc-section" id={ANCHORS.how} aria-labelledby="how-title">
           <div className="bc-sectionHeader">
-            <div className="bc-kicker">{COPY.mechanism.kicker}</div>
-            <h2 className="bc-h2" id="how-title">
-              {COPY.mechanism.title}
-            </h2>
-            <p className="bc-p">{COPY.mechanism.subtitle}</p>
+            <div className="bc-kicker">{COPY.how.kicker}</div>
+            <h2 className="bc-h2" id="how-title">{COPY.how.title}</h2>
+            <p className="bc-p">{COPY.how.subtitle}</p>
           </div>
 
           <div className="bc-equation" aria-label="Mechanism equation">
-            <span className="bc-eqItem">{COPY.mechanism.equation.left}</span>
+            <span className="bc-eqItem">{COPY.how.equation.left}</span>
             <span className="bc-eqOp" aria-hidden="true">+</span>
-            <span className="bc-eqItem">{COPY.mechanism.equation.plus1}</span>
+            <span className="bc-eqItem">{COPY.how.equation.plus1}</span>
             <span className="bc-eqOp" aria-hidden="true">+</span>
-            <span className="bc-eqItem">{COPY.mechanism.equation.plus2}</span>
+            <span className="bc-eqItem">{COPY.how.equation.plus2}</span>
             <span className="bc-eqEq" aria-hidden="true">=</span>
-            <span className="bc-eqResult">{COPY.mechanism.equation.equals}</span>
+            <span className="bc-eqResult">{COPY.how.equation.equals}</span>
           </div>
 
           <div className="bc-grid3" role="list" aria-label="Cipher, Co-Pilot, Formula">
-            {COPY.mechanism.pillars.map((p: Pillar) => (
+            {COPY.how.pillars.map((p: Pillar) => (
               <div className="bc-stepCard" key={p.title} role="listitem">
                 <div className="bc-stepTitle">{p.title}</div>
                 <div className="bc-stepBody">{p.body}</div>
@@ -572,7 +494,7 @@ export default function Home() {
   );
 }
 
-/* UI components */
+/* UI */
 
 function ActionButton(props: { variant: "primary" | "secondary"; onClick: () => void; title?: string; children: ReactNode }) {
   const className = props.variant === "primary" ? "bc-btn bc-btnPrimary" : "bc-btn bc-btnSecondary";
@@ -655,75 +577,54 @@ const CSS = `
 .bc-bg{
   position:absolute; inset:0; pointer-events:none;
   background:
-    radial-gradient(900px 520px at 14% 10%, rgba(0,255,220,0.18), transparent 55%),
-    radial-gradient(780px 520px at 86% 18%, rgba(0,190,255,0.12), transparent 55%),
+    radial-gradient(900px 520px at 14% 10%, rgba(0,255,220,0.22), transparent 55%),
+    radial-gradient(780px 520px at 86% 18%, rgba(0,190,255,0.14), transparent 55%),
     radial-gradient(900px 760px at 50% 96%, rgba(255,180,70,0.06), transparent 55%);
 }
-.bc-container{ position:relative; max-width:1120px; margin:0 auto; padding: 28px 18px 40px; }
 
-.bc-hero{ padding-top:10px; padding-bottom:10px; }
+.bc-container{ position:relative; max-width:1120px; margin:0 auto; padding: 22px 16px 40px; }
+
+.bc-hero{ padding-top:10px; }
 .bc-heroCard{
   border-radius: var(--r20);
-  background: var(--panel);
-  border: 1px solid var(--border);
-  padding: 22px;
+  background: linear-gradient(180deg, rgba(0,255,220,0.08), rgba(255,255,255,0.04));
+  border: 1px solid rgba(0,255,220,0.18);
+  padding: 20px;
   box-shadow: var(--shadow);
 }
 
-.bc-badgeRow{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:10px; }
-.bc-badge{
+.bc-heroTop{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+.bc-kickerPill{
   font-size:12px; letter-spacing:0.10em; text-transform:uppercase;
   padding:7px 10px; border-radius:999px;
-  background: rgba(0,255,220,0.10);
+  background: rgba(0,255,220,0.12);
   border:1px solid rgba(0,255,220,0.25);
 }
-.bc-badgeMuted{ font-size:12px; color: rgba(255,255,255,0.70); }
+.bc-trust{ font-size:12px; color: rgba(255,255,255,0.70); }
 
-.bc-h1{ font-size: clamp(28px, 4vw, 44px); line-height:1.08; margin: 10px 0 8px; letter-spacing:-0.02em; }
+.bc-h1{ font-size: clamp(30px, 5vw, 52px); line-height:1.04; margin: 8px 0 10px; letter-spacing:-0.03em; }
+.bc-lead{ font-size: 16px; line-height:1.6; color: rgba(255,255,255,0.80); margin: 0 0 12px; max-width: 980px; }
 
-.bc-benefitLine{
-  font-size: 15px; line-height: 1.45; font-weight: 900;
-  color: rgba(255,255,255,0.86);
+.bc-heroMicro{
+  display:inline-flex; align-items:center; gap:10px;
   padding: 10px 12px; border-radius: 14px;
-  background: rgba(0,255,220,0.08);
-  border: 1px solid var(--border2);
-  display: inline-block;
-  margin-bottom: 10px;
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.10);
+  margin-bottom: 12px;
+  font-weight: 900;
 }
+.bc-microDot{ width:10px; height:10px; border-radius:50%; background: rgba(0,255,220,0.90); box-shadow: 0 0 18px rgba(0,255,220,0.35); }
 
-.bc-lead{ font-size: 16px; line-height:1.6; color: rgba(255,255,255,0.80); margin: 0 0 10px; max-width: 980px; }
-
-.bc-seal{ font-size: 13px; color: rgba(255,255,255,0.72); margin-bottom: 10px; }
-.bc-contrastHeader{ margin-top: 12px; }
-.bc-kickerInline{ font-size:12px; letter-spacing:0.10em; text-transform:uppercase; color: rgba(0,255,220,0.75); }
-
-.bc-contrastGrid{
-  display:grid; grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:12px; margin-top:12px; margin-bottom:12px;
-}
-.bc-contrastCard{ border-radius: var(--r18); padding: 14px; background: var(--panel2); border:1px solid var(--border); }
-.bc-contrastToday{ background: rgba(0,255,220,0.08); border: 1px solid var(--border2); }
-.bc-contrastTitle{ font-size:12px; letter-spacing:0.10em; text-transform:uppercase; color: rgba(255,255,255,0.70); margin-bottom:8px; }
-.bc-contrastBody{ font-size:13px; line-height:1.5; color: rgba(255,255,255,0.82); }
-
-.bc-callout{
-  display:flex; gap:10px; align-items:flex-start;
-  padding: 12px 12px; border-radius: var(--r16);
-  background: var(--panel2); border: 1px solid var(--border2);
-  margin-bottom: 10px;
-}
-.bc-dot{ width:10px; height:10px; border-radius:50%; background: rgba(0,255,220,0.85); box-shadow: 0 0 18px rgba(0,255,220,0.28); margin-top:4px; flex:0 0 auto; }
-.bc-calloutText{ font-size:13px; line-height:1.45; color: rgba(255,255,255,0.80); }
-
-.bc-ctaRow{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px; margin-bottom:10px; }
+.bc-ctaRow{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px; }
 
 .bc-btn{
   display:inline-flex; align-items:center; justify-content:center;
   padding: 12px 14px; border-radius: 14px;
-  text-decoration:none; font-weight: 900;
+  font-weight: 950;
   border: 1px solid transparent;
   transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
   cursor:pointer;
+  text-decoration:none;
 }
 .bc-btn:focus-visible{ outline: 2px solid rgba(0,255,220,0.65); outline-offset: 3px; }
 .bc-btn:hover{ transform: translateY(-1px); }
@@ -733,47 +634,117 @@ const CSS = `
   box-shadow: 0 12px 28px rgba(0,255,220,0.18);
 }
 .bc-btnSecondary{
-  color: rgba(255,255,255,0.90);
+  color: rgba(255,255,255,0.92);
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.12);
 }
 
-.bc-support{ margin-top: 6px; font-size: 13px; color: rgba(255,255,255,0.72); }
+.bc-snapStrip{
+  margin-top: 12px;
+  border-radius: var(--r20);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.10);
+  padding: 16px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.20);
+}
+.bc-snapTitle{ font-weight: 950; font-size: 15px; margin-bottom: 10px; }
+.bc-snapList{ list-style:none; padding:0; margin:0 0 10px; display:grid; gap:8px; }
+.bc-snapItem{ display:flex; gap:10px; align-items:flex-start; color: rgba(255,255,255,0.78); line-height:1.45; }
+.bc-snapDot{ width:8px; height:8px; border-radius:999px; background: rgba(0,255,220,0.85); margin-top:6px; box-shadow: 0 0 14px rgba(0,255,220,0.22); }
+.bc-snapLine{ font-size: 13px; color: rgba(255,255,255,0.72); }
 
 .bc-section{
   margin-top:18px; border-radius: var(--r20);
   background: rgba(255,255,255,0.03);
-  border: 1px solid var(--border);
-  padding: 22px;
-  box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.10);
+  padding: 18px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.20);
 }
-.bc-sectionHeader{ margin-bottom: 14px; max-width: 980px; }
+.bc-sectionHeader{ margin-bottom: 12px; max-width: 980px; }
 .bc-kicker{ font-size:12px; letter-spacing:0.10em; text-transform:uppercase; color: rgba(0,255,220,0.75); margin-bottom:10px; }
 .bc-h2{ font-size: 24px; margin:0 0 8px; letter-spacing:-0.01em; }
-.bc-p{ margin:0; font-size:14px; line-height:1.65; color: var(--muted); }
+.bc-p{ margin:0; font-size:14px; line-height:1.65; color: rgba(255,255,255,0.74); }
 
-.bc-grid3{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; margin-top:12px; }
-.bc-stepCard{
+.bc-revealCard{
   border-radius: var(--r18);
-  padding: 16px;
-  background: linear-gradient(180deg, rgba(0,255,220,0.06), rgba(0,0,0,0.22));
-  border: 1px solid rgba(0,255,220,0.14);
+  border: 1px solid rgba(0,255,220,0.18);
+  background: radial-gradient(520px 320px at 30% 20%, rgba(0,255,220,0.14), transparent 55%),
+              rgba(0,0,0,0.18);
+  padding: 14px;
 }
-.bc-stepTitle{ font-size:14px; font-weight: 950; margin-bottom:8px; }
-.bc-stepBody{ font-size:13px; line-height:1.55; color: rgba(255,255,255,0.74); }
+.bc-revealBtn{
+  width: 100%;
+  border-radius: 16px;
+  padding: 18px 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.92);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+.bc-play{
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: rgba(0,255,220,0.14);
+  border: 1px solid rgba(0,255,220,0.25);
+  position: relative;
+  box-shadow: 0 0 22px rgba(0,255,220,0.18);
+}
+.bc-play:after{
+  content:"";
+  position:absolute;
+  left: 18px;
+  top: 14px;
+  width: 0; height: 0;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 14px solid rgba(0,255,220,0.85);
+}
+.bc-revealBtnText{ font-weight: 950; font-size: 16px; }
+.bc-revealHint{ font-size: 12px; color: rgba(255,255,255,0.70); }
+
+.bc-revealed{ display:grid; gap:12px; }
+.bc-revRow{
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(0,0,0,0.20);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.bc-revLabel{
+  font-size: 11px; letter-spacing:0.10em; text-transform:uppercase;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 8px;
+}
+.bc-revText{ font-size: 13px; line-height:1.6; color: rgba(255,255,255,0.80); }
+.bc-revActions{ display:flex; flex-wrap:wrap; gap:10px; }
+
+.bc-loop{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; margin-top: 10px; }
+.bc-loopCard{
+  border-radius: var(--r18);
+  padding: 14px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.bc-loopTitle{ font-weight: 950; margin-bottom: 8px; }
+.bc-loopBody{ font-size: 13px; color: rgba(255,255,255,0.74); line-height:1.5; }
 
 .bc-split{ display:grid; grid-template-columns: 1.15fr 0.85fr; gap:14px; align-items:start; }
 
 .bc-previewControls{
   border-radius: var(--r18);
-  padding: 16px;
-  background: var(--panel2);
-  border: 1px solid var(--border);
+  padding: 14px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
 }
-.bc-controlBlock{ margin-bottom: 14px; }
+.bc-controlBlock{ margin-bottom: 12px; }
 .bc-controlRow{ display:grid; grid-template-columns: 1fr; gap: 12px; }
 .bc-controlLabel{
-  font-size: 12px; letter-spacing: 0.10em; text-transform: uppercase;
+  font-size: 12px; letter-spacing:0.10em; text-transform:uppercase;
   color: rgba(255,255,255,0.70);
   margin-bottom: 10px;
 }
@@ -789,10 +760,8 @@ const CSS = `
   color: rgba(255,255,255,0.90);
   font-weight: 950;
   text-align: left;
-  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  cursor:pointer;
 }
-.bc-chip:hover{ transform: translateY(-1px); }
-.bc-chip:focus-visible{ outline: 2px solid rgba(0,255,220,0.65); outline-offset: 3px; }
 .bc-chip.isActive{
   background: rgba(0,255,220,0.10);
   border: 1px solid rgba(0,255,220,0.26);
@@ -801,11 +770,10 @@ const CSS = `
 
 .bc-panel{
   border-radius: var(--r18);
-  padding: 16px;
+  padding: 14px;
   background: radial-gradient(520px 320px at 30% 20%, rgba(0,255,220,0.10), transparent 55%),
               rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.12);
-  min-height: 220px;
 }
 .bc-panelLabel{
   font-size:12px; letter-spacing:0.10em; text-transform:uppercase;
@@ -822,87 +790,52 @@ const CSS = `
   margin-top: 10px;
 }
 .bc-outputLabel{
-  font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase;
+  font-size: 11px; letter-spacing:0.10em; text-transform:uppercase;
   color: rgba(255,255,255,0.65);
   margin-bottom: 8px;
 }
-.bc-outputText{ font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.80); }
+.bc-outputText{ font-size: 13px; line-height:1.6; color: rgba(255,255,255,0.80); }
 
-.bc-codeBlock{
-  margin-top: 12px;
-  border-radius: 16px;
-  padding: 12px;
-  background: rgba(0,0,0,0.18);
-  border: 1px solid rgba(255,255,255,0.10);
+.bc-grid3{ display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px; margin-top:12px; }
+.bc-stepCard{
+  border-radius: var(--r18);
+  padding: 14px;
+  background: linear-gradient(180deg, rgba(0,255,220,0.06), rgba(0,0,0,0.22));
+  border: 1px solid rgba(0,255,220,0.14);
 }
-.bc-codeTitle{ font-size: 13px; font-weight: 950; margin-bottom: 6px; }
-.bc-codeSub{ font-size: 12px; color: rgba(255,255,255,0.68); line-height: 1.45; margin-bottom: 10px; }
-
-.bc-codeRow{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-.bc-codePill{
-  flex: 1 1 220px;
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.10);
-  font-weight: 950;
-  color: rgba(255,255,255,0.78);
-}
-.bc-codePill.hasCode{
-  background: rgba(0,255,220,0.08);
-  border: 1px solid rgba(0,255,220,0.18);
-  color: rgba(255,255,255,0.88);
-}
-.bc-miniBtn{
-  border-radius: 14px;
-  padding: 10px 12px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.90);
-  font-weight: 950;
-  cursor: pointer;
-}
-.bc-miniBtn:disabled{ opacity: 0.55; cursor: not-allowed; }
-.bc-miniBtn:focus-visible{ outline: 2px solid rgba(0,255,220,0.65); outline-offset: 3px; }
-
-.bc-codeStatus{
-  margin-top: 10px;
-  font-size: 12px;
-  color: rgba(255,255,255,0.72);
-}
-.bc-codeStatus.copied{ color: rgba(0,255,220,0.85); }
-.bc-codeStatus.failed{ color: rgba(255,180,70,0.85); }
+.bc-stepTitle{ font-size:14px; font-weight: 980; margin-bottom:8px; }
+.bc-stepBody{ font-size:13px; line-height:1.55; color: rgba(255,255,255,0.74); }
 
 .bc-equation{
   border-radius: var(--r18);
-  padding: 16px;
-  background: var(--panel2);
-  border: 1px solid var(--border);
+  padding: 14px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
   display:flex; flex-wrap:wrap; align-items:center; gap:10px;
-  margin-top:14px;
+  margin-top: 12px;
 }
 .bc-eqItem{
   padding: 10px 12px;
   border-radius: 14px;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
-  font-weight: 950;
+  font-weight: 980;
   font-size: 13px;
 }
-.bc-eqOp{ font-size:16px; font-weight: 950; color: rgba(255,255,255,0.75); }
-.bc-eqEq{ font-size:16px; font-weight: 950; color: rgba(0,255,220,0.85); }
+.bc-eqOp{ font-size:16px; font-weight: 980; color: rgba(255,255,255,0.75); }
+.bc-eqEq{ font-size:16px; font-weight: 980; color: rgba(0,255,220,0.85); }
 .bc-eqResult{
   padding: 10px 12px;
   border-radius: 14px;
   background: rgba(0,255,220,0.10);
   border: 1px solid rgba(0,255,220,0.22);
-  font-weight: 980;
+  font-weight: 990;
   font-size: 13px;
 }
 
-.bc-card{ border-radius: var(--r18); padding: 16px; background: var(--panel2); border: 1px solid var(--border); }
-.bc-cardTitle{ font-size:14px; font-weight: 950; margin-bottom:8px; }
-.bc-cardBody{ font-size:13px; line-height:1.55; color: rgba(255,255,255,0.72); }
+.bc-card{ border-radius: var(--r18); padding: 14px; background: rgba(0,0,0,0.18); border: 1px solid rgba(255,255,255,0.10); }
+.bc-cardTitle{ font-size:14px; font-weight: 980; margin-bottom:8px; }
+.bc-cardBody{ font-size:13px; line-height:1.55; color: rgba(255,255,255,0.74); }
 
 .bc-footer{
   margin-top:18px;
@@ -917,14 +850,13 @@ const CSS = `
 .bc-footerSmall{ font-size:12px; }
 
 @media (max-width: 880px){
-  .bc-grid3{ grid-template-columns: 1fr; }
-  .bc-contrastGrid{ grid-template-columns: 1fr; }
   .bc-split{ grid-template-columns: 1fr; }
+  .bc-grid3{ grid-template-columns: 1fr; }
+  .bc-loop{ grid-template-columns: 1fr; }
   .bc-chipGrid{ grid-template-columns: 1fr; }
 }
-
 @media (prefers-reduced-motion: reduce){
-  .bc-btn, .bc-chip{ transition:none; }
-  .bc-btn:hover, .bc-chip:hover{ transform:none; }
+  .bc-btn{ transition:none; }
+  .bc-btn:hover{ transform:none; }
 }
 `;

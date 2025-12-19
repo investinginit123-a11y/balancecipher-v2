@@ -5,8 +5,9 @@ type StepIndex = 0 | 1 | 2;
 
 type Step = {
   key: "hero" | "ten-second" | "apply";
+  eyebrow?: string;
   title: string;
-  kicker?: string;
+  subtitle?: string;
   body: React.ReactNode;
   primaryCta: string;
   onPrimary: () => void;
@@ -31,104 +32,118 @@ export default function App() {
     const s: [Step, Step, Step] = [
       {
         key: "hero",
+        eyebrow: "BALANCE Cipher",
         title: "Are you ready to start decoding?",
-        kicker: "BALANCE Cipher",
+        subtitle: "Tap once. Get clarity fast. Keep moving.",
         body: (
           <>
-            <p style={styles.p}>
-              The Cipher is the map. The AI Co-Pilot is the only guide that has the goods to decode it into simple,
-              actionable steps — using the BALANCE Formula.
-            </p>
-            <div style={styles.callout}>
-              <div style={styles.calloutTitle}>What you’ll feel in 30 seconds</div>
-              <ul style={styles.ul}>
-                <li style={styles.li}>Less noise. More clarity.</li>
-                <li style={styles.li}>One next step you can actually do.</li>
-                <li style={styles.li}>Momentum without overwhelm.</li>
-              </ul>
+            <div style={styles.leadCard}>
+              <div style={styles.leadTitle}>What happens next</div>
+              <ol style={styles.ol}>
+                <li style={styles.li}>
+                  <strong>Step 1:</strong> You choose what you want clarity on.
+                </li>
+                <li style={styles.li}>
+                  <strong>Step 2:</strong> The Co-Pilot decodes the Cipher into one simple action (10 seconds).
+                </li>
+                <li style={styles.li}>
+                  <strong>Step 3:</strong> You execute one clean step. Progress is recorded.
+                </li>
+              </ol>
+            </div>
+
+            <div style={styles.microNote}>
+              The Cipher is the structure. The AI Co-Pilot has the goods to decode it into simple, actionable steps — via
+              the BALANCE Formula.
             </div>
           </>
         ),
         primaryCta: "Start Decoding",
         onPrimary: () => next(),
-        secondaryCta: "See how it works",
+        secondaryCta: "Preview the 10-Second Rule",
         onSecondary: () => next(),
       },
       {
         key: "ten-second",
+        eyebrow: "The Rule",
         title: "The 10-Second Rule",
-        kicker: "Fast clarity, no hype",
+        subtitle: "If your next step can’t be said in 10 seconds, it’s not decoded yet.",
         body: (
           <>
-            <p style={styles.p}>
-              If you can’t explain the next step in under 10 seconds, it’s not clear enough yet.
-              The Co-Pilot’s job is to reduce it until it is.
-            </p>
+            <div style={styles.split}>
+              <div style={styles.panel}>
+                <div style={styles.panelTitle}>Say this out loud</div>
+                <div style={styles.quote}>
+                  “My next step is <span style={styles.underline}>_____</span>.”
+                </div>
+                <div style={styles.panelText}>
+                  If you stall, you don’t need motivation. You need a smaller step.
+                </div>
+              </div>
 
-            <div style={styles.callout}>
-              <div style={styles.calloutTitle}>Try it right now</div>
-              <p style={styles.pSmall}>
-                Say this out loud (or in your head): <strong>“My next step is…”</strong>
-              </p>
-              <p style={styles.pSmall}>
-                If you stall, the Cipher isn’t decoded yet. That’s not failure — it’s a signal.
-              </p>
+              <div style={styles.panel}>
+                <div style={styles.panelTitle}>Example</div>
+                <div style={styles.exampleGrid}>
+                  <div style={styles.exampleBad}>
+                    <div style={styles.exampleLabel}>Too big</div>
+                    <div style={styles.exampleText}>“Fix my finances.”</div>
+                  </div>
+                  <div style={styles.exampleGood}>
+                    <div style={styles.exampleLabel}>Decoded</div>
+                    <div style={styles.exampleText}>“List my four bills due this week.”</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div style={styles.miniGrid}>
-              <div style={styles.miniCard}>
-                <div style={styles.miniCardTitle}>Too big</div>
-                <div style={styles.miniCardBody}>“Fix my finances.”</div>
-              </div>
-              <div style={styles.miniCard}>
-                <div style={styles.miniCardTitle}>Decoded</div>
-                <div style={styles.miniCardBody}>“List my four bills due this week.”</div>
-              </div>
+            <div style={styles.microNote}>
+              This is how we keep the experience moving: one screen, one clear action.
             </div>
           </>
         ),
-        primaryCta: "Apply This to Code",
+        primaryCta: "Apply This (Like Code)",
         onPrimary: () => next(),
         secondaryCta: "Back",
         onSecondary: () => prev(),
       },
       {
         key: "apply",
-        title: "Apply the Rule to Your Life (Like Code)",
-        kicker: "One screen. One action.",
+        eyebrow: "Execution",
+        title: "Apply the Rule (Like Code)",
+        subtitle: "Small inputs. Clear outputs. No guessing.",
         body: (
           <>
-            <p style={styles.p}>
-              Think like a clean build: small inputs, clear outputs, no guessing. The Cipher gives the structure.
-              The Co-Pilot translates it into a step you can execute today.
-            </p>
-
-            <div style={styles.callout}>
-              <div style={styles.calloutTitle}>Co-Pilot + Cipher (linked)</div>
+            <div style={styles.leadCard}>
+              <div style={styles.leadTitle}>Co-Pilot + Cipher (linked)</div>
               <ul style={styles.ul}>
                 <li style={styles.li}>
-                  <strong>Structure:</strong> the Cipher shows what matters.
+                  <strong>Cipher:</strong> shows what matters (structure).
                 </li>
                 <li style={styles.li}>
-                  <strong>Translation:</strong> the Co-Pilot decodes it into one clear step.
+                  <strong>Co-Pilot:</strong> decodes it into one clean step (translation).
                 </li>
                 <li style={styles.li}>
-                  <strong>Execution:</strong> you do the step. Progress is recorded.
+                  <strong>You:</strong> execute the step (ownership).
                 </li>
               </ul>
+            </div>
+
+            <div style={styles.microNote}>
+              When you enter the Cipher, the only goal is forward motion — without overwhelm.
             </div>
           </>
         ),
         primaryCta: "Enter the Cipher",
         onPrimary: () => {
-          // Replace with your real entry path when ready.
+          // Replace this with your real entry path when ready.
+          // window.location.href = "/app";
+          // window.location.hash = "#/app";
           window.location.hash = "#start";
         },
         secondaryCta: "Back",
         onSecondary: () => prev(),
       },
     ];
-
     return s;
   }, [stepIndex]);
 
@@ -136,21 +151,27 @@ export default function App() {
 
   return (
     <div style={styles.page}>
-      <GlobalKeyframes />
-      <div style={styles.bgGlow} aria-hidden="true" />
+      <GlobalStyles />
+
+      <div className="bgGlow" aria-hidden="true" />
+      <div className="gridOverlay" aria-hidden="true" />
+
+      {/* Optional watermark logo in the background (subtle). */}
+      <div className="watermark" aria-hidden="true" />
 
       <header style={styles.header}>
         <div style={styles.brandRow}>
           <img
             src="/brand/Cipher-Emblem.png"
-            alt="BALANCE Cipher"
+            alt="BALANCE Cipher emblem"
             style={styles.emblem}
+            className="emblemPulse"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).style.display = "none";
             }}
           />
           <div>
-            <div style={styles.brandKicker}>{active.kicker}</div>
+            <div style={styles.eyebrow}>{active.eyebrow}</div>
             <div style={styles.brandTitle}>BALANCE</div>
           </div>
         </div>
@@ -161,10 +182,7 @@ export default function App() {
               key={i}
               type="button"
               onClick={() => goTo(i)}
-              style={{
-                ...styles.dot,
-                ...(i === stepIndex ? styles.dotActive : null),
-              }}
+              className={`dot ${i === stepIndex ? "dotActive" : ""}`}
               aria-label={`Go to step ${i + 1}`}
             />
           ))}
@@ -180,23 +198,35 @@ export default function App() {
               ...slideInStyle(direction),
             }}
           >
-            <h1 style={styles.h1}>{active.title}</h1>
+            <div style={styles.titleBlock}>
+              <h1 style={styles.h1}>{active.title}</h1>
+              {active.subtitle ? <div style={styles.subtitle}>{active.subtitle}</div> : null}
+            </div>
+
             <div style={styles.divider} />
 
             <div>{active.body}</div>
 
             <div style={styles.ctaRow}>
               {active.secondaryCta && active.onSecondary ? (
-                <button type="button" onClick={active.onSecondary} style={styles.secondaryBtn}>
+                <button type="button" onClick={active.onSecondary} className="btnSecondary">
                   {active.secondaryCta}
                 </button>
               ) : (
                 <span />
               )}
 
-              <button type="button" onClick={active.onPrimary} style={styles.primaryBtn}>
-                {active.primaryCta}
-              </button>
+              <div className="ctaWrap">
+                <div className="cipherCore" aria-hidden="true" />
+                <button type="button" onClick={active.onPrimary} className="btnPrimary">
+                  <span className="btnPrimaryText">{active.primaryCta}</span>
+                  <span className="btnShimmer" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div style={styles.footerHint}>
+              Co-Pilot + Cipher, linked: the Cipher provides structure; the Co-Pilot decodes it into simple actions.
             </div>
           </div>
         </div>
@@ -204,7 +234,7 @@ export default function App() {
 
       <footer style={styles.footer}>
         <div style={styles.footerLine}>
-          Co-Pilot + Cipher, linked: the Cipher provides the structure; the Co-Pilot decodes it into simple actions.
+          Tip: If the button feels too intense, we can dial the pulse down in one place (CSS only).
         </div>
       </footer>
     </div>
@@ -213,20 +243,185 @@ export default function App() {
 
 function slideInStyle(direction: Direction): React.CSSProperties {
   const name = direction === 1 ? "slideInFromRight" : "slideInFromLeft";
-  return { animation: `${name} 240ms ease-out` };
+  return { animation: `${name} 260ms ease-out` };
 }
 
-function GlobalKeyframes() {
+function GlobalStyles() {
   return (
     <style>
       {`
+        /* Motion + style system (self-contained) */
+        :root {
+          --navy: #071423;
+          --panel: rgba(10, 24, 40, 0.78);
+          --line: rgba(255,255,255,0.10);
+          --text: rgba(255,255,255,0.92);
+          --muted: rgba(255,255,255,0.72);
+          --teal: rgba(0,255,214,0.85);
+          --tealSoft: rgba(0,255,214,0.18);
+          --shadow: rgba(0,0,0,0.55);
+        }
+
         @keyframes slideInFromRight {
-          from { transform: translateX(22px); opacity: 0.0; }
+          from { transform: translateX(26px); opacity: 0.0; }
           to   { transform: translateX(0px);  opacity: 1.0; }
         }
         @keyframes slideInFromLeft {
-          from { transform: translateX(-22px); opacity: 0.0; }
+          from { transform: translateX(-26px); opacity: 0.0; }
           to   { transform: translateX(0px);   opacity: 1.0; }
+        }
+
+        @keyframes breatheGlow {
+          0%   { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px var(--shadow); }
+          50%  { box-shadow: 0 0 28px rgba(0,255,214,0.22), 0 16px 60px var(--shadow); }
+          100% { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px var(--shadow); }
+        }
+
+        @keyframes cipherCorePulse {
+          0%   { transform: translate(-50%,-50%) scale(0.98); opacity: 0.55; }
+          50%  { transform: translate(-50%,-50%) scale(1.03); opacity: 0.95; }
+          100% { transform: translate(-50%,-50%) scale(0.98); opacity: 0.55; }
+        }
+
+        @keyframes shimmerSweep {
+          0%   { transform: translateX(-140%); opacity: 0.0; }
+          25%  { opacity: 0.55; }
+          100% { transform: translateX(140%); opacity: 0.0; }
+        }
+
+        @keyframes emblemFloat {
+          0%   { transform: translateY(0px); }
+          50%  { transform: translateY(-2px); }
+          100% { transform: translateY(0px); }
+        }
+
+        /* Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          * { animation: none !important; transition: none !important; }
+        }
+
+        .bgGlow {
+          position: absolute;
+          inset: -20%;
+          background: radial-gradient(closest-side, rgba(0,255,214,0.10), rgba(0,0,0,0) 70%);
+          filter: blur(14px);
+          pointer-events: none;
+        }
+
+        .gridOverlay {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+          background-size: 56px 56px;
+          opacity: 0.12;
+          pointer-events: none;
+        }
+
+        .watermark {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 520px;
+          height: 520px;
+          transform: translate(-50%,-50%);
+          background-image: url('/brand/Cipher-Emblem.png');
+          background-size: contain;
+          background-repeat: no-repeat;
+          opacity: 0.06;
+          filter: blur(0px);
+          pointer-events: none;
+        }
+
+        .emblemPulse {
+          animation: emblemFloat 2.6s ease-in-out infinite;
+          box-shadow: 0 0 26px rgba(0,255,214,0.20);
+        }
+
+        .dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(255,255,255,0.18);
+          background: rgba(255,255,255,0.06);
+          cursor: pointer;
+        }
+        .dotActive {
+          background: rgba(0,255,214,0.70);
+          border: 1px solid rgba(0,255,214,0.90);
+          box-shadow: 0 0 18px rgba(0,255,214,0.18);
+        }
+
+        .ctaWrap {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .cipherCore {
+          position: absolute;
+          left: 50%;
+          top: 50%;
+          width: 92px;
+          height: 92px;
+          border-radius: 999px;
+          transform: translate(-50%,-50%);
+          border: 1px solid rgba(0,255,214,0.22);
+          box-shadow:
+            0 0 34px rgba(0,255,214,0.12),
+            inset 0 0 22px rgba(0,255,214,0.08);
+          background: radial-gradient(circle, rgba(0,255,214,0.10), rgba(0,0,0,0) 60%);
+          animation: cipherCorePulse 1.8s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .btnPrimary {
+          position: relative;
+          overflow: hidden;
+          border-radius: 18px;
+          padding: 14px 18px;
+          border: 1px solid rgba(0,255,214,0.42);
+          background: rgba(0,255,214,0.14);
+          color: var(--text);
+          font-weight: 900;
+          letter-spacing: 0.02em;
+          cursor: pointer;
+          min-width: 220px;
+          backdrop-filter: blur(8px);
+          animation: breatheGlow 2.4s ease-in-out infinite;
+        }
+        .btnPrimary:active {
+          transform: translateY(1px);
+        }
+
+        .btnPrimaryText {
+          position: relative;
+          z-index: 2;
+        }
+
+        .btnShimmer {
+          position: absolute;
+          top: -40%;
+          left: 0;
+          width: 60%;
+          height: 180%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent);
+          transform: translateX(-140%);
+          animation: shimmerSweep 2.6s ease-in-out infinite;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .btnSecondary {
+          border-radius: 16px;
+          padding: 12px 16px;
+          border: 1px solid rgba(255,255,255,0.16);
+          background: rgba(255,255,255,0.06);
+          color: rgba(255,255,255,0.86);
+          font-weight: 750;
+          cursor: pointer;
         }
       `}
     </style>
@@ -241,21 +436,16 @@ const styles: Record<string, React.CSSProperties> = {
     position: "relative",
     overflow: "hidden",
   },
-  bgGlow: {
-    position: "absolute",
-    inset: "-20%",
-    background: "radial-gradient(closest-side, rgba(0, 255, 214, 0.10), rgba(0, 0, 0, 0) 70%)",
-    filter: "blur(12px)",
-    pointerEvents: "none",
-  },
   header: {
     padding: "22px 18px 12px",
-    maxWidth: 980,
+    maxWidth: 1040,
     margin: "0 auto",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 16,
+    position: "relative",
+    zIndex: 2,
   },
   brandRow: {
     display: "flex",
@@ -263,127 +453,167 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 14,
   },
   emblem: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    boxShadow: "0 0 26px rgba(0,255,214,0.18)",
+    width: 44,
+    height: 44,
+    borderRadius: 12,
   },
-  brandKicker: {
+  eyebrow: {
     fontSize: 12,
-    letterSpacing: "0.12em",
+    letterSpacing: "0.14em",
     textTransform: "uppercase",
-    color: "rgba(0,255,214,0.78)",
+    color: "rgba(0,255,214,0.86)",
+    fontWeight: 850,
   },
   brandTitle: {
     fontSize: 18,
     letterSpacing: "0.10em",
-    fontWeight: 800,
+    fontWeight: 900,
   },
   dots: {
     display: "flex",
     gap: 8,
     alignItems: "center",
   },
-  dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.18)",
-    background: "rgba(255,255,255,0.06)",
-    cursor: "pointer",
-  },
-  dotActive: {
-    background: "rgba(0,255,214,0.65)",
-    border: "1px solid rgba(0,255,214,0.85)",
-    boxShadow: "0 0 18px rgba(0,255,214,0.18)",
-  },
   main: {
     padding: "10px 18px 22px",
-    maxWidth: 980,
+    maxWidth: 1040,
     margin: "0 auto",
+    position: "relative",
+    zIndex: 2,
   },
   viewport: {
     position: "relative",
   },
   card: {
-    borderRadius: 22,
+    borderRadius: 24,
     border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(10, 24, 40, 0.72)",
+    background: "rgba(10, 24, 40, 0.78)",
     boxShadow: "0 18px 60px rgba(0,0,0,0.55)",
     padding: 22,
-    backdropFilter: "blur(10px)",
+    backdropFilter: "blur(12px)",
+    maxWidth: 840,
+    margin: "0 auto",
+  },
+  titleBlock: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
   },
   h1: {
     margin: 0,
-    fontSize: 28,
-    lineHeight: 1.15,
+    fontSize: 30,
+    lineHeight: 1.12,
     letterSpacing: "-0.02em",
+  },
+  subtitle: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 15,
+    lineHeight: 1.5,
+    maxWidth: 680,
   },
   divider: {
     height: 1,
     background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))",
     margin: "14px 0 16px",
   },
-  p: {
-    margin: "0 0 14px",
-    fontSize: 16,
-    lineHeight: 1.55,
-    color: "rgba(255,255,255,0.86)",
-  },
-  pSmall: {
-    margin: "0 0 10px",
-    fontSize: 14,
-    lineHeight: 1.55,
-    color: "rgba(255,255,255,0.82)",
-  },
-  callout: {
+  leadCard: {
     borderRadius: 18,
     border: "1px solid rgba(0,255,214,0.18)",
     background: "rgba(0,255,214,0.06)",
     padding: 14,
-    margin: "14px 0 16px",
+    marginBottom: 14,
   },
-  calloutTitle: {
-    fontSize: 13,
-    letterSpacing: "0.10em",
+  leadTitle: {
+    fontSize: 12,
+    letterSpacing: "0.12em",
     textTransform: "uppercase",
-    color: "rgba(0,255,214,0.85)",
+    color: "rgba(0,255,214,0.88)",
+    fontWeight: 900,
     marginBottom: 10,
-    fontWeight: 800,
+  },
+  microNote: {
+    marginTop: 8,
+    color: "rgba(255,255,255,0.70)",
+    fontSize: 13,
+    lineHeight: 1.55,
+  },
+  ol: {
+    margin: 0,
+    paddingLeft: 18,
   },
   ul: {
     margin: 0,
     paddingLeft: 18,
   },
   li: {
-    margin: "8px 0",
-    color: "rgba(255,255,255,0.84)",
-    lineHeight: 1.5,
+    margin: "10px 0",
+    color: "rgba(255,255,255,0.86)",
+    lineHeight: 1.55,
     fontSize: 14,
   },
-  miniGrid: {
+  split: {
+    display: "grid",
+    gridTemplateColumns: "1fr",
+    gap: 12,
+  },
+  panel: {
+    borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 14,
+  },
+  panelTitle: {
+    fontSize: 12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
+    marginBottom: 10,
+  },
+  quote: {
+    fontSize: 18,
+    lineHeight: 1.35,
+    color: "rgba(255,255,255,0.92)",
+    marginBottom: 10,
+  },
+  underline: {
+    borderBottom: "2px solid rgba(0,255,214,0.55)",
+    paddingBottom: 1,
+  },
+  panelText: {
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 14,
+    lineHeight: 1.55,
+  },
+  exampleGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    gap: 12,
-    marginTop: 6,
+    gap: 10,
   },
-  miniCard: {
+  exampleBad: {
     borderRadius: 16,
     border: "1px solid rgba(255,255,255,0.10)",
     background: "rgba(255,255,255,0.04)",
     padding: 12,
   },
-  miniCardTitle: {
+  exampleGood: {
+    borderRadius: 16,
+    border: "1px solid rgba(0,255,214,0.20)",
+    background: "rgba(0,255,214,0.06)",
+    padding: 12,
+  },
+  exampleLabel: {
     fontSize: 12,
     letterSpacing: "0.10em",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.70)",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
     marginBottom: 8,
-    fontWeight: 800,
   },
-  miniCardBody: {
+  exampleText: {
     fontSize: 14,
-    color: "rgba(255,255,255,0.86)",
+    color: "rgba(255,255,255,0.88)",
+    lineHeight: 1.5,
   },
   ctaRow: {
     display: "flex",
@@ -391,34 +621,25 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "space-between",
     gap: 12,
     marginTop: 18,
+    flexWrap: "wrap",
   },
-  primaryBtn: {
-    borderRadius: 16,
-    padding: "12px 16px",
-    border: "1px solid rgba(0,255,214,0.35)",
-    background: "rgba(0,255,214,0.12)",
-    color: "rgba(255,255,255,0.92)",
-    fontWeight: 800,
-    letterSpacing: "0.02em",
-    cursor: "pointer",
-    boxShadow: "0 0 26px rgba(0,255,214,0.10)",
-  },
-  secondaryBtn: {
-    borderRadius: 16,
-    padding: "12px 16px",
-    border: "1px solid rgba(255,255,255,0.14)",
-    background: "rgba(255,255,255,0.05)",
-    color: "rgba(255,255,255,0.86)",
-    fontWeight: 700,
-    cursor: "pointer",
+  footerHint: {
+    marginTop: 14,
+    fontSize: 12,
+    lineHeight: 1.5,
+    color: "rgba(255,255,255,0.62)",
+    borderTop: "1px solid rgba(255,255,255,0.10)",
+    paddingTop: 12,
   },
   footer: {
-    maxWidth: 980,
+    maxWidth: 1040,
     margin: "0 auto",
     padding: "0 18px 22px",
-    color: "rgba(255,255,255,0.62)",
+    color: "rgba(255,255,255,0.60)",
     fontSize: 12,
     lineHeight: 1.45,
+    position: "relative",
+    zIndex: 2,
   },
   footerLine: {
     borderTop: "1px solid rgba(255,255,255,0.10)",

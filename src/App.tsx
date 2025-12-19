@@ -1,7 +1,7 @@
-import React from "react";
-impoimport React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 
 type Direction = 1 | -1;
+type StepIndex = 0 | 1 | 2;
 
 type Step = {
   key: "hero" | "ten-second" | "apply";
@@ -15,20 +15,20 @@ type Step = {
 };
 
 export default function App() {
-  const [stepIndex, setStepIndex] = useState(0);
+  const [stepIndex, setStepIndex] = useState<StepIndex>(0);
   const [direction, setDirection] = useState<Direction>(1);
 
-  const goTo = (nextIndex: number) => {
+  const goTo = (nextIndex: StepIndex) => {
     if (nextIndex === stepIndex) return;
     setDirection(nextIndex > stepIndex ? 1 : -1);
     setStepIndex(nextIndex);
   };
 
-  const next = () => goTo(Math.min(stepIndex + 1, 2));
-  const prev = () => goTo(Math.max(stepIndex - 1, 0));
+  const next = () => goTo((stepIndex === 2 ? 2 : ((stepIndex + 1) as StepIndex)) as StepIndex);
+  const prev = () => goTo((stepIndex === 0 ? 0 : ((stepIndex - 1) as StepIndex)) as StepIndex);
 
-  const steps: Step[] = useMemo(() => {
-    return [
+  const steps = useMemo(() => {
+    const s: [Step, Step, Step] = [
       {
         key: "hero",
         title: "Are you ready to start decoding?",
@@ -121,15 +121,15 @@ export default function App() {
         ),
         primaryCta: "Enter the Cipher",
         onPrimary: () => {
-          // Replace this with your real entry path when ready (examples below).
-          // window.location.href = "/app";
-          // window.location.hash = "#/app";
+          // Replace with your real entry path when ready.
           window.location.hash = "#start";
         },
         secondaryCta: "Back",
         onSecondary: () => prev(),
       },
     ];
+
+    return s;
   }, [stepIndex]);
 
   const active = steps[stepIndex];
@@ -137,7 +137,6 @@ export default function App() {
   return (
     <div style={styles.page}>
       <GlobalKeyframes />
-
       <div style={styles.bgGlow} aria-hidden="true" />
 
       <header style={styles.header}>
@@ -147,7 +146,6 @@ export default function App() {
             alt="BALANCE Cipher"
             style={styles.emblem}
             onError={(e) => {
-              // If emblem path differs, keep layout stable by hiding the image.
               (e.currentTarget as HTMLImageElement).style.display = "none";
             }}
           />
@@ -158,7 +156,7 @@ export default function App() {
         </div>
 
         <div style={styles.dots} aria-label="Progress">
-          {[0, 1, 2].map((i) => (
+          {([0, 1, 2] as const).map((i) => (
             <button
               key={i}
               type="button"
@@ -215,9 +213,7 @@ export default function App() {
 
 function slideInStyle(direction: Direction): React.CSSProperties {
   const name = direction === 1 ? "slideInFromRight" : "slideInFromLeft";
-  return {
-    animation: `${name} 240ms ease-out`,
-  };
+  return { animation: `${name} 240ms ease-out` };
 }
 
 function GlobalKeyframes() {
@@ -248,8 +244,7 @@ const styles: Record<string, React.CSSProperties> = {
   bgGlow: {
     position: "absolute",
     inset: "-20%",
-    background:
-      "radial-gradient(closest-side, rgba(0, 255, 214, 0.10), rgba(0, 0, 0, 0) 70%)",
+    background: "radial-gradient(closest-side, rgba(0, 255, 214, 0.10), rgba(0, 0, 0, 0) 70%)",
     filter: "blur(12px)",
     pointerEvents: "none",
   },
@@ -430,10 +425,3 @@ const styles: Record<string, React.CSSProperties> = {
     paddingTop: 12,
   },
 };
-rt Home from "./pages/Home";
-
-export default function App() {
-  return <Home />;
-}
-
-

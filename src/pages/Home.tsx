@@ -1,5 +1,800 @@
 import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+impoimport React, { useMemo, useRef, useState } from "react";
+
+/**
+ * BALANCE Cipher V2 — Social Conversion Landing (Clean)
+ * Design goals:
+ * - Less “busy”: fewer boxes, fewer borders, more breathing room
+ * - One obvious action: Get your next move
+ * - Mobile-first: reads clean from TikTok/IG traffic
+ * - 8th-grade clarity: short lines, plain language
+ */
+
+type GoalKey = "raise" | "approve" | "lower" | "calm";
+type TimelineKey = "fast" | "steady";
+type BlockerKey = "confused" | "overwhelmed" | "noPlan" | "noFollowThrough";
+
+const LABELS = {
+  goal: {
+    raise: "Raise my score",
+    approve: "Get approved",
+    lower: "Lower my rate",
+    calm: "Stop the chaos",
+  } as const satisfies Record<GoalKey, string>,
+  timeline: {
+    fast: "Fast",
+    steady: "Steady",
+  } as const satisfies Record<TimelineKey, string>,
+  blocker: {
+    confused: "I’m confused",
+    overwhelmed: "I’m overwhelmed",
+    noPlan: "I don’t have a plan",
+    noFollowThrough: "I don’t follow through",
+  } as const satisfies Record<BlockerKey, string>,
+} as const;
+
+function buildResult(goal: GoalKey, timeline: TimelineKey, blocker: BlockerKey) {
+  // Keep it short. Clean. Credible.
+  const goalTruth: Record<GoalKey, string> = {
+    raise:
+      "Your score usually moves from two levers: paying on time and keeping card balances low vs. limits.",
+    approve:
+      "Approval is a clean story: stable income, manageable payments, and no surprises in your report.",
+    lower:
+      "Lower rates come when you look less risky: stronger score, lower debt pressure, cleaner history.",
+    calm:
+      "The chaos stops when you stop guessing and start doing one small move that you can finish.",
+  };
+
+  const timelineTruth =
+    timeline === "fast"
+      ? "We prioritize the highest-impact move you can do now."
+      : "We build a steady path you can repeat without burnout.";
+
+  const blockerFix: Record<BlockerKey, string> = {
+    confused: "We remove jargon and focus on one lever only.",
+    overwhelmed: "We shrink the step until it fits into 10 minutes.",
+    noPlan: "We turn the mess into a simple 3-step map.",
+    noFollowThrough: "We choose a step you can finish today, then repeat tomorrow.",
+  };
+
+  const moveToday: Record<GoalKey, string> = {
+    raise: "Today: pick one card and set a target balance that’s lower than it is now. Then make one payment.",
+    approve:
+      "Today: choose what you want approval for. Then gather two facts: your income and your current monthly debt payments.",
+    lower:
+      "Today: write down your current rate and balance. Then choose one risk-reducing move (pay down, clean errors, or stabilize payments).",
+    calm:
+      "Today: name the one thing causing the most stress. Then do one small cleanup step that takes less than 10 minutes.",
+  };
+
+  const nextStep: Record<GoalKey, string> = {
+    raise: "Next: we’ll map which lever matters most for you and give you one next best move.",
+    approve: "Next: we’ll map your approval path and what to fix first (without guessing).",
+    lower: "Next: we’ll map the quickest path to a lower rate and the order that works best.",
+    calm: "Next: we’ll turn the noise into a plan you can actually follow.",
+  };
+
+  return {
+    title: `${LABELS.goal[goal]} · ${LABELS.timeline[timeline]} · ${LABELS.blocker[blocker]}`,
+    truth: `${goalTruth[goal]} ${timelineTruth} ${blockerFix[blocker]}`,
+    today: moveToday[goal],
+    next: nextStep[goal],
+  };
+}
+
+function scrollTo(ref: React.RefObject<HTMLElement>) {
+  if (!ref.current) return;
+  ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+export default function Home() {
+  const decodeRef = useRef<HTMLElement>(null);
+
+  const [goal, setGoal] = useState<GoalKey>("raise");
+  const [timeline, setTimeline] = useState<TimelineKey>("fast");
+  const [blocker, setBlocker] = useState<BlockerKey>("overwhelmed");
+
+  // Stepper keeps the page from showing “everything at once”
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
+
+  const result = useMemo(() => buildResult(goal, timeline, blocker), [goal, timeline, blocker]);
+
+  const question = useMemo(() => {
+    switch (step) {
+      case 0:
+        return { label: "What do you want right now?", options: Object.keys(LABELS.goal) as GoalKey[] };
+      case 1:
+        return { label: "How fast do you want progress?", options: Object.keys(LABELS.timeline) as TimelineKey[] };
+      case 2:
+        return { label: "What gets in the way most?", options: Object.keys(LABELS.blocker) as BlockerKey[] };
+      default:
+        return null;
+    }
+  }, [step]);
+
+  const progressText = useMemo(() => {
+    if (step === 3) return "Result";
+    return `Step ${step + 1} of 3`;
+  }, [step]);
+
+  async function copyNextMove() {
+    const text = `BALANCE Cipher — Next Move\n\n${result.title}\n\nDecoded truth:\n${result.truth}\n\nToday:\n${result.today}\n\nNext:\n${result.next}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      // Minimal feedback without popups
+      const el = document.getElementById("copy-status");
+      if (el) el.textContent = "Copied.";
+      setTimeout(() => {
+        const el2 = document.getElementById("copy-status");
+        if (el2) el2.textContent = "";
+      }, 1500);
+    } catch {
+      // If clipboard fails, do nothing (no alerts)
+    }
+  }
+
+  return (
+    <main className="v2">
+      <style>{CSS}</style>
+
+      <div className="bg" aria-hidden="true" />
+
+      <header className="top">
+        <div className="brand">
+          <div className="mark" aria-hidden="true" />
+          <div className="brandText">
+            <div className="brandName">BALANCE Cipher</div>
+            <div className="brandSub">V2 • Cipher + Co-Pilot</div>
+          </div>
+        </div>
+
+        <button className="ghost" type="button" onClick={() => scrollTo(decodeRef)}>
+          Get my next move
+        </button>
+      </header>
+
+      <section className="hero" aria-label="Hero">
+        <div className="heroInner">
+          <div className="tag">One clear move — today.</div>
+
+          <h1 className="h1">Decode your credit into a simple next step.</h1>
+
+          <p className="lead">
+            No hype. No shame. Just clarity you can use right now.
+            <span className="leadBreak" />
+            The Cipher is the map. Your Co-Pilot does the decoding.
+          </p>
+
+          <div className="heroActions">
+            <button
+              className="primary"
+              type="button"
+              onClick={() => {
+                scrollTo(decodeRef);
+                setStep(0);
+              }}
+            >
+              Start decoding
+            </button>
+
+            <a className="link" href="#how">
+              How it works
+            </a>
+          </div>
+
+          <div className="micro">
+            <div className="microItem">
+              <div className="microTitle">Fast clarity</div>
+              <div className="microBody">One lever. One move.</div>
+            </div>
+            <div className="microItem">
+              <div className="microTitle">Adult tone</div>
+              <div className="microBody">Plain language only.</div>
+            </div>
+            <div className="microItem">
+              <div className="microTitle">Built for real life</div>
+              <div className="microBody">Small steps that hold.</div>
+            </div>
+          </div>
+
+          <div className="cornerstone">Are you ready to start decoding?</div>
+        </div>
+      </section>
+
+      <section className="decode" ref={decodeRef} aria-label="Decode">
+        <div className="panel">
+          <div className="panelTop">
+            <div className="panelLabel">Decode (20 seconds)</div>
+            <div className="panelProgress">{progressText}</div>
+          </div>
+
+          {step !== 3 && question && (
+            <>
+              <div className="q">{question.label}</div>
+
+              <div className="options" role="group" aria-label={question.label}>
+                {step === 0 &&
+                  (question.options as GoalKey[]).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      className={`opt ${goal === k ? "on" : ""}`}
+                      onClick={() => setGoal(k)}
+                    >
+                      {LABELS.goal[k]}
+                    </button>
+                  ))}
+
+                {step === 1 &&
+                  (question.options as TimelineKey[]).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      className={`opt ${timeline === k ? "on" : ""}`}
+                      onClick={() => setTimeline(k)}
+                    >
+                      {LABELS.timeline[k]}
+                    </button>
+                  ))}
+
+                {step === 2 &&
+                  (question.options as BlockerKey[]).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      className={`opt ${blocker === k ? "on" : ""}`}
+                      onClick={() => setBlocker(k)}
+                    >
+                      {LABELS.blocker[k]}
+                    </button>
+                  ))}
+              </div>
+
+              <div className="nav">
+                <button
+                  className="ghost"
+                  type="button"
+                  onClick={() => setStep((s) => (s === 0 ? 0 : ((s - 1) as 0 | 1 | 2)))}
+                  disabled={step === 0}
+                >
+                  Back
+                </button>
+
+                <button
+                  className="primary"
+                  type="button"
+                  onClick={() => setStep((s) => (s === 2 ? 3 : ((s + 1) as 1 | 2 | 3)))}
+                >
+                  {step === 2 ? "Show my next move" : "Next"}
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <div className="resultTitle">Your next move</div>
+              <div className="resultSub">{result.title}</div>
+
+              <div className="resultBlock">
+                <div className="rbLabel">Decoded truth</div>
+                <div className="rbText">{result.truth}</div>
+              </div>
+
+              <div className="resultBlock">
+                <div className="rbLabel">Today</div>
+                <div className="rbText">{result.today}</div>
+              </div>
+
+              <div className="resultBlock">
+                <div className="rbLabel">Next</div>
+                <div className="rbText">{result.next}</div>
+              </div>
+
+              <div className="nav">
+                <button className="ghost" type="button" onClick={() => setStep(0)}>
+                  Start over
+                </button>
+
+                <button className="primary" type="button" onClick={copyNextMove}>
+                  Copy my next move
+                </button>
+              </div>
+
+              <div className="copyStatus" id="copy-status" aria-live="polite" />
+            </>
+          )}
+        </div>
+
+        {/* Sticky bottom CTA (mobile conversion helper) */}
+        <div className="sticky">
+          <button
+            className="primary wide"
+            type="button"
+            onClick={() => {
+              scrollTo(decodeRef);
+              setStep(0);
+            }}
+          >
+            Get my next move
+          </button>
+        </div>
+      </section>
+
+      <section className="how" id="how" aria-label="How it works">
+        <div className="howInner">
+          <h2 className="h2">How it works</h2>
+          <p className="p">
+            You pick what you want and what’s in the way. The Co-Pilot translates the Cipher into plain language and one
+            next best move.
+          </p>
+
+          <div className="three">
+            <div className="tile">
+              <div className="tileTitle">1) Pick your lane</div>
+              <div className="tileBody">Raise score, get approved, lower rate, or stop the chaos.</div>
+            </div>
+            <div className="tile">
+              <div className="tileTitle">2) Make it realistic</div>
+              <div className="tileBody">Fast or steady. Either way, we keep it doable.</div>
+            </div>
+            <div className="tile">
+              <div className="tileTitle">3) Get one move</div>
+              <div className="tileBody">One step you can finish today. That’s how momentum starts.</div>
+            </div>
+          </div>
+
+          <div className="faq">
+            <details>
+              <summary>Is this a lecture?</summary>
+              <div className="faqBody">No. It’s a decode: clear wording, then one action.</div>
+            </details>
+            <details>
+              <summary>Do I need to understand credit math?</summary>
+              <div className="faqBody">No. We translate it into plain language and priorities.</div>
+            </details>
+            <details>
+              <summary>What if I’m overwhelmed?</summary>
+              <div className="faqBody">Then we shrink the step until it fits into 10 minutes.</div>
+            </details>
+          </div>
+
+          <footer className="footer">
+            <div className="footLine">
+              The Cipher gives the map. The Co-Pilot has the goods to decode it into simple steps.
+            </div>
+            <div className="footSmall">© {new Date().getFullYear()} BALANCE Cipher</div>
+          </footer>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+const CSS = `
+:root{
+  --bg:#050B18;
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.72);
+  --soft: rgba(255,255,255,0.06);
+  --soft2: rgba(0,0,0,0.22);
+  --border: rgba(255,255,255,0.10);
+  --teal: rgba(0,255,220,0.88);
+  --teal2: rgba(0,190,255,0.75);
+  --shadow: 0 18px 50px rgba(0,0,0,0.35);
+  --r: 18px;
+  --r2: 14px;
+}
+
+*{ box-sizing: border-box; }
+html,body{ height:100%; }
+.v2{
+  min-height:100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.bg{
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(900px 520px at 18% 10%, rgba(0,255,220,0.12), transparent 60%),
+    radial-gradient(880px 620px at 86% 16%, rgba(0,190,255,0.10), transparent 62%),
+    radial-gradient(900px 760px at 50% 96%, rgba(255,180,70,0.06), transparent 60%);
+}
+
+.top{
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 18px 6px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  min-width: 0;
+}
+.mark{
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0,255,220,0.35), transparent 55%),
+    radial-gradient(circle at 70% 70%, rgba(255,180,70,0.18), transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12), rgba(0,0,0,0.25));
+  border: 1px solid rgba(0,255,220,0.20);
+  box-shadow: 0 0 24px rgba(0,255,220,0.10);
+  flex: 0 0 auto;
+}
+.brandText{ min-width:0; }
+.brandName{
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.brandSub{
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero{
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 10px 18px 10px;
+}
+.heroInner{
+  border-radius: var(--r);
+  padding: 22px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.tag{
+  display:inline-block;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(0,255,220,0.10);
+  border: 1px solid rgba(0,255,220,0.18);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,0.88);
+}
+
+.h1{
+  margin: 12px 0 10px;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  font-size: clamp(28px, 4.5vw, 44px);
+}
+
+.lead{
+  margin: 0;
+  color: rgba(255,255,255,0.78);
+  line-height: 1.6;
+  font-size: 15px;
+  max-width: 64ch;
+}
+.leadBreak{ display:block; height: 8px; }
+
+.heroActions{
+  margin-top: 14px;
+  display:flex;
+  align-items:center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.primary{
+  appearance:none;
+  border: 0;
+  cursor:pointer;
+  border-radius: 999px;
+  padding: 12px 16px;
+  font-weight: 900;
+  color: rgba(0,0,0,0.90);
+  background: linear-gradient(180deg, var(--teal), var(--teal2));
+  box-shadow: 0 14px 34px rgba(0,255,220,0.14);
+}
+.primary:focus-visible{
+  outline: 2px solid rgba(0,255,220,0.65);
+  outline-offset: 3px;
+}
+.link{
+  color: rgba(255,255,255,0.82);
+  text-decoration: none;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(255,255,255,0.18);
+  padding-bottom: 2px;
+}
+.link:hover{ border-bottom-color: rgba(0,255,220,0.35); }
+
+.ghost{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.88);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 900;
+  cursor:pointer;
+}
+.ghost:disabled{ opacity: 0.45; cursor: default; }
+
+.micro{
+  margin-top: 16px;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+}
+.microItem{
+  border-radius: var(--r2);
+  padding: 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.microTitle{
+  font-weight: 900;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.microBody{
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.cornerstone{
+  margin-top: 14px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.70);
+  letter-spacing: 0.02em;
+}
+
+.decode{
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 12px 18px 28px;
+}
+
+.panel{
+  border-radius: var(--r);
+  padding: 18px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.panelTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.panelLabel{
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.70);
+}
+.panelProgress{
+  font-size: 12px;
+  color: rgba(255,255,255,0.70);
+}
+
+.q{
+  margin-top: 6px;
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+}
+
+.options{
+  margin-top: 12px;
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.opt{
+  text-align:left;
+  border-radius: 14px;
+  padding: 14px 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.18);
+  color: rgba(255,255,255,0.90);
+  font-weight: 900;
+  cursor:pointer;
+}
+.opt.on{
+  border-color: rgba(0,255,220,0.26);
+  background: rgba(0,255,220,0.08);
+}
+
+.nav{
+  margin-top: 14px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 12px;
+}
+
+.resultTitle{
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+  margin-top: 4px;
+}
+.resultSub{
+  margin-top: 6px;
+  color: rgba(255,255,255,0.72);
+  font-size: 13px;
+}
+
+.resultBlock{
+  margin-top: 12px;
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.10);
+}
+.rbLabel{
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.64);
+  margin-bottom: 6px;
+}
+.rbText{
+  font-size: 13px;
+  color: rgba(255,255,255,0.80);
+  line-height: 1.6;
+}
+
+.copyStatus{
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(0,255,220,0.80);
+  min-height: 16px;
+}
+
+.sticky{
+  position: sticky;
+  bottom: 10px;
+  padding-top: 12px;
+  display:flex;
+  justify-content:center;
+  pointer-events: none;
+}
+.wide{
+  width: 100%;
+  max-width: 520px;
+  pointer-events: auto;
+}
+
+.how{
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 18px 40px;
+}
+.howInner{
+  border-radius: var(--r);
+  padding: 22px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+}
+
+.h2{
+  margin: 0 0 8px;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+}
+.p{
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted);
+  max-width: 72ch;
+}
+
+.three{
+  margin-top: 14px;
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+}
+.tile{
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.tileTitle{
+  font-weight: 950;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.tileBody{
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.faq{
+  margin-top: 14px;
+  display:grid;
+  gap: 10px;
+}
+details{
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+summary{
+  cursor:pointer;
+  font-weight: 900;
+  color: rgba(255,255,255,0.88);
+}
+.faqBody{
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.footer{
+  margin-top: 16px;
+  padding-top: 8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: rgba(255,255,255,0.60);
+}
+.footLine{ font-size: 12px; max-width: 72ch; }
+.footSmall{ font-size: 12px; }
+
+@media (max-width: 820px){
+  .micro{ grid-template-columns: 1fr; }
+  .three{ grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ scroll-behavior: auto !important; }
+}
+`;
+rt { Link } from "react-router-dom";
 
 /**
  * BALANCE CIPHER V2 — Social Conversion Landing Page

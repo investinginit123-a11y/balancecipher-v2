@@ -1,3 +1,17 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "redirects": [
+    {
+      "source": "/v2",
+      "destination": "https://balancecipher-v2-g0gb4ye08-brian-bastians-projects.vercel.app",
+      "permanent": false
+    },
+    {
+      "source": "/v2/(.*)",
+      "destination": "https://balancecipher-v2-g0gb4ye08-brian-bastians-projects.vercel.app/$1",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }

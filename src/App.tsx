@@ -35,9 +35,9 @@ export default function App() {
           --tealSoft: rgba(40, 240, 255, 0.18);
           --tealGlow: rgba(40, 240, 255, 0.35);
 
-          /* New accent for the triad line (brass/gold) */
+          /* Brass / Gold accent */
           --brass:#d7b06b;
-          --brassGlow: rgba(215, 176, 107, 0.28);
+          --brassGlow: rgba(215, 176, 107, 0.32);
 
           --text:#ffffff;
           --muted: rgba(255,255,255,0.72);
@@ -85,7 +85,7 @@ export default function App() {
           animation: fadeInUp 520ms ease-out forwards;
         }
 
-        /* +25% size increase: 220 -> 275 */
+        /* Emblem size (already +25%) */
         .cipherEmblem{
           width: 275px;
           height: 275px;
@@ -114,7 +114,6 @@ export default function App() {
           pointer-events:none;
         }
 
-        /* Inner image scales up with the core: 176 -> 220 */
         .cipherImg{
           width: 220px;
           height: 220px;
@@ -124,19 +123,52 @@ export default function App() {
           z-index: 1;
         }
 
-        /* Triad line: bigger + different color + subtle glow */
-        .microLine{
-          font-size: 16px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: var(--brass);
-          text-shadow: 0 0 14px var(--brassGlow);
-          margin-top: 6px;
+        /* Equation row: Cipher + Co-Pilot + You = BALANCE */
+        .equationRow{
+          display:flex;
+          align-items: baseline;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 8px;
           margin-bottom: 6px;
+
           opacity: 0;
           transform: translateY(10px);
           animation: fadeInUp 600ms ease-out forwards;
           animation-delay: 260ms;
+        }
+
+        .equationText{
+          font-size: 16px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--brass);
+          text-shadow: 0 0 14px var(--brassGlow);
+          font-weight: 700;
+        }
+
+        .equationSymbol{
+          font-size: 18px;
+          color: rgba(255,255,255,0.80);
+          letter-spacing: 0.05em;
+          font-weight: 800;
+        }
+
+        /* BALANCE as the "alive" result */
+        .balanceWord{
+          font-size: 22px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          font-weight: 900;
+          color: var(--brass);
+          text-shadow:
+            0 0 18px var(--brassGlow),
+            0 0 34px rgba(40,240,255,0.14);
+          padding: 2px 6px;
+          border-radius: 10px;
+          position: relative;
+          animation: balancePulse 3.6s ease-in-out infinite;
         }
 
         .tagline{
@@ -336,6 +368,23 @@ export default function App() {
           }
         }
 
+        @keyframes balancePulse{
+          0%, 100%{
+            transform: scale(1.00);
+            text-shadow:
+              0 0 16px rgba(215,176,107,0.26),
+              0 0 30px rgba(40,240,255,0.10);
+            opacity: 0.92;
+          }
+          50%{
+            transform: scale(1.06);
+            text-shadow:
+              0 0 22px rgba(215,176,107,0.42),
+              0 0 44px rgba(40,240,255,0.16);
+            opacity: 1;
+          }
+        }
+
         @keyframes slowDrift{
           0%, 100%{ transform: translate(-2%, -1%) rotate(12deg); opacity: 0.72; }
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.90; }
@@ -348,17 +397,19 @@ export default function App() {
           100%{ transform: translateX(120%); opacity: 0.0; }
         }
 
-        /* Mobile tuning (scaled up to match the new emblem size) */
+        /* Mobile tuning */
         @media (max-width: 420px){
           .cipherEmblem{ width: 236px; height: 236px; }
           .cipherImg{ width: 188px; height: 188px; }
-          .microLine{ font-size: 15px; }
+          .equationText{ font-size: 15px; }
+          .equationSymbol{ font-size: 17px; }
+          .balanceWord{ font-size: 20px; }
           .btn{ padding: 15px 18px; font-size: 15px; }
         }
 
         /* Reduced motion: show everything immediately, no movement */
         @media (prefers-reduced-motion: reduce){
-          .cipherContainer, .microLine, .tagline, .sub, .cornerstone, .ctaRow{
+          .cipherContainer, .equationRow, .tagline, .sub, .cornerstone, .ctaRow{
             animation: none !important;
             opacity: 1 !important;
             transform: none !important;
@@ -366,6 +417,7 @@ export default function App() {
           .cipherEmblem{ animation: none !important; }
           .cipherEmblem::before{ animation: none !important; }
           .btn::after{ animation: none !important; }
+          .balanceWord{ animation: none !important; }
         }
       `}</style>
 
@@ -373,16 +425,19 @@ export default function App() {
         <div className="wrap">
           <div className="cipherContainer" aria-label="Cipher core">
             <div className="cipherEmblem">
-              <img
-                className="cipherImg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-              />
+              <img className="cipherImg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" />
             </div>
           </div>
 
-          <div className="microLine">Cipher + Co-Pilot + You</div>
+          <div className="equationRow" aria-label="Cipher equation">
+            <span className="equationText">Cipher</span>
+            <span className="equationSymbol">+</span>
+            <span className="equationText">Co-Pilot</span>
+            <span className="equationSymbol">+</span>
+            <span className="equationText">You</span>
+            <span className="equationSymbol">=</span>
+            <span className="balanceWord">BALANCE</span>
+          </div>
 
           <p className="tagline t1">You don’t have to explain anything.</p>
           <p className="tagline t2">You just choose one step.</p>

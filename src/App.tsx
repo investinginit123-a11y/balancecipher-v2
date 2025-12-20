@@ -91,10 +91,10 @@ export default function App() {
     if (view === "p5") setTimeout(() => codeRef.current?.focus(), 50);
   }, [view]);
 
-  // Focus Page 2 input after the full “gift” sequence completes.
+  // Focus Page 2 input after the full “gift” sequence completes (slower now).
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 26000);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 38000);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -292,7 +292,7 @@ export default function App() {
           color: rgba(255,255,255,0.58);
         }
 
-        /* PAGE 2 — your “title → meaning → dissolve” rhythm */
+        /* PAGE 2 — bigger fonts, tighter spacing, slower timing */
         .p2{
           min-height:100vh;
           background:#000;
@@ -300,12 +300,11 @@ export default function App() {
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          padding: 34px 18px 110px;
+          padding: 26px 18px 110px;
           position: relative;
           overflow:hidden;
         }
 
-        /* Fade-to-black overlay (0.7s) */
         .p2Fade{
           position:absolute;
           inset:0;
@@ -323,36 +322,38 @@ export default function App() {
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 18px;
+          gap: 8px; /* tighter */
           position: relative;
           z-index: 3;
         }
 
         .stage{
-          width: min(740px, 100%);
-          min-height: 190px;
+          width: min(760px, 100%);
+          min-height: 160px; /* smaller = closer */
+          margin-top: -8px;  /* tuck text up under core */
           position: relative;
           display:flex;
           flex-direction:column;
           align-items:center;
           justify-content:flex-start;
-          gap: 10px;
+          gap: 12px;
         }
 
+        /* Longer “stay” window so text is readable */
         @keyframes sceneInOut{
-          0%   { opacity:0; transform: translateY(10px); }
+          0%   { opacity:0; transform: translateY(12px); }
           12%  { opacity:1; transform: translateY(0); }
-          78%  { opacity:1; transform: translateY(0); }
-          100% { opacity:0; transform: translateY(-6px); }
+          88%  { opacity:1; transform: translateY(0); }
+          100% { opacity:0; transform: translateY(-8px); }
         }
 
         @keyframes sceneInStay{
-          0%   { opacity:0; transform: translateY(10px); }
+          0%   { opacity:0; transform: translateY(12px); }
           100% { opacity:1; transform: translateY(0); }
         }
 
         .title{
-          font-size: clamp(30px, 8vw, 46px);
+          font-size: clamp(44px, 10vw, 64px); /* bigger */
           font-weight: 950;
           letter-spacing: 0.09em;
           text-transform: uppercase;
@@ -361,24 +362,25 @@ export default function App() {
         }
 
         .meaning{
-          font-size: 16px;
-          font-weight: 450;
-          color: rgba(40,240,255,0.62);
-          max-width: 720px;
-          line-height: 1.55;
+          font-size: clamp(18px, 4.8vw, 24px); /* much bigger */
+          font-weight: 520;
+          color: rgba(255,255,255,0.86);       /* brighter for readability */
+          text-shadow: 0 0 18px rgba(40,240,255,0.10);
+          max-width: 760px;
+          line-height: 1.6;
           opacity:0;
         }
 
-        .scene1Title { animation: sceneInOut 3.1s ease forwards; animation-delay: 1.6s; }
-        .scene1Mean  { animation: sceneInOut 4.2s ease forwards; animation-delay: 4.2s; }
+        /* Slower pacing: more time on-screen + more spacing between beats */
+        .scene1Title { animation: sceneInOut 3.6s ease forwards; animation-delay: 1.6s; }
+        .scene1Mean  { animation: sceneInOut 5.2s ease forwards; animation-delay: 6.0s; }
 
-        .scene2Title { animation: sceneInOut 3.1s ease forwards; animation-delay: 9.0s; }
-        .scene2Mean  { animation: sceneInOut 4.2s ease forwards; animation-delay: 11.5s; }
+        .scene2Title { animation: sceneInOut 3.6s ease forwards; animation-delay: 12.8s; }
+        .scene2Mean  { animation: sceneInOut 5.2s ease forwards; animation-delay: 17.2s; }
 
-        .scene3Title { animation: sceneInOut 3.0s ease forwards; animation-delay: 16.6s; }
-        .scene3Mean  { animation: sceneInOut 4.2s ease forwards; animation-delay: 18.9s; }
+        .scene3Title { animation: sceneInOut 3.6s ease forwards; animation-delay: 24.0s; }
+        .scene3Mean  { animation: sceneInOut 5.2s ease forwards; animation-delay: 28.4s; }
 
-        /* Final equation locks in and stays */
         .finalWrap{
           position:absolute;
           left:0; right:0;
@@ -386,10 +388,10 @@ export default function App() {
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 12px;
+          gap: 14px;
           opacity:0;
-          animation: sceneInStay 0.8s ease forwards;
-          animation-delay: 24.2s;
+          animation: sceneInStay 0.85s ease forwards;
+          animation-delay: 35.0s;
           pointer-events:none;
         }
 
@@ -398,43 +400,42 @@ export default function App() {
           align-items: baseline;
           justify-content:center;
           flex-wrap: wrap;
-          gap: 10px;
+          gap: 12px;
         }
 
         .finalWord{
-          font-size: 18px;
+          font-size: 20px; /* bigger */
           letter-spacing: 0.10em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.90);
+          color: rgba(255,255,255,0.92);
           font-weight: 900;
         }
 
         .finalSym{
-          font-size: 20px;
-          color: rgba(255,255,255,0.72);
+          font-size: 22px; /* bigger */
+          color: rgba(255,255,255,0.78);
           font-weight: 950;
         }
 
         .finalBalance{
-          font-size: 26px;
-          letter-spacing: 0.14em;
+          font-size: 32px; /* bigger */
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           font-weight: 950;
           color: var(--brass);
-          text-shadow: 0 0 18px var(--brassGlow);
-          padding: 2px 8px;
+          text-shadow: 0 0 22px var(--brassGlow);
+          padding: 2px 10px;
           border-radius: 10px;
           animation: balancePulse 3.6s ease-in-out infinite;
         }
 
         .finalLine{
-          font-size: 14px;
-          color: rgba(40,240,255,0.62);
+          font-size: 16px; /* bigger */
+          color: rgba(40,240,255,0.68);
           line-height: 1.45;
-          max-width: 680px;
+          max-width: 760px;
         }
 
-        /* Bottom unlock prompt + underline input */
         .dock{
           position:absolute;
           left:0; right:0;
@@ -442,11 +443,11 @@ export default function App() {
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 10px;
+          gap: 12px;
           opacity:0;
           transform: translateY(22px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 26.2s;
+          animation-delay: 37.0s;
           z-index: 4;
         }
 
@@ -455,20 +456,20 @@ export default function App() {
         }
 
         .unlockText{
-          font-size: 14px;
-          color: rgba(255,255,255,0.72);
-          max-width: 640px;
-          line-height: 1.45;
+          font-size: 16px; /* bigger */
+          color: rgba(255,255,255,0.76);
+          max-width: 760px;
+          line-height: 1.5;
         }
 
         .underlineOnly{
-          width: min(420px, 86vw);
+          width: min(520px, 88vw);
           background: transparent;
           border: none;
-          border-bottom: 1px solid rgba(40,240,255,0.42);
-          padding: 14px 10px 12px;
-          color: rgba(255,255,255,0.92);
-          font-size: 18px;
+          border-bottom: 2px solid rgba(40,240,255,0.42); /* stronger underline */
+          padding: 16px 10px 12px;
+          color: rgba(255,255,255,0.94);
+          font-size: 20px; /* bigger */
           text-align: center;
           outline: none;
           caret-color: rgba(40,240,255,0.95);
@@ -476,8 +477,8 @@ export default function App() {
         }
 
         .underlineOnly:focus{
-          border-bottom-color: rgba(40,240,255,0.86);
-          box-shadow: 0 12px 28px rgba(40,240,255,0.10);
+          border-bottom-color: rgba(40,240,255,0.92);
+          box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
         /* Pages 3–5 baseline */
@@ -520,8 +521,8 @@ export default function App() {
 
         .line{
           font-weight: 350;
-          font-size: clamp(22px, 5.2vw, 28px);
-          max-width: 520px;
+          font-size: clamp(24px, 5.6vw, 32px);
+          max-width: 560px;
           line-height: 1.25;
           margin: 0 auto 14px;
           color: rgba(255,255,255,0.94);
@@ -529,9 +530,9 @@ export default function App() {
 
         .whisper{
           margin-top: 10px;
-          font-size: 13px;
+          font-size: 14px;
           color: rgba(255,255,255,0.56);
-          max-width: 420px;
+          max-width: 460px;
           line-height: 1.45;
         }
 
@@ -611,7 +612,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 2 (your revised vision) */}
+      {/* PAGE 2 */}
       {view === "p2" ? (
         <main className="p2" aria-label="Private decode — Page 2">
           <div className="p2Fade" />
@@ -629,36 +630,26 @@ export default function App() {
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
-              {/* Cipher title → dissolve */}
               <div className="title scene1Title">Cipher</div>
-
-              {/* Cipher meaning → dissolve */}
               <div className="meaning scene1Mean">
                 The first human intelligence device built to create and figure out unbreakable codes.
               </div>
 
-              {/* Co-Pilot title → dissolve */}
               <div className="title scene2Title">Co-Pilot + AI</div>
-
-              {/* Co-Pilot meaning → dissolve */}
               <div className="meaning scene2Mean">
                 AI — built to complete once-impossible tasks in seconds.
               </div>
 
-              {/* You title → dissolve */}
               <div className="title scene3Title">You</div>
-
-              {/* You meaning → dissolve */}
               <div className="meaning scene3Mean">
                 You — the most powerful of all three, designed and built around endless potential.
               </div>
 
-              {/* Final equation locks in */}
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow">
                   <span className="finalWord">Cipher</span>
                   <span className="finalSym">(</span>
-                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.72)" }}>
+                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.78)" }}>
                     a pattern reader
                   </span>
                   <span className="finalSym">)</span>
@@ -667,14 +658,14 @@ export default function App() {
 
                   <span className="finalWord">Co-Pilot</span>
                   <span className="finalSym">(</span>
-                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.72)" }}>
+                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.78)" }}>
                     your AI power source
                   </span>
                   <span className="finalSym">)</span>
 
                   <span className="finalSym">=</span>
 
-                  <span className="finalWord" style={{ color: "rgba(255,255,255,0.90)" }}>
+                  <span className="finalWord" style={{ color: "rgba(255,255,255,0.92)" }}>
                     Your Potential
                   </span>
 
@@ -688,7 +679,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Unlock prompt + first name */}
           <div className="dock">
             <div className="unlockText">
               To unlock the next step, enter your first name to unlock the start of your journey.

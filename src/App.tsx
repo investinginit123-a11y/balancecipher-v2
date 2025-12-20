@@ -113,10 +113,14 @@ export default function App() {
 
           --text: rgba(255,255,255,0.96);
           --muted: rgba(255,255,255,0.72);
+
+          /* Canon system font stack (Page 1) */
+          --uiFont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
 
         *{ box-sizing:border-box; }
         html, body { height:100%; }
+
         body{
           margin:0;
           background:
@@ -124,9 +128,22 @@ export default function App() {
             radial-gradient(700px 500px at 50% 85%, rgba(40,240,255,0.06), transparent 60%),
             linear-gradient(180deg, var(--bg0), var(--bg1));
           color: var(--text);
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          font-family: var(--uiFont);
           overflow-x: hidden;
           text-align:center;
+
+          /* Crisp rendering */
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: geometricPrecision;
+        }
+
+        /* IMPORTANT: force form controls to inherit font stack + rendering */
+        button, input, textarea, select {
+          font: inherit;
+          -webkit-font-smoothing: inherit;
+          -moz-osx-font-smoothing: inherit;
+          text-rendering: inherit;
         }
 
         @keyframes corePulse{
@@ -303,6 +320,7 @@ export default function App() {
           padding: 24px 18px 112px;
           position: relative;
           overflow:hidden;
+          font-family: var(--uiFont);
         }
 
         .p2Fade{
@@ -359,19 +377,20 @@ export default function App() {
           100% { opacity:1; transform: translateY(0); }
         }
 
-        /* MATCH Page 1 “eqText” look: refined uppercase, letter-spacing */
+        /* Title typography is now explicitly aligned to Page 1 eqText style */
         .title{
-          font-size: clamp(42px, 9.6vw, 60px); /* slightly smaller than last, still big */
-          font-weight: 900;
-          letter-spacing: 0.12em; /* match page 1 feel */
+          font-family: var(--uiFont);
+          font-size: clamp(42px, 9.6vw, 60px);
+          font-weight: 800;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
         }
 
-        /* Meaning: 50% bigger + clearer on handheld */
         .meaning{
-          font-size: clamp(24px, 6.2vw, 34px); /* ~50% larger than prior baseline */
+          font-family: var(--uiFont);
+          font-size: clamp(24px, 6.2vw, 34px);
           font-weight: 520;
           color: rgba(255,255,255,0.90);
           text-shadow: 0 0 22px rgba(40,240,255,0.10);
@@ -381,12 +400,6 @@ export default function App() {
           padding: 0 6px;
         }
 
-        /*
-          Timeline (more pause between scenes):
-          - Titles: 2.6s each
-          - Meanings: 6.2s each
-          - Gaps: ~0.7–0.9s
-        */
         .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 1.4s; }
         .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 4.7s; }
 
@@ -419,20 +432,23 @@ export default function App() {
         }
 
         .finalWord{
+          font-family: var(--uiFont);
           font-size: 22px;
-          letter-spacing: 0.12em; /* keep consistent with titles */
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.92);
-          font-weight: 900;
+          font-weight: 800;
         }
 
         .finalSym{
+          font-family: var(--uiFont);
           font-size: 22px;
           color: rgba(255,255,255,0.78);
           font-weight: 950;
         }
 
         .finalBalance{
+          font-family: var(--uiFont);
           font-size: 34px;
           letter-spacing: 0.16em;
           text-transform: uppercase;
@@ -445,6 +461,7 @@ export default function App() {
         }
 
         .finalLine{
+          font-family: var(--uiFont);
           font-size: 18px;
           color: rgba(40,240,255,0.70);
           line-height: 1.45;
@@ -471,6 +488,7 @@ export default function App() {
         }
 
         .unlockText{
+          font-family: var(--uiFont);
           font-size: 18px;
           color: rgba(255,255,255,0.78);
           max-width: 780px;
@@ -479,6 +497,7 @@ export default function App() {
         }
 
         .underlineOnly{
+          font-family: var(--uiFont);
           width: min(560px, 90vw);
           background: transparent;
           border: none;
@@ -507,6 +526,7 @@ export default function App() {
           padding: 34px 18px 84px;
           background:#000;
           text-align:center;
+          font-family: var(--uiFont);
         }
 
         .arcSmall{
@@ -536,6 +556,7 @@ export default function App() {
         }
 
         .line{
+          font-family: var(--uiFont);
           font-weight: 350;
           font-size: clamp(24px, 5.6vw, 32px);
           max-width: 560px;
@@ -545,6 +566,7 @@ export default function App() {
         }
 
         .whisper{
+          font-family: var(--uiFont);
           margin-top: 10px;
           font-size: 14px;
           color: rgba(255,255,255,0.56);
@@ -553,6 +575,7 @@ export default function App() {
         }
 
         .tinyLink{
+          font-family: var(--uiFont);
           margin-top: 8px;
           font-size: 12px;
           color: rgba(0,255,255,0.55);

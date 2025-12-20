@@ -11,7 +11,153 @@ type Step = {
   body: React.ReactNode;
   primaryCta: string;
   onPrimary: () => void;
-  secondaryCta?: string;
+  second<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balance Cipher - Revival</title>
+    <style>
+        /* Reset & Base */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Cipher Emblem Container */
+        #cipher-container {
+            margin-bottom: 60px;
+            opacity: 0;
+            animation: fadeIn 0.4s ease-in forwards;
+        }
+
+        #cipher-emblem {
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #00ffff22, transparent 70%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 40px #00ffff44;
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        #cipher-emblem img {
+            width: 180px;
+            height: 180px;
+            filter: drop-shadow(0 0 20px #00ffff);
+        }
+
+        /* Text Lines */
+        .tagline {
+            font-size: 28px;
+            font-weight: 300;
+            line-height: 1.4;
+            opacity: 0;
+            margin-bottom: 20px;
+        }
+
+        #tagline1 { animation: fadeIn 0.8s ease-in forwards 0.8s; }
+        #tagline2 { animation: fadeIn 0.8s ease-in forwards 2.4s; }
+        #tagline3 { animation: fadeIn 0.8s ease-in forwards 4.0s; }
+
+        /* CTA Button */
+        #cta-button {
+            margin-top: 60px;
+            opacity: 0;
+            animation: fadeIn 1s ease-in forwards 5.5s;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 18px 40px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #fff;
+            background: transparent;
+            border: 2px solid #00ffff;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 0 20px #00ffff44;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #00ffff22;
+            box-shadow: 0 0 30px #00ffff88;
+            transform: scale(1.05);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 40px #00ffff44; }
+            50% { box-shadow: 0 0 60px #00ffff88; }
+        }
+
+        /* Optional: Replace with your actual emblem URL */
+        /* If you have the emblem as an image, upload it and replace the src */
+    </style>
+</head>
+<body>
+
+    <div id="cipher-container">
+        <div id="cipher-emblem">
+            <!-- Placeholder for the cipher emblem -->
+            <!-- Replace src with your actual image URL -->
+            <img src="https://via.placeholder.com/180x180/001111/00ffff?text=CIPHER" alt="Balance Cipher Core">
+        </div>
+    </div>
+
+    <div class="tagline" id="tagline1">You don't have to admit anything.</div>
+    <div class="tagline" id="tagline2">You just have to click.</div>
+    <div class="tagline" id="tagline3">The cipher already knows what to do.</div>
+
+    <div id="cta-button">
+        <a href="#reward-screen" class="btn">
+            Show me how the AI cipher raises my score up to 100 points in under 12 months
+        </a>
+    </div>
+
+    <!-- Simple Reward Screen (hidden until linked) -->
+    <div id="reward-screen" style="display:none; margin-top: 100vh; padding: 40px; background: #000;">
+        <h2>Welcome. You're in.</h2>
+        <p>You’re one of the first to see the Balance Cipher in action.</p>
+        <p>Enter your phone below to lock in your private access.</p>
+        <!-- Add your form here -->
+        <input type="tel" placeholder="Your phone number" style="padding:12px; margin:20px; width:80%; max-width:300px;">
+        <button class="btn">Lock in my spot</button>
+        <p style="margin-top:40px; font-size:14px;">Chapter 1 awakens in 72 hours.</p>
+    </div>
+
+    <script>
+        // Optional: Smooth scroll or reveal reward screen on click
+        document.querySelector('.btn').addEventListener('click', function(e) {
+            // For demo: just show the reward section
+            document.getElementById('reward-screen').style.display = 'block';
+            document.getElementById('reward-screen').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+
+</body>
+</html>
+aryCta?: string;
   onSecondary?: () => void;
 };
 

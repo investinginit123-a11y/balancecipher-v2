@@ -233,7 +233,6 @@ export default function App() {
         <div className="heroText">
           <div className="heroOverline">A REVIVAL OF CONTROL</div>
 
-          {/* BALANCE = body: living pulse */}
           <div className="heroBrand heroBrandAlive">BALANCE</div>
 
           <div className="heroChapter">{active.chapter}</div>
@@ -261,7 +260,6 @@ export default function App() {
               <div className="heroVow" aria-label="Hero vow">
                 <div className="vowLine">This is your revival.</div>
 
-                {/* Pulse line: clear direction returns */}
                 <div className="vowLine vowGlow vowPulse">Clear direction returns.</div>
 
                 <div className="vowLine">You take the next step with power behind it.</div>
@@ -339,20 +337,20 @@ function GlobalStyles() {
           100% { transform: scale(0.99); filter: drop-shadow(0 0 18px rgba(0,255,214,0.10)); }
         }
 
-        /* Tasteful vow pulse every ~4.8s */
+        /* Stronger vow pulse: tighter cadence, bigger peak */
         @keyframes vowPulse {
           0%   { transform: scale(1.00); filter: drop-shadow(0 0 0 rgba(0,255,214,0.0)); opacity: 0.92; }
-          6%   { transform: scale(1.03); filter: drop-shadow(0 0 22px rgba(0,255,214,0.18)); opacity: 1.0; }
-          12%  { transform: scale(1.00); filter: drop-shadow(0 0 0 rgba(0,255,214,0.0)); opacity: 0.92; }
+          6%   { transform: scale(1.06); filter: drop-shadow(0 0 34px rgba(0,255,214,0.28)); opacity: 1.0; }
+          14%  { transform: scale(1.00); filter: drop-shadow(0 0 0 rgba(0,255,214,0.0)); opacity: 0.92; }
           100% { transform: scale(1.00); filter: drop-shadow(0 0 0 rgba(0,255,214,0.0)); opacity: 0.92; }
         }
 
-        /* BALANCE = body pulse (slower, deeper, more alive than the vow) */
+        /* Stronger BALANCE breath: bigger inhale, deeper glow bloom */
         @keyframes balanceAlive {
-          0%   { transform: scale(1.000); filter: drop-shadow(0 0 14px rgba(0,255,214,0.10)); }
-          18%  { transform: scale(1.030); filter: drop-shadow(0 0 28px rgba(0,255,214,0.18)); }
-          36%  { transform: scale(1.000); filter: drop-shadow(0 0 14px rgba(0,255,214,0.10)); }
-          100% { transform: scale(1.000); filter: drop-shadow(0 0 14px rgba(0,255,214,0.10)); }
+          0%   { transform: scale(1.000); filter: drop-shadow(0 0 16px rgba(0,255,214,0.12)); }
+          18%  { transform: scale(1.065); filter: drop-shadow(0 0 44px rgba(0,255,214,0.26)); }
+          34%  { transform: scale(1.000); filter: drop-shadow(0 0 16px rgba(0,255,214,0.12)); }
+          100% { transform: scale(1.000); filter: drop-shadow(0 0 16px rgba(0,255,214,0.12)); }
         }
 
         @keyframes dustDrift {
@@ -434,17 +432,17 @@ function GlobalStyles() {
           line-height: 1.02;
           text-transform: uppercase;
 
-          background: linear-gradient(90deg, rgba(0,255,214,0.95), rgba(194,161,90,0.92));
+          background: linear-gradient(90deg, rgba(0,255,214,0.98), rgba(194,161,90,0.94));
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
 
-          text-shadow: 0 0 18px rgba(0,255,214,0.12);
+          text-shadow: 0 0 20px rgba(0,255,214,0.14);
           transform-origin: center;
         }
 
         .heroBrandAlive {
-          animation: balanceAlive 6.8s ease-in-out infinite;
+          animation: balanceAlive 5.9s ease-in-out infinite;
         }
 
         .heroChapter {
@@ -560,11 +558,11 @@ function GlobalStyles() {
 
         .vowGlow {
           color: rgba(0,255,214,0.92);
-          text-shadow: 0 0 18px rgba(0,255,214,0.14);
+          text-shadow: 0 0 22px rgba(0,255,214,0.20);
         }
 
         .vowPulse {
-          animation: vowPulse 4.8s ease-in-out infinite;
+          animation: vowPulse 4.2s ease-in-out infinite;
           transform-origin: center;
         }
 

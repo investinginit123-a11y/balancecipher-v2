@@ -2,30 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 
 type View = "landing" | "p2" | "p3" | "p4" | "p5";
 
-/**
- * Page steps:
- * - P2: personal + first name
- * - P3: last name + cipher explain + equation
- * - P4: email + send code message
- * - P5: final gate (paste code) -> welcome
- */
-type StepKey =
-  | "welcome"
-  | "firstPrompt"
-  | "firstInput"
-  | "cta"
-  | "lastPrompt"
-  | "lastInput"
-  | "cipherExplain"
-  | "equation"
-  | "emailPrompt"
-  | "emailInput"
-  | "sendExplain"
-  | "finalGate"
-  | "finalInput"
-  | "finalWhisper"
-  | "welcomeHome";
-
 function safeTrimMax(v: string, maxLen: number) {
   return v.trim().slice(0, maxLen);
 }
@@ -43,265 +19,197 @@ function generateAccessCode(): string {
 }
 
 export default function App() {
-  // PAGE SWITCH (Page 1 -> Page 2 -> Page 3 -> Page 4 -> Page 5)
   const [view, setView] = useState<View>("landing");
 
-  // Per-page step flow
-  const [stepIndex, setStepIndex] = useState<number>(0);
-
-  // Data capture
+  // Data capture across funnel
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [accessCode, setAccessCode] = useState<string>("");
-
-  // Final gate input
   const [codeInput, setCodeInput] = useState<string>("");
 
-  // Refs (focus)
-  const firstRef = useRef<HTMLInputElement | null>(null);
-  const lastRef = useRef<HTMLInputElement | null>(null);
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const codeRef = useRef<HTMLInputElement | null>(null);
-
-  // Auto reveal timing
-  const autoTimerRef = useRef<number | null>(null);
-
+  // Shared reduced motion
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
   }, []);
 
-  const stepsForView: StepKey[] = useMemo(() => {
-    if (view === "p2")
-      return ["welcome", "firstPrompt", "firstInput", "cta"];
-    if (view === "p3")
-      return ["lastPrompt", "lastInput", "cipherExplain", "equation", "cta"];
-    if (view === "p4")
-      return ["emailPrompt", "emailInput", "sendExplain", "cta"];
-    if (view === "p5")
-      return ["finalGate", "finalInput", "finalWhisper", "welcomeHome"];
-    return [];
-  }, [view]);
+  // -----------------------------
+  // PAGE 2: Cinematic equation build
+  // -----------------------------
+  type P2Stage =
+    | "fadeInBlack"
+    | "arcSilence"
+    | "cipherWord"
+    | "cipherSub"
+    | "pause1"
+    | "copilotWord"
+    | "copilotSub"
+    | "pause2"
+    | "youWord"
+    | "equalsSign"
+    | "balanceWord"
+    | "breathe"
+    | "input";
 
-  const current = stepsForView[stepIndex];
+  const [p2Stage, setP2Stage] = useState<P2Stage>("fadeInBlack");
+  const [p2BlackOn, setP2BlackOn] = useState<boolean>(true);
+  const [p2First, setP2First] = useState<string>("");
+  const p2FirstRef = useRef<HTMLInputElement | null>(null);
 
-  function clearAutoTimer() {
-    if (autoTimerRef.current) {
-      window.clearTimeout(autoTimerRef.current);
-      autoTimerRef.current = null;
+  // Cleanup timers
+  const p2Timers = useRef<number[]>([]);
+
+  function clearP2Timers() {
+    p2Timers.current.forEach((t) => window.clearTimeout(t));
+    p2Timers.current = [];
+  }
+
+  useEffect(() => {
+    if (view !== "p2") return;
+
+    clearP2Timers();
+    setP2First("");
+    setP2Stage("fadeInBlack");
+    setP2BlackOn(true);
+
+    // If reduced motion: show everything immediately (and show input)
+    if (prefersReducedMotion) {
+      setP2BlackOn(false);
+      setP2Stage("input");
+      setTimeout(() => p2FirstRef.current?.focus(), 0);
+      return;
     }
-  }
 
-  function show(step: StepKey): boolean {
-    return stepsForView.indexOf(step) <= stepIndex;
-  }
+    // Spec timing:
+    // 1) fade to black 0.7s
+    // 2) 0.8s silence, then "Cipher"
+    // 3) 1.6s later subline
+    // 4) 2.0s pause
+    // 5) "Co-Pilot"
+    // 6) 1.6s later subline
+    // 7) 2.0s pause
+    // 8) "+ You"
+    // 9) 1.8s later "="
+    // 10) 1.2s later "BALANCE"
+    // 11) 2.5s breathe
+    // 12) input slides up
 
-  function next() {
-    setStepIndex((i) => Math.min(i + 1, stepsForView.length - 1));
-  }
+    const push = (fn: () => void, ms: number) => {
+      p2Timers.current.push(window.setTimeout(fn, ms));
+    };
 
-  function back() {
-    setStepIndex((i) => Math.max(i - 1, 0));
-  }
+    // t=0 already black overlay on.
+    // t=700 black overlay fades off (arc now "present")
+    push(() => {
+      setP2BlackOn(false);
+      setP2Stage("arcSilence");
+    }, 700);
+
+    // t=1500 show Cipher
+    push(() => setP2Stage("cipherWord"), 1500);
+
+    // t=3100 cipher sub
+    push(() => setP2Stage("cipherSub"), 3100);
+
+    // t=5100 copilot word
+    push(() => setP2Stage("copilotWord"), 5100);
+
+    // t=6700 copilot sub
+    push(() => setP2Stage("copilotSub"), 6700);
+
+    // t=8700 + You
+    push(() => setP2Stage("youWord"), 8700);
+
+    // t=10500 equals
+    push(() => setP2Stage("equalsSign"), 10500);
+
+    // t=11700 balance
+    push(() => setP2Stage("balanceWord"), 11700);
+
+    // t=14200 input
+    push(() => {
+      setP2Stage("input");
+      setTimeout(() => p2FirstRef.current?.focus(), 150);
+    }, 14200);
+
+    return () => clearP2Timers();
+  }, [view, prefersReducedMotion]);
 
   function goTo(v: View) {
-    clearAutoTimer();
+    // Clear page-2 timers so they don’t bleed
+    clearP2Timers();
     setView(v);
-    setStepIndex(0);
   }
 
   function goToDecodePage() {
     goTo("p2");
   }
 
-  function goBackFromP2() {
-    goTo("landing");
-  }
-
-  function goBackFromP3() {
-    goTo("p2");
-  }
-
-  function goBackFromP4() {
+  function submitFirstNameFromP2() {
+    const fn = safeTrimMax(p2First, 40);
+    if (!fn) return; // no labels, no nagging
+    setFirstName(fn);
     goTo("p3");
   }
 
-  function goBackFromP5() {
-    goTo("p4");
-  }
-
-  function canAdvanceFromThisStep(): boolean {
-    if (view === "p2" && current === "firstInput") return firstName.trim().length > 0;
-    if (view === "p3" && current === "lastInput") return lastName.trim().length > 0;
-    if (view === "p4" && current === "emailInput") return isValidEmail(email);
-    if (view === "p5" && current === "finalInput") {
-      const expected = accessCode.trim().toUpperCase();
-      const entered = codeInput.trim().toUpperCase();
-      if (!expected) return entered.length > 0; // allow preview even if code missing
-      return entered.length > 0 && entered === expected;
-    }
-    return true;
-  }
-
-  function primaryLabel(): string {
-    if (view === "p2" && current === "cta") return "Continue";
-    if (view === "p3" && current === "cta") return "Continue";
-    if (view === "p4" && current === "cta") return "Continue";
-    // On page 5 we do not show a big CTA; code entry drives it.
-    return "Continue";
-  }
-
-  function onPrimary() {
-    if (!canAdvanceFromThisStep()) return;
-
-    // Page-level handoffs
-    if (view === "p2" && current === "cta") {
-      goTo("p3");
-      return;
-    }
-    if (view === "p3" && current === "cta") {
-      goTo("p4");
-      return;
-    }
-    if (view === "p4" && current === "cta") {
-      // Generate code (placeholder for now)
-      if (!accessCode) {
-        const code = generateAccessCode();
-        setAccessCode(code);
-
-        // Persist basic personalization for later (optional)
-        try {
-          localStorage.setItem("balancecipher_firstName", safeTrimMax(firstName, 40));
-          localStorage.setItem("balancecipher_lastName", safeTrimMax(lastName, 60));
-          localStorage.setItem("balancecipher_email", safeTrimMax(email, 120));
-          localStorage.setItem("balancecipher_code", code);
-        } catch {
-          // ignore storage failures
-        }
-      }
-      goTo("p5");
-      return;
-    }
-
-    // In-page steps
-    next();
-  }
-
-  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function onKeyDownP2(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
-
-      // Page 5 is special: Enter on code triggers welcome instantly if correct.
-      if (view === "p5" && current === "finalInput") {
-        if (canAdvanceFromThisStep()) {
-          // advance to whisper then welcome
-          next(); // finalWhisper
-          // slight delay then welcome
-          window.setTimeout(() => {
-            setStepIndex(stepsForView.indexOf("welcomeHome"));
-          }, prefersReducedMotion ? 0 : 520);
-        }
-        return;
-      }
-
-      onPrimary();
+      submitFirstNameFromP2();
     }
   }
 
-  // Auto-reveal behavior per page (keeps your format + pacing)
+  // -----------------------------
+  // Pages 3–5 (kept functional; we can cinematic-upgrade next)
+  // -----------------------------
+  const lastRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const codeRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
-    clearAutoTimer();
-    if (view === "landing") return;
-    if (prefersReducedMotion) return;
+    if (view === "p3") setTimeout(() => lastRef.current?.focus(), prefersReducedMotion ? 0 : 200);
+    if (view === "p4") setTimeout(() => emailRef.current?.focus(), prefersReducedMotion ? 0 : 200);
+    if (view === "p5") setTimeout(() => codeRef.current?.focus(), prefersReducedMotion ? 0 : 200);
+  }, [view, prefersReducedMotion]);
 
-    // P2: welcome -> firstPrompt -> firstInput (then stop for typing)
-    if (view === "p2") {
-      if (stepIndex === 0) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
-        return;
-      }
-      if (stepIndex === 1) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
-        return;
-      }
-      return;
-    }
+  function canContinueP3() {
+    return lastName.trim().length > 0;
+  }
+  function canContinueP4() {
+    return isValidEmail(email);
+  }
+  function canContinueP5() {
+    const expected = accessCode.trim().toUpperCase();
+    const entered = codeInput.trim().toUpperCase();
+    if (!expected) return entered.length > 0;
+    return entered.length > 0 && entered === expected;
+  }
 
-    // P3: lastPrompt -> lastInput (then stop) then auto cipherExplain -> equation -> cta
-    if (view === "p3") {
-      if (stepIndex === 0) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
-        return;
-      }
-      // after last input completes, user hits Continue, then:
-      if (stepIndex === 2) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(3), 950);
-        return;
-      }
-      if (stepIndex === 3) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(4), 950);
-        return;
-      }
-      return;
-    }
+  function continueFromP3() {
+    if (!canContinueP3()) return;
+    goTo("p4");
+  }
+  function continueFromP4() {
+    if (!canContinueP4()) return;
+    if (!accessCode) setAccessCode(generateAccessCode());
+    goTo("p5");
+  }
+  function continueFromP5() {
+    if (!canContinueP5()) return;
+    // Final "welcome" moment: for now, just route to info
+    window.location.href = "https://balancecipher.com/info";
+  }
 
-    // P4: emailPrompt -> emailInput (then stop) then auto sendExplain -> cta
-    if (view === "p4") {
-      if (stepIndex === 0) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
-        return;
-      }
-      if (stepIndex === 2) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(3), 950);
-        return;
-      }
-      return;
+  function onKeyDownGeneric(
+    e: React.KeyboardEvent<HTMLInputElement>,
+    action: () => void
+  ) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      action();
     }
-
-    // P5: gate line shows immediately; input shows shortly after
-    if (view === "p5") {
-      if (stepIndex === 0) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
-        return;
-      }
-      if (stepIndex === 1) {
-        autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
-        return;
-      }
-      return;
-    }
-  }, [view, stepIndex, prefersReducedMotion]);
-
-  // Focus inputs when they appear
-  useEffect(() => {
-    if (view === "p2" && current === "firstInput") {
-      setTimeout(() => firstRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-    if (view === "p3" && current === "lastInput") {
-      setTimeout(() => lastRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-    if (view === "p4" && current === "emailInput") {
-      setTimeout(() => emailRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-    if (view === "p5" && current === "finalInput") {
-      setTimeout(() => codeRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-  }, [view, current, prefersReducedMotion]);
-
-  // Show control buttons whenever user interaction is needed (or reduced motion is on)
-  const showControls =
-    view !== "landing" &&
-    (prefersReducedMotion ||
-      current === "firstInput" ||
-      current === "lastInput" ||
-      current === "emailInput" ||
-      current === "cipherExplain" ||
-      current === "equation" ||
-      current === "sendExplain" ||
-      current === "cta");
-
-  const infoUrlText = "balancecipher.com/info";
+  }
 
   return (
     <>
@@ -497,7 +405,139 @@ export default function App() {
           color: rgba(255,255,255,0.58);
         }
 
-        /* Pages 2–5 */
+        /* PAGE 2 cinematic */
+        .p2{
+          min-height:100vh;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          padding: 34px 18px 84px;
+          background: #000;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .p2Black{
+          position:absolute;
+          inset:0;
+          background:#000;
+          opacity: 1;
+          transition: opacity 700ms ease;
+          pointer-events:none;
+          z-index: 20;
+        }
+        .p2Black.off{ opacity: 0; }
+
+        .p2CoreWrap{
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          gap: 18px;
+          position: relative;
+          z-index: 5;
+        }
+
+        .p2Words{
+          width: min(620px, 100%);
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          gap: 10px;
+          min-height: 168px;
+        }
+
+        .bigWord{
+          font-size: clamp(30px, 8vw, 44px);
+          font-weight: 900;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.96);
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 520ms ease, transform 520ms ease;
+        }
+        .bigWord.show{
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .subLine{
+          font-size: 16px;
+          font-weight: 400;
+          color: rgba(40,240,255,0.60);
+          opacity: 0;
+          transform: translateY(8px);
+          transition: opacity 520ms ease, transform 520ms ease;
+          margin-top: -6px;
+        }
+        .subLine.show{
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        .p2InlineRow{
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap: 12px;
+          flex-wrap: wrap;
+          min-height: 48px;
+        }
+
+        .eqSymBig{
+          font-size: clamp(28px, 7vw, 40px);
+          font-weight: 900;
+          color: rgba(255,255,255,0.88);
+          opacity: 0;
+          transform: translateY(10px);
+          transition: opacity 520ms ease, transform 520ms ease;
+        }
+        .eqSymBig.show{
+          opacity: 1;
+          transform: translateY(0);
+        }
+
+        /* Input dock: no label, no placeholder, underline only */
+        .p2Dock{
+          position:absolute;
+          left:0; right:0;
+          bottom: 38px;
+          display:flex;
+          justify-content:center;
+          opacity: 0;
+          transform: translateY(26px);
+          transition: opacity 520ms ease, transform 520ms ease;
+          z-index: 10;
+          pointer-events:none;
+        }
+        .p2Dock.show{
+          opacity: 1;
+          transform: translateY(0);
+          pointer-events:auto;
+        }
+
+        .underlineOnly{
+          width: min(420px, 86vw);
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid rgba(40,240,255,0.40);
+          padding: 14px 10px 12px;
+          color: rgba(255,255,255,0.92);
+          font-size: 18px;
+          text-align: center;
+          outline: none;
+          caret-color: rgba(40,240,255,0.95);
+          transition: border-color 250ms ease, box-shadow 250ms ease;
+        }
+        .underlineOnly:focus{
+          border-bottom-color: rgba(40,240,255,0.80);
+          box-shadow: 0 12px 28px rgba(40,240,255,0.10);
+        }
+
+        /* Pages 3–5 (basic) */
         .pX{
           min-height:100vh;
           display:flex;
@@ -507,14 +547,12 @@ export default function App() {
           padding: 42px 18px 60px;
           text-align:center;
         }
-
         .topRow{
           width: min(520px, 100%);
           display:flex;
           justify-content:flex-start;
           margin: 0 auto 10px;
         }
-
         .backBtn{
           padding: 10px 14px;
           border-radius: 999px;
@@ -523,114 +561,13 @@ export default function App() {
           color: rgba(255,255,255,0.82);
           cursor: pointer;
         }
-
-        .arcSm{
-          width: 150px;
-          height: 150px;
-          border-radius: 999px;
-          border: 1.8px solid rgba(0,255,255,0.33);
-          margin: 0 auto;
-          filter: blur(0.6px);
-          box-shadow: 0 0 22px rgba(0,255,255,0.20);
-          animation: corePulse 4s infinite ease-in-out;
-          position: relative;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          overflow:hidden;
-        }
-
-        .arcSm::before{
-          content:"";
-          position:absolute;
-          inset:-60%;
-          background: radial-gradient(circle, rgba(0,255,255,0.14), transparent 55%);
-          transform: rotate(18deg);
-          opacity: 0.85;
-          animation: slowDrift 10s ease-in-out infinite;
-          pointer-events:none;
-        }
-
-        /* Final gate arc (white core + thin cyan ring) */
-        .arcGate{
-          width: 150px;
-          height: 150px;
-          border-radius: 999px;
-          border: 1px solid rgba(0,255,255,0.36);
-          margin: 0 auto;
-          box-shadow: 0 0 18px rgba(0,255,255,0.16);
-          position: relative;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          overflow:hidden;
-        }
-
-        .arcGate::before{
-          content:"";
-          position:absolute;
-          inset: 22px;
-          border-radius: 999px;
-          background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.65) 55%, rgba(255,255,255,0) 75%);
-          filter: blur(0.2px);
-        }
-
-        .arcGate::after{
-          content:"";
-          position:absolute;
-          inset:0;
-          border-radius:999px;
-          border: 1px solid rgba(0,255,255,0.55);
-          box-shadow: 0 0 16px rgba(0,255,255,0.12);
-        }
-
-        .emblemSm{
-          width: 118px;
-          height: 118px;
-          object-fit: contain;
-          filter: drop-shadow(0 0 18px rgba(0,255,255,0.55));
-          position:relative;
-          z-index:1;
-        }
-
-        .stack{
-          width: min(520px, 100%);
-          margin: 0 auto;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 14px;
-        }
-
-        .step{
-          opacity: 0;
-          transform: translateY(18px);
-          transition: opacity 420ms ease, transform 380ms ease;
-          width: 100%;
-        }
-
-        .step.show{
-          opacity: 1;
-          transform: translateY(0);
-        }
-
         .line{
           font-weight: 300;
           font-size: clamp(22px, 5.2vw, 28px);
-          margin: 14px auto;
+          margin: 18px auto 12px;
           max-width: 420px;
           line-height: 1.25;
         }
-
-        .lineSm{
-          font-size: 15px;
-          color: rgba(0,255,255,0.55);
-          font-weight: 450;
-          max-width: 360px;
-          line-height: 1.45;
-          margin: 10px auto 6px;
-        }
-
         .input{
           background: transparent;
           border: 1px solid rgba(0,255,255,0.33);
@@ -644,57 +581,13 @@ export default function App() {
           text-align:center;
           transition: border-color .3s, box-shadow .3s;
         }
-
         .input:focus{
           outline: none;
           border-color: rgba(0,255,255,1);
           box-shadow: 0 0 14px rgba(0,255,255,0.28);
         }
-
-        .equation2{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin: 12px auto 0;
-        }
-
-        .eqText2{
-          font-size: 15px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(0,255,255,0.62);
-          font-weight: 800;
-        }
-
-        .eqSym2{
-          font-size: 17px;
-          color: rgba(255,255,255,0.72);
-          font-weight: 900;
-        }
-
-        .balance2{
-          font-size: 22px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          font-weight: 950;
-          color: var(--brass);
-          text-shadow: 0 0 18px var(--brassGlow);
-          padding: 2px 6px;
-          border-radius: 10px;
-          animation: balancePulse 3.6s ease-in-out infinite;
-        }
-
-        .btnRow{
-          margin-top: 18px;
-          display:flex;
-          gap: 10px;
-          justify-content:center;
-          flex-wrap: wrap;
-        }
-
         .btn2{
+          margin-top: 16px;
           padding: 15px 22px;
           font-size: 16px;
           font-weight: 700;
@@ -703,87 +596,24 @@ export default function App() {
           border: 1.8px solid rgba(0,255,255,0.70);
           border-radius: 999px;
           cursor: pointer;
-          transition: transform .16s ease, box-shadow .2s ease, background .2s ease;
         }
-
-        .btn2:hover{
-          background: rgba(0,255,255,0.08);
-          box-shadow: 0 0 18px rgba(0,255,255,0.36);
-          transform: translateY(-1px);
-        }
-
-        .btn2:disabled{
-          opacity: 0.45;
-          cursor: not-allowed;
-          box-shadow: none;
-          transform: none;
-        }
-
-        .btn2Secondary{
-          border-color: rgba(255,255,255,0.18);
-          color: rgba(255,255,255,0.75);
-        }
-
-        .hint2{
+        .btn2:disabled{ opacity:0.45; cursor:not-allowed; }
+        .whisper{
           margin-top: 10px;
           font-size: 13px;
-          color: rgba(255,255,255,0.58);
-          max-width: 440px;
-          line-height: 1.4;
-        }
-
-        .whisper{
-          margin-top: 8px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.52);
+          color: rgba(255,255,255,0.56);
           max-width: 420px;
           line-height: 1.45;
         }
-
-        .gateBtn{
-          margin-top: 14px;
-          padding: 14px 18px;
-          border-radius: 999px;
-          border: 1.5px solid rgba(40,240,255,0.65);
-          color: rgba(40,240,255,0.95);
-          background: rgba(0,0,0,0.18);
-          cursor: pointer;
-          font-weight: 800;
-          text-decoration:none;
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          gap: 10px;
-          box-shadow: 0 0 18px rgba(40,240,255,0.12);
-        }
-
-        .gateBtn:hover{
-          background: rgba(40,240,255,0.08);
-          box-shadow: 0 0 24px rgba(40,240,255,0.16);
-        }
-
         .tinyLink{
           margin-top: 8px;
           font-size: 12px;
           color: rgba(0,255,255,0.55);
         }
 
-        @media (max-width: 420px){
-          .core{ width: 236px; height: 236px; }
-          .emblemLg{ width: 188px; height: 188px; }
-          .btn{ width: 100%; max-width: 340px; }
-
-          .arcSm, .arcGate{ width: 136px; height: 136px; }
-          .emblemSm{ width: 108px; height: 108px; }
-          .btn2{ width: 100%; max-width: 340px; }
-        }
-
         @media (prefers-reduced-motion: reduce){
-          .core, .core::before, .balance,
-          .arcSm, .arcSm::before, .balance2{
-            animation: none !important;
-          }
-          .step{
+          .core, .core::before, .balance{ animation: none !important; }
+          .p2Black, .bigWord, .subLine, .eqSymBig, .p2Dock{
             transition: none !important;
             transform: none !important;
             opacity: 1 !important;
@@ -791,320 +621,4 @@ export default function App() {
         }
       `}</style>
 
-      {/* PAGE 1 (Landing) */}
-      {view === "landing" ? (
-        <main className="p1">
-          <div className="p1Wrap">
-            <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-              />
-            </div>
-
-            <div className="equation" aria-label="Cipher equation">
-              <span className="eqText">Cipher</span>
-              <span className="eqSym">+</span>
-              <span className="eqText">Co-Pilot</span>
-              <span className="eqSym">+</span>
-              <span className="eqText">You</span>
-              <span className="eqSym">=</span>
-              <span className="balance">BALANCE</span>
-            </div>
-
-            <div className="cornerstone">
-              <strong>Are you ready to start decoding?</strong>
-            </div>
-
-            <div className="sub">
-              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
-            </div>
-
-            <button className="btn" type="button" onClick={goToDecodePage}>
-              Start the private decode
-            </button>
-
-            <div className="hint">No pressure. No shame. Just clarity.</div>
-          </div>
-        </main>
-      ) : null}
-
-      {/* PAGE 2 */}
-      {view === "p2" ? (
-        <main className="pX">
-          <div className="topRow">
-            <button className="backBtn" type="button" onClick={goBackFromP2}>
-              Back
-            </button>
-          </div>
-
-          <div style={{ margin: "6px 0 16px" }}>
-            <div className="arcSm" aria-label="Cipher core">
-              <img className="emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" />
-            </div>
-          </div>
-
-          <div className="stack">
-            <div className={`step ${show("welcome") ? "show" : ""}`}>
-              <div className="line">Let’s make this personal.</div>
-            </div>
-
-            <div className={`step ${show("firstPrompt") ? "show" : ""}`}>
-              <div className="line">Your first name.</div>
-            </div>
-
-            <div className={`step ${show("firstInput") ? "show" : ""}`}>
-              <input
-                ref={firstRef}
-                className="input"
-                type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="given-name"
-              />
-            </div>
-
-            {showControls ? (
-              <div className="step show">
-                <div className="btnRow">
-                  <button
-                    className="btn2"
-                    type="button"
-                    onClick={onPrimary}
-                    disabled={!canAdvanceFromThisStep()}
-                  >
-                    {primaryLabel()}
-                  </button>
-                </div>
-
-                <div className="hint2">
-                  This is just for personalization. No hype. No shame.
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </main>
-      ) : null}
-
-      {/* PAGE 3 */}
-      {view === "p3" ? (
-        <main className="pX">
-          <div className="topRow">
-            <button className="backBtn" type="button" onClick={goBackFromP3}>
-              Back
-            </button>
-          </div>
-
-          <div style={{ margin: "6px 0 16px" }}>
-            <div className="arcSm" aria-label="Cipher core">
-              <img className="emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" />
-            </div>
-          </div>
-
-          <div className="stack">
-            <div className={`step ${show("lastPrompt") ? "show" : ""}`}>
-              <div className="line">
-                AI doesn’t need your last name.
-                <br />
-                Balance needs your full truth.
-              </div>
-            </div>
-
-            <div className={`step ${show("lastInput") ? "show" : ""}`}>
-              <input
-                ref={lastRef}
-                className="input"
-                type="text"
-                placeholder="Last name"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="family-name"
-              />
-            </div>
-
-            <div className={`step ${show("cipherExplain") ? "show" : ""}`}>
-              <div className="lineSm">
-                The Cipher isn’t software.
-                <br />
-                It’s the quiet math between what you do… and what your score becomes.
-              </div>
-              <div className="cornerstone">
-                <strong>Are you ready to start decoding?</strong>
-              </div>
-            </div>
-
-            <div className={`step ${show("equation") ? "show" : ""}`}>
-              <div className="equation2" aria-label="Cipher equation">
-                <span className="eqText2">Cipher</span>
-                <span className="eqSym2">+</span>
-                <span className="eqText2">Co-Pilot</span>
-                <span className="eqSym2">+</span>
-                <span className="eqText2">You</span>
-                <span className="eqSym2">=</span>
-                <span className="balance2">BALANCE</span>
-              </div>
-            </div>
-
-            {showControls ? (
-              <div className="step show">
-                <div className="btnRow">
-                  <button className="btn2 btn2Secondary" type="button" onClick={back} disabled={stepIndex === 0}>
-                    Back
-                  </button>
-
-                  <button className="btn2" type="button" onClick={onPrimary} disabled={!canAdvanceFromThisStep()}>
-                    {primaryLabel()}
-                  </button>
-                </div>
-
-                <div className="hint2">
-                  Cipher + Co-Pilot + You = BALANCE. Clear direction returns.
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </main>
-      ) : null}
-
-      {/* PAGE 4 */}
-      {view === "p4" ? (
-        <main className="pX">
-          <div className="topRow">
-            <button className="backBtn" type="button" onClick={goBackFromP4}>
-              Back
-            </button>
-          </div>
-
-          <div style={{ margin: "6px 0 16px" }}>
-            <div className="arcSm" aria-label="Cipher core">
-              <img className="emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" />
-            </div>
-          </div>
-
-          <div className="stack">
-            <div className={`step ${show("emailPrompt") ? "show" : ""}`}>
-              <div className="line">Email — your key arrives here, once.</div>
-            </div>
-
-            <div className={`step ${show("emailInput") ? "show" : ""}`}>
-              <input
-                ref={emailRef}
-                className="input"
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="email"
-              />
-              <div className="whisper">
-                First 500 get Chapter One instantly. Everyone else waits 72 hours.
-              </div>
-            </div>
-
-            <div className={`step ${show("sendExplain") ? "show" : ""}`}>
-              <div className="lineSm">
-                Code’s on the way.
-                <br />
-                60 seconds.
-              </div>
-              <div className="tinyLink">{infoUrlText}</div>
-            </div>
-
-            {showControls ? (
-              <div className="step show">
-                <div className="btnRow">
-                  <button className="btn2 btn2Secondary" type="button" onClick={back} disabled={stepIndex === 0}>
-                    Back
-                  </button>
-
-                  <button className="btn2" type="button" onClick={onPrimary} disabled={!canAdvanceFromThisStep()}>
-                    {primaryLabel()}
-                  </button>
-                </div>
-
-                <div className="hint2">
-                  We’ll wire real code-delivery later. For now, this preview confirms the flow.
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </main>
-      ) : null}
-
-      {/* PAGE 5 (Final Gate) */}
-      {view === "p5" ? (
-        <main className="pX">
-          <div className="topRow">
-            <button className="backBtn" type="button" onClick={goBackFromP5}>
-              Back
-            </button>
-          </div>
-
-          <div style={{ margin: "6px 0 16px" }}>
-            <div className="arcGate" aria-label="Final gate" />
-          </div>
-
-          <div className="stack">
-            <div className={`step ${show("finalGate") ? "show" : ""}`}>
-              <div className="line">You brought the key.</div>
-            </div>
-
-            <div className={`step ${show("finalInput") ? "show" : ""}`}>
-              <div className="lineSm">Paste it below. One time only.</div>
-              <input
-                ref={codeRef}
-                className="input"
-                type="text"
-                placeholder="your private cipher code"
-                value={codeInput}
-                onChange={(e) => setCodeInput(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="one-time-code"
-              />
-            </div>
-
-            <div className={`step ${show("finalWhisper") ? "show" : ""}`}>
-              <div className="whisper">
-                First 500 get Chapter One instantly. Everyone else waits 72 hours.
-              </div>
-            </div>
-
-            <div className={`step ${show("welcomeHome") ? "show" : ""}`}>
-              <div className="line">
-                Welcome home{firstName.trim() ? `, ${safeTrimMax(firstName, 40)}` : ""}.
-              </div>
-
-              <a className="gateBtn" href="https://balancecipher.com/info">
-                Open the Balance Formula
-              </a>
-              <div className="tinyLink">{infoUrlText}</div>
-
-              {/* Debug line hidden by default later; kept visible now to help you test */}
-              <div className="hint2" style={{ marginTop: 10 }}>
-                Preview code (temporary): <strong>{accessCode || "(not generated yet)"}</strong>
-              </div>
-            </div>
-
-            {/* Minimal controls: On Page 5, code entry + Enter drives the transition.
-                If reduced motion is on, show a Continue button for accessibility. */}
-            {prefersReducedMotion ? (
-              <div className="step show">
-                <div className="btnRow">
-                  <button className="btn2" type="button" onClick={() => setStepIndex(stepsForView.indexOf("welcomeHome"))}>
-                    Continue
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </main>
-      ) : null}
-    </>
-  );
-}
+      {/* PAGE 1 *

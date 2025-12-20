@@ -1,28 +1,70 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "landing" | "decode";
+type View = "landing" | "p2" | "p3" | "p4" | "p5";
 
+/**
+ * Page steps:
+ * - P2: personal + first name
+ * - P3: last name + cipher explain + equation
+ * - P4: email + send code message
+ * - P5: final gate (paste code) -> welcome
+ */
 type StepKey =
   | "welcome"
   | "firstPrompt"
   | "firstInput"
+  | "cta"
   | "lastPrompt"
   | "lastInput"
   | "cipherExplain"
   | "equation"
-  | "cta";
+  | "emailPrompt"
+  | "emailInput"
+  | "sendExplain"
+  | "finalGate"
+  | "finalInput"
+  | "finalWhisper"
+  | "welcomeHome";
+
+function safeTrimMax(v: string, maxLen: number) {
+  return v.trim().slice(0, maxLen);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function generateAccessCode(): string {
+  // Client-side placeholder. Replace later with server-generated + emailed code.
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
 
 export default function App() {
-  // PAGE SWITCH (Page 1 -> Page 2)
+  // PAGE SWITCH (Page 1 -> Page 2 -> Page 3 -> Page 4 -> Page 5)
   const [view, setView] = useState<View>("landing");
 
-  // Page 2 state (step flow)
+  // Per-page step flow
   const [stepIndex, setStepIndex] = useState<number>(0);
+
+  // Data capture
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [accessCode, setAccessCode] = useState<string>("");
 
+  // Final gate input
+  const [codeInput, setCodeInput] = useState<string>("");
+
+  // Refs (focus)
   const firstRef = useRef<HTMLInputElement | null>(null);
   const lastRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const codeRef = useRef<HTMLInputElement | null>(null);
+
+  // Auto reveal timing
   const autoTimerRef = useRef<number | null>(null);
 
   const prefersReducedMotion = useMemo(() => {
@@ -30,18 +72,19 @@ export default function App() {
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
   }, []);
 
-  const steps: StepKey[] = [
-    "welcome",
-    "firstPrompt",
-    "firstInput",
-    "lastPrompt",
-    "lastInput",
-    "cipherExplain",
-    "equation",
-    "cta",
-  ];
+  const stepsForView: StepKey[] = useMemo(() => {
+    if (view === "p2")
+      return ["welcome", "firstPrompt", "firstInput", "cta"];
+    if (view === "p3")
+      return ["lastPrompt", "lastInput", "cipherExplain", "equation", "cta"];
+    if (view === "p4")
+      return ["emailPrompt", "emailInput", "sendExplain", "cta"];
+    if (view === "p5")
+      return ["finalGate", "finalInput", "finalWhisper", "welcomeHome"];
+    return [];
+  }, [view]);
 
-  const current = steps[stepIndex];
+  const current = stepsForView[stepIndex];
 
   function clearAutoTimer() {
     if (autoTimerRef.current) {
@@ -50,117 +93,215 @@ export default function App() {
     }
   }
 
-  // Auto-reveal behavior on Page 2
-  useEffect(() => {
-    clearAutoTimer();
-
-    if (view !== "decode") return;
-
-    // If reduced motion is on, do not auto-advance—show controls immediately.
-    if (prefersReducedMotion) return;
-
-    // Auto-advance: welcome -> firstPrompt -> firstInput (then stop for typing)
-    if (stepIndex === 0) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
-      return;
-    }
-    if (stepIndex === 1) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
-      return;
-    }
-
-    // Auto-advance: lastPrompt -> lastInput (then stop for typing)
-    if (stepIndex === 3) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(4), 900);
-      return;
-    }
-
-    // After last name is completed, we can lightly auto-reveal the final info
-    // cipherExplain -> equation -> cta (still with buttons visible)
-    if (stepIndex === 5) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(6), 950);
-      return;
-    }
-    if (stepIndex === 6) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(7), 950);
-      return;
-    }
-  }, [view, stepIndex, prefersReducedMotion]);
-
-  // Focus inputs when they appear on Page 2
-  useEffect(() => {
-    if (view !== "decode") return;
-
-    if (current === "firstInput") {
-      setTimeout(() => firstRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-    if (current === "lastInput") {
-      setTimeout(() => lastRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-  }, [view, current, prefersReducedMotion]);
-
   function show(step: StepKey): boolean {
-    return steps.indexOf(step) <= stepIndex;
+    return stepsForView.indexOf(step) <= stepIndex;
   }
 
   function next() {
-    setStepIndex((i) => Math.min(i + 1, steps.length - 1));
+    setStepIndex((i) => Math.min(i + 1, stepsForView.length - 1));
   }
 
   function back() {
     setStepIndex((i) => Math.max(i - 1, 0));
   }
 
+  function goTo(v: View) {
+    clearAutoTimer();
+    setView(v);
+    setStepIndex(0);
+  }
+
+  function goToDecodePage() {
+    goTo("p2");
+  }
+
+  function goBackFromP2() {
+    goTo("landing");
+  }
+
+  function goBackFromP3() {
+    goTo("p2");
+  }
+
+  function goBackFromP4() {
+    goTo("p3");
+  }
+
+  function goBackFromP5() {
+    goTo("p4");
+  }
+
   function canAdvanceFromThisStep(): boolean {
-    if (current === "firstInput") return firstName.trim().length > 0;
-    if (current === "lastInput") return lastName.trim().length > 0;
+    if (view === "p2" && current === "firstInput") return firstName.trim().length > 0;
+    if (view === "p3" && current === "lastInput") return lastName.trim().length > 0;
+    if (view === "p4" && current === "emailInput") return isValidEmail(email);
+    if (view === "p5" && current === "finalInput") {
+      const expected = accessCode.trim().toUpperCase();
+      const entered = codeInput.trim().toUpperCase();
+      if (!expected) return entered.length > 0; // allow preview even if code missing
+      return entered.length > 0 && entered === expected;
+    }
     return true;
   }
 
   function primaryLabel(): string {
-    if (current === "cta") return "Continue";
+    if (view === "p2" && current === "cta") return "Continue";
+    if (view === "p3" && current === "cta") return "Continue";
+    if (view === "p4" && current === "cta") return "Continue";
+    // On page 5 we do not show a big CTA; code entry drives it.
     return "Continue";
   }
 
   function onPrimary() {
-    // Page 2 final CTA hook — replace later with your real next page / form submit.
-    if (current === "cta") {
-      alert("Confirmed. Next: connect this to your real form / next page.");
+    if (!canAdvanceFromThisStep()) return;
+
+    // Page-level handoffs
+    if (view === "p2" && current === "cta") {
+      goTo("p3");
+      return;
+    }
+    if (view === "p3" && current === "cta") {
+      goTo("p4");
+      return;
+    }
+    if (view === "p4" && current === "cta") {
+      // Generate code (placeholder for now)
+      if (!accessCode) {
+        const code = generateAccessCode();
+        setAccessCode(code);
+
+        // Persist basic personalization for later (optional)
+        try {
+          localStorage.setItem("balancecipher_firstName", safeTrimMax(firstName, 40));
+          localStorage.setItem("balancecipher_lastName", safeTrimMax(lastName, 60));
+          localStorage.setItem("balancecipher_email", safeTrimMax(email, 120));
+          localStorage.setItem("balancecipher_code", code);
+        } catch {
+          // ignore storage failures
+        }
+      }
+      goTo("p5");
       return;
     }
 
-    if (!canAdvanceFromThisStep()) return;
+    // In-page steps
     next();
-  }
-
-  function goToDecodePage() {
-    clearAutoTimer();
-    setView("decode");
-    setStepIndex(0);
-  }
-
-  function goBackToLanding() {
-    clearAutoTimer();
-    setView("landing");
   }
 
   function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
+
+      // Page 5 is special: Enter on code triggers welcome instantly if correct.
+      if (view === "p5" && current === "finalInput") {
+        if (canAdvanceFromThisStep()) {
+          // advance to whisper then welcome
+          next(); // finalWhisper
+          // slight delay then welcome
+          window.setTimeout(() => {
+            setStepIndex(stepsForView.indexOf("welcomeHome"));
+          }, prefersReducedMotion ? 0 : 520);
+        }
+        return;
+      }
+
       onPrimary();
     }
   }
 
+  // Auto-reveal behavior per page (keeps your format + pacing)
+  useEffect(() => {
+    clearAutoTimer();
+    if (view === "landing") return;
+    if (prefersReducedMotion) return;
+
+    // P2: welcome -> firstPrompt -> firstInput (then stop for typing)
+    if (view === "p2") {
+      if (stepIndex === 0) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
+        return;
+      }
+      if (stepIndex === 1) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
+        return;
+      }
+      return;
+    }
+
+    // P3: lastPrompt -> lastInput (then stop) then auto cipherExplain -> equation -> cta
+    if (view === "p3") {
+      if (stepIndex === 0) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
+        return;
+      }
+      // after last input completes, user hits Continue, then:
+      if (stepIndex === 2) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(3), 950);
+        return;
+      }
+      if (stepIndex === 3) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(4), 950);
+        return;
+      }
+      return;
+    }
+
+    // P4: emailPrompt -> emailInput (then stop) then auto sendExplain -> cta
+    if (view === "p4") {
+      if (stepIndex === 0) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
+        return;
+      }
+      if (stepIndex === 2) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(3), 950);
+        return;
+      }
+      return;
+    }
+
+    // P5: gate line shows immediately; input shows shortly after
+    if (view === "p5") {
+      if (stepIndex === 0) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
+        return;
+      }
+      if (stepIndex === 1) {
+        autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
+        return;
+      }
+      return;
+    }
+  }, [view, stepIndex, prefersReducedMotion]);
+
+  // Focus inputs when they appear
+  useEffect(() => {
+    if (view === "p2" && current === "firstInput") {
+      setTimeout(() => firstRef.current?.focus(), prefersReducedMotion ? 0 : 220);
+    }
+    if (view === "p3" && current === "lastInput") {
+      setTimeout(() => lastRef.current?.focus(), prefersReducedMotion ? 0 : 220);
+    }
+    if (view === "p4" && current === "emailInput") {
+      setTimeout(() => emailRef.current?.focus(), prefersReducedMotion ? 0 : 220);
+    }
+    if (view === "p5" && current === "finalInput") {
+      setTimeout(() => codeRef.current?.focus(), prefersReducedMotion ? 0 : 220);
+    }
+  }, [view, current, prefersReducedMotion]);
+
   // Show control buttons whenever user interaction is needed (or reduced motion is on)
-  const showControlsOnDecode =
-    view === "decode" &&
+  const showControls =
+    view !== "landing" &&
     (prefersReducedMotion ||
       current === "firstInput" ||
-      current === "lastPrompt" ||
       current === "lastInput" ||
+      current === "emailInput" ||
       current === "cipherExplain" ||
       current === "equation" ||
+      current === "sendExplain" ||
       current === "cta");
+
+  const infoUrlText = "balancecipher.com/info";
 
   return (
     <>
@@ -356,8 +497,8 @@ export default function App() {
           color: rgba(255,255,255,0.58);
         }
 
-        /* PAGE 2 */
-        .p2{
+        /* Pages 2–5 */
+        .pX{
           min-height:100vh;
           display:flex;
           flex-direction:column;
@@ -408,6 +549,39 @@ export default function App() {
           opacity: 0.85;
           animation: slowDrift 10s ease-in-out infinite;
           pointer-events:none;
+        }
+
+        /* Final gate arc (white core + thin cyan ring) */
+        .arcGate{
+          width: 150px;
+          height: 150px;
+          border-radius: 999px;
+          border: 1px solid rgba(0,255,255,0.36);
+          margin: 0 auto;
+          box-shadow: 0 0 18px rgba(0,255,255,0.16);
+          position: relative;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow:hidden;
+        }
+
+        .arcGate::before{
+          content:"";
+          position:absolute;
+          inset: 22px;
+          border-radius: 999px;
+          background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.65) 55%, rgba(255,255,255,0) 75%);
+          filter: blur(0.2px);
+        }
+
+        .arcGate::after{
+          content:"";
+          position:absolute;
+          inset:0;
+          border-radius:999px;
+          border: 1px solid rgba(0,255,255,0.55);
+          box-shadow: 0 0 16px rgba(0,255,255,0.12);
         }
 
         .emblemSm{
@@ -558,12 +732,48 @@ export default function App() {
           line-height: 1.4;
         }
 
+        .whisper{
+          margin-top: 8px;
+          font-size: 13px;
+          color: rgba(255,255,255,0.52);
+          max-width: 420px;
+          line-height: 1.45;
+        }
+
+        .gateBtn{
+          margin-top: 14px;
+          padding: 14px 18px;
+          border-radius: 999px;
+          border: 1.5px solid rgba(40,240,255,0.65);
+          color: rgba(40,240,255,0.95);
+          background: rgba(0,0,0,0.18);
+          cursor: pointer;
+          font-weight: 800;
+          text-decoration:none;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap: 10px;
+          box-shadow: 0 0 18px rgba(40,240,255,0.12);
+        }
+
+        .gateBtn:hover{
+          background: rgba(40,240,255,0.08);
+          box-shadow: 0 0 24px rgba(40,240,255,0.16);
+        }
+
+        .tinyLink{
+          margin-top: 8px;
+          font-size: 12px;
+          color: rgba(0,255,255,0.55);
+        }
+
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
           .btn{ width: 100%; max-width: 340px; }
 
-          .arcSm{ width: 136px; height: 136px; }
+          .arcSm, .arcGate{ width: 136px; height: 136px; }
           .emblemSm{ width: 108px; height: 108px; }
           .btn2{ width: 100%; max-width: 340px; }
         }
@@ -581,6 +791,7 @@ export default function App() {
         }
       `}</style>
 
+      {/* PAGE 1 (Landing) */}
       {view === "landing" ? (
         <main className="p1">
           <div className="p1Wrap">
@@ -618,11 +829,14 @@ export default function App() {
             <div className="hint">No pressure. No shame. Just clarity.</div>
           </div>
         </main>
-      ) : (
-        <main className="p2">
+      ) : null}
+
+      {/* PAGE 2 */}
+      {view === "p2" ? (
+        <main className="pX">
           <div className="topRow">
-            <button className="backBtn" type="button" onClick={goBackToLanding}>
-              Back to landing
+            <button className="backBtn" type="button" onClick={goBackFromP2}>
+              Back
             </button>
           </div>
 
@@ -654,6 +868,44 @@ export default function App() {
               />
             </div>
 
+            {showControls ? (
+              <div className="step show">
+                <div className="btnRow">
+                  <button
+                    className="btn2"
+                    type="button"
+                    onClick={onPrimary}
+                    disabled={!canAdvanceFromThisStep()}
+                  >
+                    {primaryLabel()}
+                  </button>
+                </div>
+
+                <div className="hint2">
+                  This is just for personalization. No hype. No shame.
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </main>
+      ) : null}
+
+      {/* PAGE 3 */}
+      {view === "p3" ? (
+        <main className="pX">
+          <div className="topRow">
+            <button className="backBtn" type="button" onClick={goBackFromP3}>
+              Back
+            </button>
+          </div>
+
+          <div style={{ margin: "6px 0 16px" }}>
+            <div className="arcSm" aria-label="Cipher core">
+              <img className="emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" />
+            </div>
+          </div>
+
+          <div className="stack">
             <div className={`step ${show("lastPrompt") ? "show" : ""}`}>
               <div className="line">
                 AI doesn’t need your last name.
@@ -698,35 +950,161 @@ export default function App() {
               </div>
             </div>
 
-            {showControlsOnDecode ? (
-              <div className={`step show`}>
+            {showControls ? (
+              <div className="step show">
                 <div className="btnRow">
-                  {stepIndex > 0 && current !== "cta" ? (
-                    <button className="btn2 btn2Secondary" type="button" onClick={back}>
-                      Back
-                    </button>
-                  ) : null}
+                  <button className="btn2 btn2Secondary" type="button" onClick={back} disabled={stepIndex === 0}>
+                    Back
+                  </button>
 
-                  <button
-                    className="btn2"
-                    type="button"
-                    onClick={onPrimary}
-                    disabled={!canAdvanceFromThisStep()}
-                  >
+                  <button className="btn2" type="button" onClick={onPrimary} disabled={!canAdvanceFromThisStep()}>
                     {primaryLabel()}
                   </button>
                 </div>
 
                 <div className="hint2">
-                  {current === "firstInput" || current === "lastInput"
-                    ? "This is just for personalization. No hype. No shame."
-                    : "Cipher + Co-Pilot + You = BALANCE. Clear direction returns."}
+                  Cipher + Co-Pilot + You = BALANCE. Clear direction returns.
                 </div>
               </div>
             ) : null}
           </div>
         </main>
-      )}
+      ) : null}
+
+      {/* PAGE 4 */}
+      {view === "p4" ? (
+        <main className="pX">
+          <div className="topRow">
+            <button className="backBtn" type="button" onClick={goBackFromP4}>
+              Back
+            </button>
+          </div>
+
+          <div style={{ margin: "6px 0 16px" }}>
+            <div className="arcSm" aria-label="Cipher core">
+              <img className="emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" />
+            </div>
+          </div>
+
+          <div className="stack">
+            <div className={`step ${show("emailPrompt") ? "show" : ""}`}>
+              <div className="line">Email — your key arrives here, once.</div>
+            </div>
+
+            <div className={`step ${show("emailInput") ? "show" : ""}`}>
+              <input
+                ref={emailRef}
+                className="input"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                autoComplete="email"
+              />
+              <div className="whisper">
+                First 500 get Chapter One instantly. Everyone else waits 72 hours.
+              </div>
+            </div>
+
+            <div className={`step ${show("sendExplain") ? "show" : ""}`}>
+              <div className="lineSm">
+                Code’s on the way.
+                <br />
+                60 seconds.
+              </div>
+              <div className="tinyLink">{infoUrlText}</div>
+            </div>
+
+            {showControls ? (
+              <div className="step show">
+                <div className="btnRow">
+                  <button className="btn2 btn2Secondary" type="button" onClick={back} disabled={stepIndex === 0}>
+                    Back
+                  </button>
+
+                  <button className="btn2" type="button" onClick={onPrimary} disabled={!canAdvanceFromThisStep()}>
+                    {primaryLabel()}
+                  </button>
+                </div>
+
+                <div className="hint2">
+                  We’ll wire real code-delivery later. For now, this preview confirms the flow.
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </main>
+      ) : null}
+
+      {/* PAGE 5 (Final Gate) */}
+      {view === "p5" ? (
+        <main className="pX">
+          <div className="topRow">
+            <button className="backBtn" type="button" onClick={goBackFromP5}>
+              Back
+            </button>
+          </div>
+
+          <div style={{ margin: "6px 0 16px" }}>
+            <div className="arcGate" aria-label="Final gate" />
+          </div>
+
+          <div className="stack">
+            <div className={`step ${show("finalGate") ? "show" : ""}`}>
+              <div className="line">You brought the key.</div>
+            </div>
+
+            <div className={`step ${show("finalInput") ? "show" : ""}`}>
+              <div className="lineSm">Paste it below. One time only.</div>
+              <input
+                ref={codeRef}
+                className="input"
+                type="text"
+                placeholder="your private cipher code"
+                value={codeInput}
+                onChange={(e) => setCodeInput(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                autoComplete="one-time-code"
+              />
+            </div>
+
+            <div className={`step ${show("finalWhisper") ? "show" : ""}`}>
+              <div className="whisper">
+                First 500 get Chapter One instantly. Everyone else waits 72 hours.
+              </div>
+            </div>
+
+            <div className={`step ${show("welcomeHome") ? "show" : ""}`}>
+              <div className="line">
+                Welcome home{firstName.trim() ? `, ${safeTrimMax(firstName, 40)}` : ""}.
+              </div>
+
+              <a className="gateBtn" href="https://balancecipher.com/info">
+                Open the Balance Formula
+              </a>
+              <div className="tinyLink">{infoUrlText}</div>
+
+              {/* Debug line hidden by default later; kept visible now to help you test */}
+              <div className="hint2" style={{ marginTop: 10 }}>
+                Preview code (temporary): <strong>{accessCode || "(not generated yet)"}</strong>
+              </div>
+            </div>
+
+            {/* Minimal controls: On Page 5, code entry + Enter drives the transition.
+                If reduced motion is on, show a Continue button for accessibility. */}
+            {prefersReducedMotion ? (
+              <div className="step show">
+                <div className="btnRow">
+                  <button className="btn2" type="button" onClick={() => setStepIndex(stepsForView.indexOf("welcomeHome"))}>
+                    Continue
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </main>
+      ) : null}
     </>
   );
 }

@@ -91,10 +91,10 @@ export default function App() {
     if (view === "p5") setTimeout(() => codeRef.current?.focus(), 50);
   }, [view]);
 
-  // Focus Page 2 input after the full “gift” sequence completes (slower now).
+  // Focus Page 2 input after the full “gift” sequence completes (slower meaning lines).
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 38000);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 36500);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -292,7 +292,7 @@ export default function App() {
           color: rgba(255,255,255,0.58);
         }
 
-        /* PAGE 2 — bigger fonts, tighter spacing, slower timing */
+        /* PAGE 2 — matched typography + bigger meaning + refined timing */
         .p2{
           min-height:100vh;
           background:#000;
@@ -300,7 +300,7 @@ export default function App() {
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          padding: 26px 18px 110px;
+          padding: 24px 18px 112px;
           position: relative;
           overflow:hidden;
         }
@@ -322,15 +322,15 @@ export default function App() {
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 8px; /* tighter */
+          gap: 6px;
           position: relative;
           z-index: 3;
         }
 
         .stage{
-          width: min(760px, 100%);
-          min-height: 160px; /* smaller = closer */
-          margin-top: -8px;  /* tuck text up under core */
+          width: min(780px, 100%);
+          min-height: 150px;
+          margin-top: -10px; /* tuck stage closer to core */
           position: relative;
           display:flex;
           flex-direction:column;
@@ -339,47 +339,62 @@ export default function App() {
           gap: 12px;
         }
 
-        /* Longer “stay” window so text is readable */
-        @keyframes sceneInOut{
-          0%   { opacity:0; transform: translateY(12px); }
-          12%  { opacity:1; transform: translateY(0); }
-          88%  { opacity:1; transform: translateY(0); }
+        /* Titles: quicker (cinematic), Meaning: slower (readable) */
+        @keyframes titleInOut{
+          0%   { opacity:0; transform: translateY(10px); }
+          18%  { opacity:1; transform: translateY(0); }
+          72%  { opacity:1; transform: translateY(0); }
+          100% { opacity:0; transform: translateY(-8px); }
+        }
+
+        @keyframes meaningInOut{
+          0%   { opacity:0; transform: translateY(10px); }
+          10%  { opacity:1; transform: translateY(0); }
+          92%  { opacity:1; transform: translateY(0); }
           100% { opacity:0; transform: translateY(-8px); }
         }
 
         @keyframes sceneInStay{
-          0%   { opacity:0; transform: translateY(12px); }
+          0%   { opacity:0; transform: translateY(10px); }
           100% { opacity:1; transform: translateY(0); }
         }
 
+        /* MATCH Page 1 “eqText” look: refined uppercase, letter-spacing */
         .title{
-          font-size: clamp(44px, 10vw, 64px); /* bigger */
-          font-weight: 950;
-          letter-spacing: 0.09em;
+          font-size: clamp(42px, 9.6vw, 60px); /* slightly smaller than last, still big */
+          font-weight: 900;
+          letter-spacing: 0.12em; /* match page 1 feel */
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
         }
 
+        /* Meaning: 50% bigger + clearer on handheld */
         .meaning{
-          font-size: clamp(18px, 4.8vw, 24px); /* much bigger */
+          font-size: clamp(24px, 6.2vw, 34px); /* ~50% larger than prior baseline */
           font-weight: 520;
-          color: rgba(255,255,255,0.86);       /* brighter for readability */
-          text-shadow: 0 0 18px rgba(40,240,255,0.10);
-          max-width: 760px;
+          color: rgba(255,255,255,0.90);
+          text-shadow: 0 0 22px rgba(40,240,255,0.10);
+          max-width: 780px;
           line-height: 1.6;
           opacity:0;
+          padding: 0 6px;
         }
 
-        /* Slower pacing: more time on-screen + more spacing between beats */
-        .scene1Title { animation: sceneInOut 3.6s ease forwards; animation-delay: 1.6s; }
-        .scene1Mean  { animation: sceneInOut 5.2s ease forwards; animation-delay: 6.0s; }
+        /*
+          Timeline (more pause between scenes):
+          - Titles: 2.6s each
+          - Meanings: 6.2s each
+          - Gaps: ~0.7–0.9s
+        */
+        .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 1.4s; }
+        .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 4.7s; }
 
-        .scene2Title { animation: sceneInOut 3.6s ease forwards; animation-delay: 12.8s; }
-        .scene2Mean  { animation: sceneInOut 5.2s ease forwards; animation-delay: 17.2s; }
+        .scene2Title { animation: titleInOut 2.6s ease forwards; animation-delay: 11.8s; }
+        .scene2Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 15.1s; }
 
-        .scene3Title { animation: sceneInOut 3.6s ease forwards; animation-delay: 24.0s; }
-        .scene3Mean  { animation: sceneInOut 5.2s ease forwards; animation-delay: 28.4s; }
+        .scene3Title { animation: titleInOut 2.6s ease forwards; animation-delay: 22.2s; }
+        .scene3Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 25.5s; }
 
         .finalWrap{
           position:absolute;
@@ -391,7 +406,7 @@ export default function App() {
           gap: 14px;
           opacity:0;
           animation: sceneInStay 0.85s ease forwards;
-          animation-delay: 35.0s;
+          animation-delay: 32.8s;
           pointer-events:none;
         }
 
@@ -404,21 +419,21 @@ export default function App() {
         }
 
         .finalWord{
-          font-size: 20px; /* bigger */
-          letter-spacing: 0.10em;
+          font-size: 22px;
+          letter-spacing: 0.12em; /* keep consistent with titles */
           text-transform: uppercase;
           color: rgba(255,255,255,0.92);
           font-weight: 900;
         }
 
         .finalSym{
-          font-size: 22px; /* bigger */
+          font-size: 22px;
           color: rgba(255,255,255,0.78);
           font-weight: 950;
         }
 
         .finalBalance{
-          font-size: 32px; /* bigger */
+          font-size: 34px;
           letter-spacing: 0.16em;
           text-transform: uppercase;
           font-weight: 950;
@@ -430,10 +445,10 @@ export default function App() {
         }
 
         .finalLine{
-          font-size: 16px; /* bigger */
-          color: rgba(40,240,255,0.68);
+          font-size: 18px;
+          color: rgba(40,240,255,0.70);
           line-height: 1.45;
-          max-width: 760px;
+          max-width: 780px;
         }
 
         .dock{
@@ -445,9 +460,9 @@ export default function App() {
           align-items:center;
           gap: 12px;
           opacity:0;
-          transform: translateY(22px);
+          transform: translateY(20px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 37.0s;
+          animation-delay: 35.0s;
           z-index: 4;
         }
 
@@ -456,20 +471,21 @@ export default function App() {
         }
 
         .unlockText{
-          font-size: 16px; /* bigger */
-          color: rgba(255,255,255,0.76);
-          max-width: 760px;
+          font-size: 18px;
+          color: rgba(255,255,255,0.78);
+          max-width: 780px;
           line-height: 1.5;
+          padding: 0 8px;
         }
 
         .underlineOnly{
-          width: min(520px, 88vw);
+          width: min(560px, 90vw);
           background: transparent;
           border: none;
-          border-bottom: 2px solid rgba(40,240,255,0.42); /* stronger underline */
-          padding: 16px 10px 12px;
+          border-bottom: 2px solid rgba(40,240,255,0.46);
+          padding: 18px 10px 12px;
           color: rgba(255,255,255,0.94);
-          font-size: 20px; /* bigger */
+          font-size: 22px;
           text-align: center;
           outline: none;
           caret-color: rgba(40,240,255,0.95);
@@ -542,7 +558,7 @@ export default function App() {
           color: rgba(0,255,255,0.55);
         }
 
-        /* Reduced motion: show final equation + dock immediately */
+        /* Reduced motion */
         @media (prefers-reduced-motion: reduce){
           .p2Fade{ display:none; }
           .scene1Title, .scene1Mean, .scene2Title, .scene2Mean, .scene3Title, .scene3Mean{
@@ -618,7 +634,6 @@ export default function App() {
           <div className="p2Fade" />
 
           <div className="p2Wrap">
-            {/* Energy Source (stays on screen) */}
             <div className="core" aria-label="Cipher core">
               <img
                 className="emblemLg"
@@ -636,9 +651,7 @@ export default function App() {
               </div>
 
               <div className="title scene2Title">Co-Pilot + AI</div>
-              <div className="meaning scene2Mean">
-                AI — built to complete once-impossible tasks in seconds.
-              </div>
+              <div className="meaning scene2Mean">AI — built to complete once-impossible tasks in seconds.</div>
 
               <div className="title scene3Title">You</div>
               <div className="meaning scene3Mean">

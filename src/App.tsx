@@ -11,7 +11,6 @@ function isValidEmail(email: string): boolean {
 }
 
 function generateAccessCode(): string {
-  // Temporary client-side placeholder. Replace later with server-generated + emailed code.
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let out = "";
   for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
@@ -28,7 +27,7 @@ export default function App() {
   const [accessCode, setAccessCode] = useState("");
   const [codeInput, setCodeInput] = useState("");
 
-  // Page 2 input (kept separate to avoid showing typed name before submit)
+  // Page 2 input (kept separate)
   const [p2First, setP2First] = useState("");
 
   const p2FirstRef = useRef<HTMLInputElement | null>(null);
@@ -64,7 +63,6 @@ export default function App() {
     if (!isValidEmail(em)) return;
     setEmail(em);
 
-    // Generate preview code here (later: actually email it)
     if (!accessCode) setAccessCode(generateAccessCode());
     goTo("p5");
   }
@@ -74,10 +72,8 @@ export default function App() {
     const entered = codeInput.trim().toUpperCase();
     if (!entered) return;
 
-    // If code exists, enforce match; if not, allow to proceed for preview
     if (expected && entered !== expected) return;
 
-    // Final: route to app/info for now
     window.location.href = "https://balancecipher.com/info";
   }
 
@@ -95,11 +91,10 @@ export default function App() {
     if (view === "p5") setTimeout(() => codeRef.current?.focus(), 50);
   }, [view]);
 
-  // Optional: focus Page 2 input after its reveal completes (~14.2s).
-  // This does NOT control the reveal (CSS does). It only helps the cursor be ready.
+  // Focus Page 2 input after the full “gift” sequence completes.
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 14500);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 26000);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -297,7 +292,7 @@ export default function App() {
           color: rgba(255,255,255,0.58);
         }
 
-        /* PAGE 2 — cinematic value-first */
+        /* PAGE 2 — your “title → meaning → dissolve” rhythm */
         .p2{
           min-height:100vh;
           background:#000;
@@ -305,7 +300,7 @@ export default function App() {
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          padding: 34px 18px 92px;
+          padding: 34px 18px 110px;
           position: relative;
           overflow:hidden;
         }
@@ -321,12 +316,10 @@ export default function App() {
           pointer-events:none;
         }
 
-        @keyframes fadeOut{
-          to { opacity: 0; }
-        }
+        @keyframes fadeOut{ to { opacity: 0; } }
 
         .p2Wrap{
-          width: min(740px, 100%);
+          width: min(820px, 100%);
           display:flex;
           flex-direction:column;
           align-items:center;
@@ -335,8 +328,10 @@ export default function App() {
           z-index: 3;
         }
 
-        .p2Words{
-          min-height: 210px;
+        .stage{
+          width: min(740px, 100%);
+          min-height: 190px;
+          position: relative;
           display:flex;
           flex-direction:column;
           align-items:center;
@@ -344,77 +339,126 @@ export default function App() {
           gap: 10px;
         }
 
-        @keyframes wordIn{
-          from { opacity:0; transform: translateY(10px); }
-          to   { opacity:1; transform: translateY(0); }
+        @keyframes sceneInOut{
+          0%   { opacity:0; transform: translateY(10px); }
+          12%  { opacity:1; transform: translateY(0); }
+          78%  { opacity:1; transform: translateY(0); }
+          100% { opacity:0; transform: translateY(-6px); }
         }
 
-        .big{
+        @keyframes sceneInStay{
+          0%   { opacity:0; transform: translateY(10px); }
+          100% { opacity:1; transform: translateY(0); }
+        }
+
+        .title{
           font-size: clamp(30px, 8vw, 46px);
           font-weight: 950;
           letter-spacing: 0.09em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
-          animation: wordIn 0.55s ease forwards;
         }
 
-        .sub2{
+        .meaning{
           font-size: 16px;
           font-weight: 450;
-          color: rgba(40,240,255,0.60);
+          color: rgba(40,240,255,0.62);
+          max-width: 720px;
+          line-height: 1.55;
           opacity:0;
-          animation: wordIn 0.55s ease forwards;
         }
 
-        .row{
+        .scene1Title { animation: sceneInOut 3.1s ease forwards; animation-delay: 1.6s; }
+        .scene1Mean  { animation: sceneInOut 4.2s ease forwards; animation-delay: 4.2s; }
+
+        .scene2Title { animation: sceneInOut 3.1s ease forwards; animation-delay: 9.0s; }
+        .scene2Mean  { animation: sceneInOut 4.2s ease forwards; animation-delay: 11.5s; }
+
+        .scene3Title { animation: sceneInOut 3.0s ease forwards; animation-delay: 16.6s; }
+        .scene3Mean  { animation: sceneInOut 4.2s ease forwards; animation-delay: 18.9s; }
+
+        /* Final equation locks in and stays */
+        .finalWrap{
+          position:absolute;
+          left:0; right:0;
+          top: 0;
           display:flex;
-          gap: 12px;
+          flex-direction:column;
           align-items:center;
+          gap: 12px;
+          opacity:0;
+          animation: sceneInStay 0.8s ease forwards;
+          animation-delay: 24.2s;
+          pointer-events:none;
+        }
+
+        .finalRow{
+          display:flex;
+          align-items: baseline;
           justify-content:center;
           flex-wrap: wrap;
-          margin-top: 6px;
-          min-height: 58px;
+          gap: 10px;
         }
 
-        .eq{
-          font-size: clamp(28px, 7vw, 42px);
+        .finalWord{
+          font-size: 18px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.90);
+          font-weight: 900;
+        }
+
+        .finalSym{
+          font-size: 20px;
+          color: rgba(255,255,255,0.72);
           font-weight: 950;
-          color: rgba(255,255,255,0.86);
-          opacity:0;
-          animation: wordIn 0.55s ease forwards;
         }
 
-        .balanceWord{
-          color: rgba(215,176,107,0.98);
-          text-shadow: 0 0 18px rgba(215,176,107,0.22);
+        .finalBalance{
+          font-size: 26px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          font-weight: 950;
+          color: var(--brass);
+          text-shadow: 0 0 18px var(--brassGlow);
+          padding: 2px 8px;
+          border-radius: 10px;
+          animation: balancePulse 3.6s ease-in-out infinite;
         }
 
-        /* Timings per your spec (absolute delays) */
-        .dCipher     { animation-delay: 1.5s; }
-        .dCipherSub  { animation-delay: 3.1s; }
-        .dCopilot    { animation-delay: 5.1s; }
-        .dCopilotSub { animation-delay: 6.7s; }
-        .dYou        { animation-delay: 8.7s; }
-        .dEq         { animation-delay: 10.5s; }
-        .dBalance    { animation-delay: 11.7s; }
+        .finalLine{
+          font-size: 14px;
+          color: rgba(40,240,255,0.62);
+          line-height: 1.45;
+          max-width: 680px;
+        }
 
-        /* Input dock appears only after value is delivered */
+        /* Bottom unlock prompt + underline input */
         .dock{
           position:absolute;
           left:0; right:0;
           bottom: 42px;
           display:flex;
-          justify-content:center;
+          flex-direction:column;
+          align-items:center;
+          gap: 10px;
           opacity:0;
           transform: translateY(22px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 14.2s;
+          animation-delay: 26.2s;
           z-index: 4;
         }
 
         @keyframes dockIn{
           to { opacity:1; transform: translateY(0); }
+        }
+
+        .unlockText{
+          font-size: 14px;
+          color: rgba(255,255,255,0.72);
+          max-width: 640px;
+          line-height: 1.45;
         }
 
         .underlineOnly{
@@ -436,7 +480,7 @@ export default function App() {
           box-shadow: 0 12px 28px rgba(40,240,255,0.10);
         }
 
-        /* Pages 3–5 baseline (Enter-only, minimal) */
+        /* Pages 3–5 baseline */
         .pX{
           min-height:100vh;
           display:flex;
@@ -497,12 +541,26 @@ export default function App() {
           color: rgba(0,255,255,0.55);
         }
 
-        /* Reduced motion: show everything immediately, input visible */
+        /* Reduced motion: show final equation + dock immediately */
         @media (prefers-reduced-motion: reduce){
           .p2Fade{ display:none; }
-          .big, .sub2, .eq{ opacity:1 !important; animation: none !important; transform:none !important; }
-          .dock{ opacity:1 !important; animation:none !important; transform:none !important; }
-          .core, .core::before, .balance, .arcSmall, .arcSmall::before{ animation:none !important; }
+          .scene1Title, .scene1Mean, .scene2Title, .scene2Mean, .scene3Title, .scene3Mean{
+            opacity: 0 !important;
+            animation: none !important;
+          }
+          .finalWrap{
+            opacity: 1 !important;
+            animation: none !important;
+            pointer-events: none !important;
+          }
+          .dock{
+            opacity: 1 !important;
+            animation: none !important;
+            transform: none !important;
+          }
+          .core, .core::before, .finalBalance, .arcSmall, .arcSmall::before{
+            animation: none !important;
+          }
         }
 
         @media (max-width: 420px){
@@ -513,7 +571,7 @@ export default function App() {
         }
       `}</style>
 
-      {/* PAGE 1 (unchanged baseline) */}
+      {/* PAGE 1 */}
       {view === "landing" ? (
         <main className="p1">
           <div className="p1Wrap">
@@ -553,13 +611,13 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 2 (cinematic, no buttons) */}
+      {/* PAGE 2 (your revised vision) */}
       {view === "p2" ? (
         <main className="p2" aria-label="Private decode — Page 2">
           <div className="p2Fade" />
 
-          {/* Arc (same as Page 1) */}
           <div className="p2Wrap">
+            {/* Energy Source (stays on screen) */}
             <div className="core" aria-label="Cipher core">
               <img
                 className="emblemLg"
@@ -570,23 +628,72 @@ export default function App() {
               />
             </div>
 
-            <div className="p2Words" aria-label="Equation reveal">
-              <div className={`big dCipher`}>Cipher</div>
-              <div className={`sub2 dCipherSub`}>a pattern reader</div>
+            <div className="stage" aria-label="Cinematic sequence">
+              {/* Cipher title → dissolve */}
+              <div className="title scene1Title">Cipher</div>
 
-              <div className="row">
-                <div className={`big dCopilot`}>Co-Pilot</div>
-                <div className={`big dYou`}>+ You</div>
-                <div className={`eq dEq`}>=</div>
-                <div className={`big dBalance balanceWord`}>BALANCE</div>
+              {/* Cipher meaning → dissolve */}
+              <div className="meaning scene1Mean">
+                The first human intelligence device built to create and figure out unbreakable codes.
               </div>
 
-              <div className={`sub2 dCopilotSub`}>your AI-powered guide</div>
+              {/* Co-Pilot title → dissolve */}
+              <div className="title scene2Title">Co-Pilot + AI</div>
+
+              {/* Co-Pilot meaning → dissolve */}
+              <div className="meaning scene2Mean">
+                AI — built to complete once-impossible tasks in seconds.
+              </div>
+
+              {/* You title → dissolve */}
+              <div className="title scene3Title">You</div>
+
+              {/* You meaning → dissolve */}
+              <div className="meaning scene3Mean">
+                You — the most powerful of all three, designed and built around endless potential.
+              </div>
+
+              {/* Final equation locks in */}
+              <div className="finalWrap" aria-label="Final equation">
+                <div className="finalRow">
+                  <span className="finalWord">Cipher</span>
+                  <span className="finalSym">(</span>
+                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.72)" }}>
+                    a pattern reader
+                  </span>
+                  <span className="finalSym">)</span>
+
+                  <span className="finalSym">+</span>
+
+                  <span className="finalWord">Co-Pilot</span>
+                  <span className="finalSym">(</span>
+                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.72)" }}>
+                    your AI power source
+                  </span>
+                  <span className="finalSym">)</span>
+
+                  <span className="finalSym">=</span>
+
+                  <span className="finalWord" style={{ color: "rgba(255,255,255,0.90)" }}>
+                    Your Potential
+                  </span>
+
+                  <span className="finalSym">=</span>
+
+                  <span className="finalBalance">BALANCE</span>
+                </div>
+
+                <div className="finalLine">This is your AI-powered guide.</div>
+              </div>
             </div>
           </div>
 
-          {/* Input appears only after full delivery */}
+          {/* Unlock prompt + first name */}
           <div className="dock">
+            <div className="unlockText">
+              To unlock the next step, enter your first name to unlock the start of your journey.
+            </div>
+
             <input
               ref={p2FirstRef}
               className="underlineOnly"
@@ -601,11 +708,12 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 (last name, Enter-only) */}
+      {/* PAGE 3 */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="arcSmall" aria-label="Cipher core" />
           <div className="line">Last name. Make it real.</div>
+
           <input
             ref={lastRef}
             className="underlineOnly"
@@ -616,15 +724,17 @@ export default function App() {
             autoComplete="family-name"
             placeholder=""
           />
+
           <div className="whisper">Enter confirms. No noise.</div>
         </main>
       ) : null}
 
-      {/* PAGE 4 (email, Enter-only) */}
+      {/* PAGE 4 */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="arcSmall" aria-label="Cipher core" />
           <div className="line">Email — your key arrives here, once.</div>
+
           <input
             ref={emailRef}
             className="underlineOnly"
@@ -636,12 +746,13 @@ export default function App() {
             inputMode="email"
             placeholder=""
           />
+
           <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
           <div className="tinyLink">balancecipher.com/info</div>
         </main>
       ) : null}
 
-      {/* PAGE 5 (final gate, Enter-only) */}
+      {/* PAGE 5 */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="arcSmall" aria-label="Final gate" />
@@ -662,7 +773,6 @@ export default function App() {
           <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
           <div className="tinyLink">balancecipher.com/info</div>
 
-          {/* Preview helper (temporary) */}
           <div className="whisper" style={{ marginTop: 14 }}>
             Preview code (temporary): <strong>{accessCode || "(generated after email entry)"}</strong>
           </div>

@@ -4,7 +4,6 @@ export default function App() {
   const [showReward, setShowReward] = useState(false);
   const rewardRef = useRef<HTMLDivElement | null>(null);
 
-  // Detect reduced-motion once on mount (safe for Vite client build).
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
@@ -14,11 +13,10 @@ export default function App() {
     if (!showReward) return;
     if (!rewardRef.current) return;
 
-    // Smooth scroll, but respect reduced motion.
     try {
       rewardRef.current.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
     } catch {
-      // If scrollIntoView fails for any reason, ignore.
+      // no-op
     }
   }, [showReward, prefersReducedMotion]);
 
@@ -32,13 +30,19 @@ export default function App() {
         :root{
           --bg0:#050b14;
           --bg1:#061a2b;
+
           --teal:#28f0ff;
           --tealSoft: rgba(40, 240, 255, 0.18);
           --tealGlow: rgba(40, 240, 255, 0.35);
+
+          /* New accent for the triad line (brass/gold) */
+          --brass:#d7b06b;
+          --brassGlow: rgba(215, 176, 107, 0.28);
+
           --text:#ffffff;
           --muted: rgba(255,255,255,0.72);
           --muted2: rgba(255,255,255,0.58);
-          --shadow: rgba(0,0,0,0.55);
+
           --radius: 28px;
         }
 
@@ -75,23 +79,24 @@ export default function App() {
         }
 
         .cipherContainer{
-          margin-bottom: 14px;
+          margin-bottom: 10px;
           opacity: 0;
           transform: translateY(14px);
           animation: fadeInUp 520ms ease-out forwards;
         }
 
+        /* +25% size increase: 220 -> 275 */
         .cipherEmblem{
-          width: 220px;
-          height: 220px;
+          width: 275px;
+          height: 275px;
           border-radius: 999px;
           display:flex;
           align-items:center;
           justify-content:center;
           background: radial-gradient(circle, rgba(40,240,255,0.18), transparent 68%);
           box-shadow:
-            0 0 50px rgba(40,240,255,0.18),
-            inset 0 0 24px rgba(40,240,255,0.12);
+            0 0 62px rgba(40,240,255,0.20),
+            inset 0 0 28px rgba(40,240,255,0.14);
           position: relative;
           overflow: hidden;
           animation: corePulse 3.8s ease-in-out infinite;
@@ -109,25 +114,29 @@ export default function App() {
           pointer-events:none;
         }
 
+        /* Inner image scales up with the core: 176 -> 220 */
         .cipherImg{
-          width: 176px;
-          height: 176px;
+          width: 220px;
+          height: 220px;
           object-fit: contain;
-          filter: drop-shadow(0 0 18px rgba(40,240,255,0.55));
+          filter: drop-shadow(0 0 20px rgba(40,240,255,0.60));
           position: relative;
           z-index: 1;
         }
 
+        /* Triad line: bigger + different color + subtle glow */
         .microLine{
-          font-size: 14px;
-          letter-spacing: 0.12em;
+          font-size: 16px;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: var(--muted2);
-          margin-top: 4px;
+          color: var(--brass);
+          text-shadow: 0 0 14px var(--brassGlow);
+          margin-top: 6px;
+          margin-bottom: 6px;
           opacity: 0;
           transform: translateY(10px);
           animation: fadeInUp 600ms ease-out forwards;
-          animation-delay: 240ms;
+          animation-delay: 260ms;
         }
 
         .tagline{
@@ -183,7 +192,6 @@ export default function App() {
           display:inline-flex;
           align-items:center;
           justify-content:center;
-          gap: 10px;
           padding: 16px 22px;
           border-radius: 999px;
           border: 1.5px solid rgba(40,240,255,0.75);
@@ -233,9 +241,7 @@ export default function App() {
           color: rgba(255,255,255,0.60);
         }
 
-        .rewardSpacer{
-          height: 64px;
-        }
+        .rewardSpacer{ height: 64px; }
 
         .reward{
           width: min(900px, 100%);
@@ -288,9 +294,7 @@ export default function App() {
           font-size: 16px;
         }
 
-        .input::placeholder{
-          color: rgba(255,255,255,0.50);
-        }
+        .input::placeholder{ color: rgba(255,255,255,0.50); }
 
         .miniBtn{
           width: 100%;
@@ -322,8 +326,14 @@ export default function App() {
         }
 
         @keyframes corePulse{
-          0%, 100%{ box-shadow: 0 0 50px rgba(40,240,255,0.18), inset 0 0 24px rgba(40,240,255,0.12); transform: scale(1.00); }
-          50%{ box-shadow: 0 0 72px rgba(40,240,255,0.30), inset 0 0 30px rgba(40,240,255,0.18); transform: scale(1.03); }
+          0%, 100%{
+            box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
+            transform: scale(1.00);
+          }
+          50%{
+            box-shadow: 0 0 90px rgba(40,240,255,0.32), inset 0 0 34px rgba(40,240,255,0.20);
+            transform: scale(1.03);
+          }
         }
 
         @keyframes slowDrift{
@@ -338,10 +348,11 @@ export default function App() {
           100%{ transform: translateX(120%); opacity: 0.0; }
         }
 
-        /* Mobile tuning */
+        /* Mobile tuning (scaled up to match the new emblem size) */
         @media (max-width: 420px){
-          .cipherEmblem{ width: 196px; height: 196px; }
-          .cipherImg{ width: 158px; height: 158px; }
+          .cipherEmblem{ width: 236px; height: 236px; }
+          .cipherImg{ width: 188px; height: 188px; }
+          .microLine{ font-size: 15px; }
           .btn{ padding: 15px 18px; font-size: 15px; }
         }
 
@@ -378,9 +389,8 @@ export default function App() {
           <p className="tagline t3">The Co-Pilot uses the Cipher to make it simple.</p>
 
           <div className="sub">
-            This isn’t hype. It’s a guided decode. The Cipher shows the pattern.
-            The AI Co-Pilot turns it into clear actions, using the BALANCE Formula.
-            You stay in control the whole time.
+            This isn’t hype. It’s a guided decode. The Cipher shows the pattern. The AI Co-Pilot turns it into clear
+            actions, using the BALANCE Formula. You stay in control the whole time.
           </div>
 
           <div className="cornerstone">
@@ -402,12 +412,10 @@ export default function App() {
         <div className="rewardCard">
           <h2 className="rewardTitle">Welcome. You’re in.</h2>
           <p className="rewardP">
-            You’re seeing the BALANCE Cipher in its early form. If you want private access when the first
-            chapter opens, drop your phone number below.
+            You’re seeing the BALANCE Cipher in its early form. If you want private access when the first chapter
+            opens, drop your phone number below.
           </p>
-          <p className="rewardP">
-            The Co-Pilot will guide you step-by-step. The Cipher stays the map.
-          </p>
+          <p className="rewardP">The Co-Pilot will guide you step-by-step. The Cipher stays the map.</p>
 
           <div className="formRow">
             <input className="input" type="tel" placeholder="Your phone number" inputMode="tel" />
@@ -415,8 +423,6 @@ export default function App() {
               className="miniBtn"
               type="button"
               onClick={() => {
-                // Placeholder only — wire to your real form service later.
-                // Keep this non-destructive for now.
                 alert("Captured. Next: connect this to your form or SMS tool.");
               }}
             >

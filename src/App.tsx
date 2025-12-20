@@ -1,1072 +1,741 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "landing" | "decode";
+type Step = 1 | 2 | 3 | 4;
 
-type StepKey =
-  | "welcome"
-  | "firstPrompt"
-  | "firstInput"
-  | "lastPrompt"
-  | "lastInput"
-  | "cipherExplain"
-  | "equation"
-  | "cta";
+type FunnelState = {
+  step: Step;
+  firstName: string;
+  lastName: string;
+  email: string;
+  accessCode: string; // client-side placeholder code
+};
+
+const STORAGE_KEY = "balancecipher_funnel_v2_state";
+
+function safeTrimMax(value: string, maxLen: number) {
+  return value.trim().slice(0, maxLen);
+}
+
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+function generateAccessCode(): string {
+  // Client-side placeholder code generator.
+  // Replace later with server-generated + emailed code.
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  return out;
+}
+
+function loadState(): FunnelState | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<FunnelState>;
+    if (!parsed.step) return null;
+
+    return {
+      step: (parsed.step as Step) ?? 1,
+      firstName: typeof parsed.firstName === "string" ? parsed.firstName : "",
+      lastName: typeof parsed.lastName === "string" ? parsed.lastName : "",
+      email: typeof parsed.email === "string" ? parsed.email : "",
+      accessCode: typeof parsed.accessCode === "string" ? parsed.accessCode : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveState(state: FunnelState) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
 
 export default function App() {
-  // PAGE SWITCH (Page 1 -> Page 2)
-  const [view, setView] = useState<View>("landing");
+  const restored = useMemo(() => loadState(), []);
+  const [step, setStep] = useState<Step>(restored?.step ?? 1);
 
-  // Page 2 state (step flow)
-  const [stepIn<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Private Decode | Step 2</title>
+  const [firstName, setFirstName] = useState(restored?.firstName ?? "");
+  const [lastName, setLastName] = useState(restored?.lastName ?? "");
+  const [email, setEmail] = useState(restored?.email ?? "");
+  const [accessCode, setAccessCode] = useState(restored?.accessCode ?? "");
+  const [codeInput, setCodeInput] = useState("");
 
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+  const [error, setError] = useState<string>("");
 
-      body {
-        background: #000;
-        color: #fff;
-        font-family: "Helvetica Neue", Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        text-align: center;
-        overflow: hidden;
-        padding: 24px;
-      }
+  // Page 2 timed reveal flags
+  const [p2Line1, setP2Line1] = useState(false);
+  const [p2Line2, setP2Line2] = useState(false);
+  const [p2Line3, setP2Line3] = useState(false);
+  const [p2Fields, setP2Fields] = useState(false);
+  const [p2Button, setP2Button] = useState(false);
 
-      .core {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        border: 1px solid #00ffff50;
-        background: radial-gradient(circle, #00ffff20 0%, transparent 70%);
-        margin-bottom: 36px;
-        animation: pulse 3.5s ease-in-out infinite;
-      }
+  const firstNameRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const codeRef = useRef<HTMLInputElement | null>(null);
 
-      @keyframes pulse {
-        0%,
-        100% {
-          box-shadow: 0 0 15px #00ffff30;
-        }
-        50% {
-          box-shadow: 0 0 35px #00ffff60;
-        }
-      }
+  const displayName = useMemo(() => {
+    const fn = safeTrimMax(firstName, 40);
+    return fn.length ? fn : "you";
+  }, [firstName]);
 
-      .text {
-        font-weight: 300;
-        font-size: 18px;
-        line-height: 1.65;
-        max-width: 360px;
-        margin-bottom: 12px;
-        opacity: 0;
-        transform: translateY(8px);
-        transition: opacity 0.8s ease, transform 0.7s ease;
-      }
-
-      .text.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .field,
-      .next-btn {
-        opacity: 0;
-        transform: translateY(8px);
-        transition: opacity 0.7s ease, transform 0.7s ease, border 0.3s ease,
-          box-shadow 0.3s ease, background 0.3s ease;
-      }
-
-      .field.show,
-      .next-btn.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .field {
-        width: 280px;
-        padding: 14px 20px;
-        background: transparent;
-        border: 1.2px solid #00ffff50;
-        color: #fff;
-        font-size: 18px;
-        text-align: center;
-        border-radius: 14px;
-        margin: 28px 0 0;
-      }
-
-      .field:focus {
-        outline: none;
-        border-color: #00ffff90;
-        box-shadow: 0 0 18px #00ffff40;
-      }
-
-      .next-btn {
-        background: transparent;
-        border: 1.5px solid #00ffff;
-        color: #00ffff;
-        font-size: 16px;
-        font-weight: 500;
-        padding: 12px 36px;
-        border-radius: 25px;
-        cursor: pointer;
-        margin-top: 12px;
-      }
-
-      .next-btn:hover {
-        background: #00ffff15;
-      }
-
-      .hint {
-        margin-top: 10px;
-        font-size: 12px;
-        opacity: 0.7;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .core {
-          animation: none;
-        }
-        .text,
-        .field,
-        .next-btn {
-          transition: none;
-          transform: none;
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="core"></div>
-
-    <div class="text">A cipher was the first AI — made of ink, not silicon.</div>
-    <div class="text">AI doesn’t lead. It listens. Then hands you the key.</div>
-    <div class="text">You’re the only code that matters.</div>
-
-    <input class="field" placeholder="Your first name" type="text" autocomplete="given-name" />
-    <button class="next-btn" type="button">Continue</button>
-    <div class="hint">Your info stays private. This is step-by-step, not spam.</div>
-
-    <script>
-      const texts = document.querySelectorA<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Private Decode | Step 2</title>
-
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        background: #000;
-        color: #fff;
-        font-family: "Helvetica Neue", Arial, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        text-align: center;
-        overflow: hidden;
-        padding: 24px;
-      }
-
-      .core {
-        width: 70px;
-        height: 70px;
-        border-radius: 50%;
-        border: 1px solid #00ffff50;
-        background: radial-gradient(circle, #00ffff20 0%, transparent 70%);
-        margin-bottom: 36px;
-        animation: pulse 3.5s ease-in-out infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          box-shadow: 0 0 15px #00ffff30;
-        }
-        50% {
-          box-shadow: 0 0 35px #00ffff60;
-        }
-      }
-
-      .text {
-        font-weight: 300;
-        font-size: 18px;
-        line-height: 1.65;
-        max-width: 360px;
-        margin-bottom: 12px;
-        opacity: 0;
-        transform: translateY(8px);
-        transition: opacity 0.8s ease, transform 0.7s ease;
-      }
-
-      .text.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .field,
-      .next-btn {
-        opacity: 0;
-        transform: translateY(8px);
-        transition: opacity 0.7s ease, transform 0.7s ease, border 0.3s ease,
-          box-shadow 0.3s ease, background 0.3s ease;
-      }
-
-      .field.show,
-      .next-btn.show {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .field {
-        width: 280px;
-        padding: 14px 20px;
-        background: transparent;
-        border: 1.2px solid #00ffff50;
-        color: #fff;
-        font-size: 18px;
-        text-align: center;
-        border-radius: 14px;
-        margin: 28px 0 0;
-      }
-
-      .field:focus {
-        outline: none;
-        border-color: #00ffff90;
-        box-shadow: 0 0 18px #00ffff40;
-      }
-
-      .next-btn {
-        background: transparent;
-        border: 1.5px solid #00ffff;
-        color: #00ffff;
-        font-size: 16px;
-        font-weight: 500;
-        padding: 12px 36px;
-        border-radius: 25px;
-        cursor: pointer;
-        margin-top: 12px;
-      }
-
-      .next-btn:hover {
-        background: #00ffff15;
-      }
-
-      .hint {
-        margin-top: 10px;
-        font-size: 12px;
-        opacity: 0.7;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .core {
-          animation: none;
-        }
-        .text,
-        .field,
-        .next-btn {
-          transition: none;
-          transform: none;
-        }
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="core"></div>
-
-    <div class="text">A cipher was the first AI — made of ink, not silicon.</div>
-    <div class="text">AI doesn’t lead. It listens. Then hands you the key.</div>
-    <div class="text">You’re the only code that matters.</div>
-
-    <input class="field" placeholder="Your first name" type="text" autocomplete="given-name" />
-    <button class="next-btn" type="button">Continue</button>
-    <div class="hint">Your info stays private. This is step-by-step, not spam.</div>
-
-    <script>
-      const texts = document.querySelectorAll(".text");
-      const field = document.querySelector(".field");
-      const btn = document.querySelector(".next-btn");
-
-      // Defensive: if anything is missing, fail gracefully
-      if (texts.length >= 3 && field && btn) {
-        setTimeout(() => texts[0].classList.add("show"), 800);
-        setTimeout(() => texts[1].classList.add("show"), 2500);
-        setTimeout(() => texts[2].classList.add("show"), 4300);
-        setTimeout(() => field.classList.add("show"), 6200);
-        setTimeout(() => btn.classList.add("show"), 6350);
-      }
-
-      // Optional: simple validation for the next step wiring later
-      btn.addEventListener("click", () => {
-        const firstName = field.value.trim();
-        if (!firstName) {
-          field.focus();
-          return;
-        }
-        // For now: proof it works. Next: route to Page 3 + persist.
-        console.log("First name captured:", firstName);
-      });
-    </script>
-  </body>
-</html>
-ll(".text");
-      const field = document.querySelector(".field");
-      const btn = document.querySelector(".next-btn");
-
-      // Defensive: if anything is missing, fail gracefully
-      if (texts.length >= 3 && field && btn) {
-        setTimeout(() => texts[0].classList.add("show"), 800);
-        setTimeout(() => texts[1].classList.add("show"), 2500);
-        setTimeout(() => texts[2].classList.add("show"), 4300);
-        setTimeout(() => field.classList.add("show"), 6200);
-        setTimeout(() => btn.classList.add("show"), 6350);
-      }
-
-      // Optional: simple validation for the next step wiring later
-      btn.addEventListener("click", () => {
-        const firstName = field.value.trim();
-        if (!firstName) {
-          field.focus();
-          return;
-        }
-        // For now: proof it works. Next: route to Page 3 + persist.
-        console.log("First name captured:", firstName);
-      });
-    </script>
-  </body>
-</html>
-dex, setStepIndex] = useState<number>(0);
-  const [firstName, setFirstName] = useState<string>("");
-  const [lastName, setLastName] = useState<string>("");
-
-  const firstRef = useRef<HTMLInputElement | null>(null);
-  const lastRef = useRef<HTMLInputElement | null>(null);
-  const autoTimerRef = useRef<number | null>(null);
-
-  const prefersReducedMotion = useMemo(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
-  }, []);
-
-  const steps: StepKey[] = [
-    "welcome",
-    "firstPrompt",
-    "firstInput",
-    "lastPrompt",
-    "lastInput",
-    "cipherExplain",
-    "equation",
-    "cta",
-  ];
-
-  const current = steps[stepIndex];
-
-  function clearAutoTimer() {
-    if (autoTimerRef.current) {
-      window.clearTimeout(autoTimerRef.current);
-      autoTimerRef.current = null;
-    }
-  }
-
-  // Auto-reveal behavior on Page 2
+  // Persist core funnel state
   useEffect(() => {
-    clearAutoTimer();
+    saveState({
+      step,
+      firstName,
+      lastName,
+      email,
+      accessCode,
+    });
+  }, [step, firstName, lastName, email, accessCode]);
 
-    if (view !== "decode") return;
-
-    // If reduced motion is on, do not auto-advance—show controls immediately.
-    if (prefersReducedMotion) return;
-
-    // Auto-advance: welcome -> firstPrompt -> firstInput (then stop for typing)
-    if (stepIndex === 0) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
-      return;
-    }
-    if (stepIndex === 1) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
-      return;
-    }
-
-    // Auto-advance: lastPrompt -> lastInput (then stop for typing)
-    if (stepIndex === 3) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(4), 900);
-      return;
-    }
-
-    // After last name is completed, we can lightly auto-reveal the final info
-    // cipherExplain -> equation -> cta (still with buttons visible)
-    if (stepIndex === 5) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(6), 950);
-      return;
-    }
-    if (stepIndex === 6) {
-      autoTimerRef.current = window.setTimeout(() => setStepIndex(7), 950);
-      return;
-    }
-  }, [view, stepIndex, prefersReducedMotion]);
-
-  // Focus inputs when they appear on Page 2
+  // Clear errors on step change
   useEffect(() => {
-    if (view !== "decode") return;
+    setError("");
+  }, [step]);
 
-    if (current === "firstInput") {
-      setTimeout(() => firstRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-    if (current === "lastInput") {
-      setTimeout(() => lastRef.current?.focus(), prefersReducedMotion ? 0 : 220);
-    }
-  }, [view, current, prefersReducedMotion]);
+  // Page 2 timers (run only when step == 2)
+  useEffect(() => {
+    if (step !== 2) return;
 
-  function show(step: StepKey): boolean {
-    return steps.indexOf(step) <= stepIndex;
+    // Reset reveal flags each time we enter Page 2
+    setP2Line1(false);
+    setP2Line2(false);
+    setP2Line3(false);
+    setP2Fields(false);
+    setP2Button(false);
+
+    const timers: number[] = [];
+    timers.push(window.setTimeout(() => setP2Line1(true), 700));
+    timers.push(window.setTimeout(() => setP2Line2(true), 2200));
+    timers.push(window.setTimeout(() => setP2Line3(true), 3900));
+    timers.push(window.setTimeout(() => setP2Fields(true), 5600));
+    timers.push(
+      window.setTimeout(() => {
+        setP2Button(true);
+        // focus first name once visible
+        setTimeout(() => firstNameRef.current?.focus(), 120);
+      }, 5800)
+    );
+
+    return () => {
+      timers.forEach((t) => window.clearTimeout(t));
+    };
+  }, [step]);
+
+  function goTo(next: Step) {
+    setStep(next);
   }
 
-  function next() {
-    setStepIndex((i) => Math.min(i + 1, steps.length - 1));
+  function handleStartPrivateDecode() {
+    goTo(2);
   }
 
-  function back() {
-    setStepIndex((i) => Math.max(i - 1, 0));
-  }
+  function handleContinueFromPage2() {
+    const fn = safeTrimMax(firstName, 40);
+    const ln = safeTrimMax(lastName, 60);
 
-  function canAdvanceFromThisStep(): boolean {
-    if (current === "firstInput") return firstName.trim().length > 0;
-    if (current === "lastInput") return lastName.trim().length > 0;
-    return true;
-  }
-
-  function primaryLabel(): string {
-    if (current === "cta") return "Continue";
-    return "Continue";
-  }
-
-  function onPrimary() {
-    // Page 2 final CTA hook — replace later with your real next page / form submit.
-    if (current === "cta") {
-      alert("Confirmed. Next: connect this to your real form / next page.");
+    if (!fn) {
+      setError("Please enter your first name to continue.");
+      firstNameRef.current?.focus();
       return;
     }
 
-    if (!canAdvanceFromThisStep()) return;
-    next();
+    setFirstName(fn);
+    setLastName(ln);
+
+    goTo(3);
+    // focus email quickly
+    setTimeout(() => emailRef.current?.focus(), 150);
   }
 
-  function goToDecodePage() {
-    clearAutoTimer();
-    setView("decode");
-    setStepIndex(0);
-  }
+  function handleGetAccessCode() {
+    const em = safeTrimMax(email, 120);
 
-  function goBackToLanding() {
-    clearAutoTimer();
-    setView("landing");
-  }
-
-  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onPrimary();
+    if (!isValidEmail(em)) {
+      setError("Please enter a valid email address.");
+      emailRef.current?.focus();
+      return;
     }
+
+    setEmail(em);
+
+    const code = generateAccessCode();
+    setAccessCode(code);
+    setCodeInput(code);
+
+    goTo(4);
+    setTimeout(() => codeRef.current?.focus(), 150);
+
+    // Note: later, this is where you'd trigger sending the code via email.
+    // For now, code is shown on-screen and stored locally.
   }
 
-  // Show control buttons whenever user interaction is needed (or reduced motion is on)
-  const showControlsOnDecode =
-    view === "decode" &&
-    (prefersReducedMotion ||
-      current === "firstInput" ||
-      current === "lastPrompt" ||
-      current === "lastInput" ||
-      current === "cipherExplain" ||
-      current === "equation" ||
-      current === "cta");
+  function handleValidateCodeAndEnter() {
+    const entered = safeTrimMax(codeInput, 30).toUpperCase();
+    const expected = safeTrimMax(accessCode, 30).toUpperCase();
+
+    if (!expected) {
+      setError("No access code is available yet. Please go back and request one.");
+      return;
+    }
+
+    if (entered !== expected) {
+      setError("That code does not match. Please check it and try again.");
+      codeRef.current?.focus();
+      return;
+    }
+
+    // Final action: invitation to the app.
+    // If you later want to redirect, set VITE_APP_ENTRY_URL and it will take effect.
+    const envAny = import.meta as unknown as { env?: Record<string, string> };
+    const entryUrl = envAny.env?.VITE_APP_ENTRY_URL || "";
+
+    if (entryUrl) {
+      window.location.href = entryUrl;
+      return;
+    }
+
+    setError(
+      "Access confirmed. Next step: wire the app entry URL (VITE_APP_ENTRY_URL) to route into the BALANCE Engine."
+    );
+  }
+
+  function handleResetFunnel() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    setStep(1);
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setAccessCode("");
+    setCodeInput("");
+    setError("");
+  }
 
   return (
-    <>
-      <style>{`
-        :root{
-          --bg0:#050b14;
-          --bg1:#000;
+    <div className="wrap">
+      <style>{css}</style>
 
-          --teal: rgba(40, 240, 255, 1);
-          --tealSoft: rgba(40, 240, 255, 0.18);
-
-          --brass:#d7b06b;
-          --brassGlow: rgba(215, 176, 107, 0.32);
-
-          --text: rgba(255,255,255,0.96);
-          --muted: rgba(255,255,255,0.72);
-        }
-
-        *{ box-sizing:border-box; }
-        html, body { height:100%; }
-        body{
-          margin:0;
-          background:
-            radial-gradient(900px 600px at 50% 30%, rgba(40,240,255,0.10), transparent 60%),
-            radial-gradient(700px 500px at 50% 85%, rgba(40,240,255,0.06), transparent 60%),
-            linear-gradient(180deg, var(--bg0), var(--bg1));
-          color: var(--text);
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-          overflow-x: hidden;
-          text-align:center;
-        }
-
-        @keyframes corePulse{
-          0%, 100%{
-            box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
-            transform: scale(1.00);
-          }
-          50%{
-            box-shadow: 0 0 90px rgba(40,240,255,0.32), inset 0 0 34px rgba(40,240,255,0.20);
-            transform: scale(1.03);
-          }
-        }
-
-        @keyframes slowDrift{
-          0%, 100%{ transform: translate(-2%, -1%) rotate(12deg); opacity: 0.72; }
-          50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
-        }
-
-        @keyframes balancePulse{
-          0%, 100%{
-            transform: scale(1.00);
-            opacity: 0.92;
-            text-shadow: 0 0 16px rgba(215,176,107,0.26);
-          }
-          50%{
-            transform: scale(1.06);
-            opacity: 1;
-            text-shadow: 0 0 24px rgba(215,176,107,0.46);
-          }
-        }
-
-        /* PAGE 1 */
-        .p1{
-          min-height:100vh;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          text-align:center;
-          padding: 34px 18px 60px;
-        }
-
-        .p1Wrap{
-          width: min(820px, 100%);
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 16px;
-        }
-
-        .core{
-          width: 275px;
-          height: 275px;
-          border-radius: 999px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          background: radial-gradient(circle, var(--tealSoft), transparent 68%);
-          box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
-          position: relative;
-          overflow: hidden;
-          animation: corePulse 3.8s ease-in-out infinite;
-        }
-
-        .core::before{
-          content:"";
-          position:absolute;
-          inset:-40%;
-          background: radial-gradient(circle, rgba(40,240,255,0.16), transparent 55%);
-          transform: rotate(15deg);
-          filter: blur(2px);
-          opacity: 0.9;
-          animation: slowDrift 9.5s ease-in-out infinite;
-          pointer-events:none;
-        }
-
-        .emblemLg{
-          width: 220px;
-          height: 220px;
-          object-fit: contain;
-          filter: drop-shadow(0 0 20px rgba(40,240,255,0.60));
-          position: relative;
-          z-index: 1;
-        }
-
-        .equation{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 6px;
-        }
-
-        .eqText{
-          font-size: 16px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.86);
-          font-weight: 800;
-        }
-
-        .eqSym{
-          font-size: 18px;
-          color: rgba(255,255,255,0.62);
-          font-weight: 900;
-        }
-
-        .balance{
-          font-size: 24px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          font-weight: 950;
-          color: var(--brass);
-          padding: 2px 6px;
-          border-radius: 10px;
-          animation: balancePulse 3.6s ease-in-out infinite;
-        }
-
-        .cornerstone{
-          margin-top: 6px;
-          font-size: 15px;
-          color: rgba(255,255,255,0.88);
-        }
-
-        .cornerstone strong{
-          font-weight: 850;
-          color: rgba(255,255,255,0.98);
-        }
-
-        .sub{
-          width: min(640px, 100%);
-          color: rgba(255,255,255,0.72);
-          font-size: 16px;
-          line-height: 1.55;
-          margin-top: 8px;
-        }
-
-        .btn{
-          padding: 16px 22px;
-          border-radius: 999px;
-          border: 1.5px solid rgba(40,240,255,0.75);
-          color: rgba(255,255,255,0.96);
-          background: linear-gradient(180deg, rgba(40,240,255,0.08), rgba(40,240,255,0.03));
-          box-shadow: 0 0 24px rgba(40,240,255,0.18), 0 12px 30px rgba(0,0,0,0.35);
-          cursor:pointer;
-          font-weight: 800;
-          font-size: 16px;
-          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-          max-width: min(560px, 100%);
-          text-align:center;
-        }
-
-        .btn:hover{
-          transform: translateY(-1px);
-          box-shadow: 0 0 34px rgba(40,240,255,0.28), 0 14px 34px rgba(0,0,0,0.42);
-          background: linear-gradient(180deg, rgba(40,240,255,0.12), rgba(40,240,255,0.04));
-        }
-
-        .hint{
-          margin-top: 10px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.58);
-        }
-
-        /* PAGE 2 */
-        .p2{
-          min-height:100vh;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:flex-start;
-          padding: 42px 18px 60px;
-          text-align:center;
-        }
-
-        .topRow{
-          width: min(520px, 100%);
-          display:flex;
-          justify-content:flex-start;
-          margin: 0 auto 10px;
-        }
-
-        .backBtn{
-          padding: 10px 14px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.12);
-          color: rgba(255,255,255,0.82);
-          cursor: pointer;
-        }
-
-        .arcSm{
-          width: 150px;
-          height: 150px;
-          border-radius: 999px;
-          border: 1.8px solid rgba(0,255,255,0.33);
-          margin: 0 auto;
-          filter: blur(0.6px);
-          box-shadow: 0 0 22px rgba(0,255,255,0.20);
-          animation: corePulse 4s infinite ease-in-out;
-          position: relative;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          overflow:hidden;
-        }
-
-        .arcSm::before{
-          content:"";
-          position:absolute;
-          inset:-60%;
-          background: radial-gradient(circle, rgba(0,255,255,0.14), transparent 55%);
-          transform: rotate(18deg);
-          opacity: 0.85;
-          animation: slowDrift 10s ease-in-out infinite;
-          pointer-events:none;
-        }
-
-        .emblemSm{
-          width: 118px;
-          height: 118px;
-          object-fit: contain;
-          filter: drop-shadow(0 0 18px rgba(0,255,255,0.55));
-          position:relative;
-          z-index:1;
-        }
-
-        .stack{
-          width: min(520px, 100%);
-          margin: 0 auto;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 14px;
-        }
-
-        .step{
-          opacity: 0;
-          transform: translateY(18px);
-          transition: opacity 420ms ease, transform 380ms ease;
-          width: 100%;
-        }
-
-        .step.show{
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .line{
-          font-weight: 300;
-          font-size: clamp(22px, 5.2vw, 28px);
-          margin: 14px auto;
-          max-width: 420px;
-          line-height: 1.25;
-        }
-
-        .lineSm{
-          font-size: 15px;
-          color: rgba(0,255,255,0.55);
-          font-weight: 450;
-          max-width: 360px;
-          line-height: 1.45;
-          margin: 10px auto 6px;
-        }
-
-        .input{
-          background: transparent;
-          border: 1px solid rgba(0,255,255,0.33);
-          color: #fff;
-          font-size: 18px;
-          width: min(320px, 92%);
-          padding: 14px 18px;
-          border-radius: 12px;
-          margin: 8px auto 0;
-          display:block;
-          text-align:center;
-          transition: border-color .3s, box-shadow .3s;
-        }
-
-        .input:focus{
-          outline: none;
-          border-color: rgba(0,255,255,1);
-          box-shadow: 0 0 14px rgba(0,255,255,0.28);
-        }
-
-        .equation2{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin: 12px auto 0;
-        }
-
-        .eqText2{
-          font-size: 15px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(0,255,255,0.62);
-          font-weight: 800;
-        }
-
-        .eqSym2{
-          font-size: 17px;
-          color: rgba(255,255,255,0.72);
-          font-weight: 900;
-        }
-
-        .balance2{
-          font-size: 22px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          font-weight: 950;
-          color: var(--brass);
-          text-shadow: 0 0 18px var(--brassGlow);
-          padding: 2px 6px;
-          border-radius: 10px;
-          animation: balancePulse 3.6s ease-in-out infinite;
-        }
-
-        .btnRow{
-          margin-top: 18px;
-          display:flex;
-          gap: 10px;
-          justify-content:center;
-          flex-wrap: wrap;
-        }
-
-        .btn2{
-          padding: 15px 22px;
-          font-size: 16px;
-          font-weight: 700;
-          color: #fff;
-          background: transparent;
-          border: 1.8px solid rgba(0,255,255,0.70);
-          border-radius: 999px;
-          cursor: pointer;
-          transition: transform .16s ease, box-shadow .2s ease, background .2s ease;
-        }
-
-        .btn2:hover{
-          background: rgba(0,255,255,0.08);
-          box-shadow: 0 0 18px rgba(0,255,255,0.36);
-          transform: translateY(-1px);
-        }
-
-        .btn2:disabled{
-          opacity: 0.45;
-          cursor: not-allowed;
-          box-shadow: none;
-          transform: none;
-        }
-
-        .btn2Secondary{
-          border-color: rgba(255,255,255,0.18);
-          color: rgba(255,255,255,0.75);
-        }
-
-        .hint2{
-          margin-top: 10px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.58);
-          max-width: 440px;
-          line-height: 1.4;
-        }
-
-        @media (max-width: 420px){
-          .core{ width: 236px; height: 236px; }
-          .emblemLg{ width: 188px; height: 188px; }
-          .btn{ width: 100%; max-width: 340px; }
-
-          .arcSm{ width: 136px; height: 136px; }
-          .emblemSm{ width: 108px; height: 108px; }
-          .btn2{ width: 100%; max-width: 340px; }
-        }
-
-        @media (prefers-reduced-motion: reduce){
-          .core, .core::before, .balance,
-          .arcSm, .arcSm::before, .balance2{
-            animation: none !important;
-          }
-          .step{
-            transition: none !important;
-            transform: none !important;
-            opacity: 1 !important;
-          }
-        }
-      `}</style>
-
-      {view === "landing" ? (
-        <main className="p1">
-          <div className="p1Wrap">
-            <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-              />
+      <div className="shell">
+        <div className="topbar">
+          <div className="brand">
+            <div className="core" aria-hidden="true" />
+            <div className="brandText">
+              <div className="brandName">BALANCE Cipher</div>
+              <div className="brandSub">Private Decode Funnel</div>
             </div>
-
-            <div className="equation" aria-label="Cipher equation">
-              <span className="eqText">Cipher</span>
-              <span className="eqSym">+</span>
-              <span className="eqText">Co-Pilot</span>
-              <span className="eqSym">+</span>
-              <span className="eqText">You</span>
-              <span className="eqSym">=</span>
-              <span className="balance">BALANCE</span>
-            </div>
-
-            <div className="cornerstone">
-              <strong>Are you ready to start decoding?</strong>
-            </div>
-
-            <div className="sub">
-              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
-            </div>
-
-            <button className="btn" type="button" onClick={goToDecodePage}>
-              Start the private decode
-            </button>
-
-            <div className="hint">No pressure. No shame. Just clarity.</div>
           </div>
-        </main>
-      ) : (
-        <main className="p2">
-          <div className="topRow">
-            <button className="backBtn" type="button" onClick={goBackToLanding}>
-              Back to landing
+
+          <div className="topActions">
+            <button className="linkBtn" type="button" onClick={handleResetFunnel}>
+              Reset
             </button>
           </div>
+        </div>
 
-          <div style={{ margin: "6px 0 16px" }}>
-            <div className="arcSm" aria-label="Cipher core">
-              <img className="emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" />
-            </div>
-          </div>
+        <div className="card">
+          {step === 1 && (
+            <div className="page">
+              <h1 className="h1">You’re not broken. You were never given a map.</h1>
+              <p className="p">
+                BALANCE Cipher turns confusion into the next clear step—starting with your credit life, where most people
+                feel stuck.
+              </p>
 
-          <div className="stack">
-            <div className={`step ${show("welcome") ? "show" : ""}`}>
-              <div className="line">Let’s make this personal.</div>
-            </div>
+              <div className="ctaRow">
+                <button className="ctaBtn" type="button" onClick={handleStartPrivateDecode}>
+                  Start the Private Decode
+                </button>
+                <div className="micro">Takes under a minute to begin.</div>
+              </div>
 
-            <div className={`step ${show("firstPrompt") ? "show" : ""}`}>
-              <div className="line">Your first name.</div>
-            </div>
-
-            <div className={`step ${show("firstInput") ? "show" : ""}`}>
-              <input
-                ref={firstRef}
-                className="input"
-                type="text"
-                placeholder="First name"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="given-name"
-              />
-            </div>
-
-            <div className={`step ${show("lastPrompt") ? "show" : ""}`}>
-              <div className="line">
-                AI doesn’t need your last name.
-                <br />
-                Balance needs your full truth.
+              <div className="footerNote">
+                No hype. No shame. Just clarity, one decision at a time.
               </div>
             </div>
+          )}
 
-            <div className={`step ${show("lastInput") ? "show" : ""}`}>
-              <input
-                ref={lastRef}
-                className="input"
-                type="text"
-                placeholder="Last name"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                onKeyDown={handleInputKeyDown}
-                autoComplete="family-name"
-              />
-            </div>
+          {step === 2 && (
+            <div className="page">
+              <h1 className="h1">Let’s make it personal.</h1>
 
-            <div className={`step ${show("cipherExplain") ? "show" : ""}`}>
-              <div className="lineSm">
-                The Cipher isn’t software.
-                <br />
-                It’s the quiet math between what you do… and what your score becomes.
-              </div>
-              <div className="cornerstone">
-                <strong>Are you ready to start decoding?</strong>
-              </div>
-            </div>
-
-            <div className={`step ${show("equation") ? "show" : ""}`}>
-              <div className="equation2" aria-label="Cipher equation">
-                <span className="eqText2">Cipher</span>
-                <span className="eqSym2">+</span>
-                <span className="eqText2">Co-Pilot</span>
-                <span className="eqSym2">+</span>
-                <span className="eqText2">You</span>
-                <span className="eqSym2">=</span>
-                <span className="balance2">BALANCE</span>
-              </div>
-            </div>
-
-            {showControlsOnDecode ? (
-              <div className={`step show`}>
-                <div className="btnRow">
-                  {stepIndex > 0 && current !== "cta" ? (
-                    <button className="btn2 btn2Secondary" type="button" onClick={back}>
-                      Back
-                    </button>
-                  ) : null}
-
-                  <button
-                    className="btn2"
-                    type="button"
-                    onClick={onPrimary}
-                    disabled={!canAdvanceFromThisStep()}
-                  >
-                    {primaryLabel()}
-                  </button>
+              <div className="stack">
+                <div className={`line ${p2Line1 ? "show" : ""}`}>
+                  A cipher was the first AI — made of ink, not silicon.
                 </div>
-
-                <div className="hint2">
-                  {current === "firstInput" || current === "lastInput"
-                    ? "This is just for personalization. No hype. No shame."
-                    : "Cipher + Co-Pilot + You = BALANCE. Clear direction returns."}
+                <div className={`line ${p2Line2 ? "show" : ""}`}>
+                  AI doesn’t lead. It listens. Then hands you the key.
+                </div>
+                <div className={`line ${p2Line3 ? "show" : ""}`}>
+                  You’re the only code that matters.
                 </div>
               </div>
-            ) : null}
+
+              <div className={`fields ${p2Fields ? "show" : ""}`}>
+                <input
+                  ref={firstNameRef}
+                  className="input"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name"
+                  autoComplete="given-name"
+                  inputMode="text"
+                />
+                <input
+                  className="input"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last name (optional)"
+                  autoComplete="family-name"
+                  inputMode="text"
+                />
+              </div>
+
+              <div className={`ctaRow ${p2Button ? "show" : ""}`}>
+                <button className="ctaBtn" type="button" onClick={handleContinueFromPage2}>
+                  Continue
+                </button>
+                <div className="micro">Your info stays private. This is step-by-step, not spam.</div>
+              </div>
+
+              {error && <div className="error">{error}</div>}
+
+              <div className="navRow">
+                <button className="linkBtn" type="button" onClick={() => goTo(1)}>
+                  Back
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="page">
+              <h1 className="h1">Alright, {displayName}. Here’s what we’re decoding.</h1>
+
+              <p className="p">
+                BALANCE Cipher is a simple map for real change—applied to your credit life. The Cipher reveals the
+                pattern. The AI Co-Pilot translates it into the next step. You stay in control.
+              </p>
+
+              <div className="formula">
+                <div className="formulaTitle">The BALANCE Formula</div>
+                <div className="formulaLine">
+                  Break Away → Awaken → Learn → Act → Now-or-Never → Clarity → Evaluate
+                </div>
+              </div>
+
+              <div className="divider" />
+
+              <h2 className="h2">Get your private decode key</h2>
+              <p className="p">
+                If you want your access code (and to save your progress), enter your email. We send one code. You choose
+                what happens next.
+              </p>
+
+              <div className="fields show">
+                <input
+                  ref={emailRef}
+                  className="input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  autoComplete="email"
+                  inputMode="email"
+                />
+              </div>
+
+              <div className="ctaRow show">
+                <button className="ctaBtn" type="button" onClick={handleGetAccessCode}>
+                  Get My Access Code
+                </button>
+                <div className="micro">Are you ready to start decoding?</div>
+              </div>
+
+              {error && <div className="error">{error}</div>}
+
+              <div className="navRow">
+                <button className="linkBtn" type="button" onClick={() => goTo(2)}>
+                  Back
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="page">
+              <h1 className="h1">Your Private Decode Key is Ready.</h1>
+              <p className="p">
+                This key unlocks the BALANCE Engine so the Co-Pilot can guide you step-by-step through the BALANCE
+                Formula—starting with your credit life.
+              </p>
+
+              <div className="codeBox">
+                <div className="codeLabel">Your code</div>
+                <div className="codeValue">{accessCode || "—"}</div>
+                <div className="micro">For now, this code is generated on-screen as a prototype.</div>
+              </div>
+
+              <div className="divider" />
+
+              <h2 className="h2">Enter your code</h2>
+              <div className="fields show">
+                <input
+                  ref={codeRef}
+                  className="input"
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value)}
+                  placeholder="Enter your code"
+                  inputMode="text"
+                />
+              </div>
+
+              <div className="ctaRow show">
+                <button className="ctaBtn" type="button" onClick={handleValidateCodeAndEnter}>
+                  Enter the BALANCE Engine
+                </button>
+                <div className="micro">The Co-Pilot decodes. You decide.</div>
+              </div>
+
+              {error && <div className="error">{error}</div>}
+
+              <div className="navRow">
+                <button className="linkBtn" type="button" onClick={() => goTo(3)}>
+                  Back
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="foot">
+          <div className="footHint">
+            If you want Page 4 to redirect into the app automatically, set{" "}
+            <span className="mono">VITE_APP_ENTRY_URL</span> in Vercel environment variables.
           </div>
-        </main>
-      )}
-    </>
+        </div>
+      </div>
+    </div>
   );
 }
+
+const css = `
+:root{
+  --bg:#04070b;
+  --card:#050b12;
+  --stroke:rgba(0,255,255,.25);
+  --stroke2:rgba(0,255,255,.45);
+  --teal:#00ffff;
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.72);
+  --muted2:rgba(255,255,255,.58);
+  --danger:rgba(255,80,80,.95);
+}
+
+*{ box-sizing:border-box; }
+
+.wrap{
+  min-height:100vh;
+  background: radial-gradient(circle at 20% 10%, rgba(0,255,255,.10), transparent 45%),
+              radial-gradient(circle at 80% 40%, rgba(0,255,255,.06), transparent 50%),
+              var(--bg);
+  color:var(--text);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.shell{
+  width:min(760px, 100%);
+}
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.brandText{ line-height:1.15; }
+.brandName{ font-weight:650; letter-spacing:.2px; }
+.brandSub{ font-size:12px; color:var(--muted2); margin-top:3px; }
+
+.core{
+  width:46px;
+  height:46px;
+  border-radius:999px;
+  border:1px solid var(--stroke2);
+  background: radial-gradient(circle, rgba(0,255,255,.14) 0%, transparent 70%);
+  animation: pulse 3.5s ease-in-out infinite;
+}
+
+@keyframes pulse{
+  0%,100%{ box-shadow: 0 0 14px rgba(0,255,255,.18); }
+  50%{ box-shadow: 0 0 30px rgba(0,255,255,.36); }
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(0,255,255,.05), transparent 55%),
+              rgba(5,11,18,.78);
+  border:1px solid var(--stroke);
+  border-radius:22px;
+  padding:26px 22px;
+  box-shadow: 0 18px 40px rgba(0,0,0,.45);
+}
+
+.page{
+  text-align:center;
+  padding:6px 10px 10px;
+}
+
+.h1{
+  font-size:28px;
+  font-weight:650;
+  letter-spacing:.2px;
+  margin:0 0 10px;
+}
+
+.h2{
+  font-size:18px;
+  font-weight:650;
+  margin:0 0 8px;
+}
+
+.p{
+  font-size:16px;
+  line-height:1.65;
+  color:var(--muted);
+  margin:0 auto 16px;
+  max-width: 560px;
+}
+
+.stack{
+  margin: 18px auto 10px;
+  max-width: 560px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.line{
+  font-size:16px;
+  line-height:1.65;
+  color:var(--muted);
+  opacity:0;
+  transform: translateY(8px);
+  transition: opacity .8s ease, transform .7s ease;
+}
+
+.line.show{
+  opacity:1;
+  transform: translateY(0);
+}
+
+.fields{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin: 14px auto 6px;
+  max-width: 380px;
+  opacity:0;
+  transform: translateY(8px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+
+.fields.show{
+  opacity:1;
+  transform: translateY(0);
+}
+
+.input{
+  width:100%;
+  padding:14px 16px;
+  border-radius:14px;
+  border:1.2px solid var(--stroke2);
+  background: transparent;
+  color: var(--text);
+  font-size:16px;
+  text-align:center;
+  outline:none;
+}
+
+.input:focus{
+  border-color: rgba(0,255,255,.7);
+  box-shadow: 0 0 18px rgba(0,255,255,.22);
+}
+
+.ctaRow{
+  margin-top: 14px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  opacity:0;
+  transform: translateY(8px);
+  transition: opacity .7s ease, transform .7s ease;
+}
+
+.ctaRow.show{
+  opacity:1;
+  transform: translateY(0);
+}
+
+.ctaBtn{
+  border-radius:999px;
+  border:1.5px solid var(--teal);
+  background: transparent;
+  color: var(--teal);
+  padding: 12px 26px;
+  font-size:15px;
+  font-weight:650;
+  cursor:pointer;
+  transition: background .25s ease, transform .08s ease, box-shadow .25s ease;
+  min-width: 240px;
+}
+
+.ctaBtn:hover{
+  background: rgba(0,255,255,.10);
+  box-shadow: 0 0 18px rgba(0,255,255,.18);
+}
+
+.ctaBtn:active{
+  transform: translateY(1px);
+}
+
+.micro{
+  font-size:12px;
+  color: var(--muted2);
+}
+
+.footerNote{
+  margin-top: 18px;
+  font-size:13px;
+  color: var(--muted2);
+}
+
+.formula{
+  margin: 10px auto 0;
+  max-width: 600px;
+  border: 1px solid rgba(0,255,255,.18);
+  border-radius: 16px;
+  padding: 14px 14px;
+  background: rgba(0,255,255,.04);
+}
+
+.formulaTitle{
+  font-weight:650;
+  margin-bottom:6px;
+}
+
+.formulaLine{
+  color: var(--muted);
+  font-size:14px;
+  line-height:1.6;
+}
+
+.divider{
+  height:1px;
+  background: rgba(0,255,255,.15);
+  margin: 18px auto;
+  max-width: 640px;
+}
+
+.error{
+  margin-top: 14px;
+  background: rgba(255,80,80,.10);
+  border: 1px solid rgba(255,80,80,.35);
+  color: var(--danger);
+  border-radius: 14px;
+  padding: 10px 12px;
+  max-width: 520px;
+  margin-left:auto;
+  margin-right:auto;
+  font-size: 13px;
+  line-height:1.45;
+}
+
+.navRow{
+  margin-top: 18px;
+  display:flex;
+  justify-content:center;
+}
+
+.linkBtn{
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.16);
+  color: rgba(255,255,255,.78);
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.linkBtn:hover{
+  border-color: rgba(0,255,255,.28);
+}
+
+.codeBox{
+  margin: 14px auto 0;
+  max-width: 420px;
+  border-radius: 16px;
+  border: 1px solid rgba(0,255,255,.18);
+  background: rgba(0,255,255,.04);
+  padding: 14px 14px;
+}
+
+.codeLabel{
+  font-size:12px;
+  color: var(--muted2);
+  margin-bottom: 6px;
+}
+
+.codeValue{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--teal);
+}
+
+.foot{
+  margin-top: 12px;
+  text-align:center;
+}
+
+.footHint{
+  font-size:12px;
+  color: var(--muted2);
+}
+
+.mono{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: rgba(255,255,255,.82);
+}
+
+@media (max-width: 420px){
+  .h1{ font-size:24px; }
+  .ctaBtn{ width:100%; min-width: unset; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .core{ animation:none; }
+  .line, .fields, .ctaRow{ transition:none; transform:none; }
+}
+`;

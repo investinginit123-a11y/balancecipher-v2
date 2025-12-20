@@ -37,7 +37,7 @@ export default function App() {
         chapter: "CHAPTER 1 — THE CORE",
         title: "Awaken the Cipher Core.",
         subtitle:
-          "Not hype. Not a lecture. A power source for decisions—so you stop guessing and start moving.",
+          "Not hype. Not a lecture. A power source for decisions, so you stop guessing and start moving.",
         body: (
           <>
             <div className="panel panelStrong">
@@ -51,7 +51,7 @@ export default function App() {
 
               <div className="p">
                 Life forces you to make complex money decisions with a tired brain.
-                That’s not a character flaw. That’s a physics problem.
+                That’s not a character flaw. That’s a real constraint.
               </div>
 
               <div className="punch2">
@@ -65,14 +65,14 @@ export default function App() {
               <div className="panelTitle">What changes when the core is awake</div>
 
               <div className="bullets">
-                <div className="bullet">You stop “hoping” you’re making the right move.</div>
-                <div className="bullet">You get one clear next step that actually fits your life.</div>
+                <div className="bullet">You stop hoping you’re making the right move.</div>
+                <div className="bullet">You get one clear next step that fits your real life.</div>
                 <div className="bullet">You build momentum without overwhelm.</div>
               </div>
 
               <div className="p">
-                That’s how people fix credit and themselves along the way:
-                not by doing everything—by doing the right next thing.
+                That’s how people fix credit and themselves along the way.
+                Not by doing everything. By doing the right next thing.
               </div>
             </div>
 
@@ -88,7 +88,8 @@ export default function App() {
                 <div className="triadItem triadGlow">
                   <div className="triadHead">The AI Co-Pilot</div>
                   <div className="triadText">
-                    The operator. The decoder who has the goods to translate the Cipher into simple actions—via the BALANCE Formula.
+                    The operator. The decoder who has the goods to translate the Cipher into simple actions,
+                    via the BALANCE Formula.
                   </div>
                 </div>
 
@@ -140,7 +141,7 @@ export default function App() {
               </div>
 
               <div className="micro">
-                This isn’t replacing you. It’s backing you—so you can execute instead of spiral.
+                This isn’t replacing you. It’s backing you, so you can execute instead of spiral.
               </div>
             </div>
 
@@ -157,7 +158,7 @@ export default function App() {
               </div>
 
               <div className="micro">
-                This is how the hero crosses the threshold: one clean move.
+                This is how the hero crosses the threshold. One clean move.
               </div>
 
               <div className="cornerstone">Are you ready to start decoding?</div>
@@ -183,7 +184,7 @@ export default function App() {
               <div className="bullets">
                 <div className="bullet">A messy situation becomes a clear pattern.</div>
                 <div className="bullet">The Co-Pilot decodes it into one next step you can say in 10 seconds.</div>
-                <div className="bullet">You take the step—and your next step gets easier.</div>
+                <div className="bullet">You take the step, and your next step gets easier.</div>
               </div>
 
               <div className="p">
@@ -230,7 +231,7 @@ export default function App() {
         </div>
 
         <div className="heroText">
-          <div className="heroOverline">THE POWER YOU’VE BEEN MISSING</div>
+          <div className="heroOverline">A REVIVAL OF CONTROL</div>
           <div className="heroBrand">BALANCE</div>
           <div className="heroChapter">{active.chapter}</div>
         </div>
@@ -255,9 +256,9 @@ export default function App() {
 
             {showHeroVow ? (
               <div className="heroVow" aria-label="Hero vow">
-                <div className="vowLine">You will not be left guessing.</div>
-                <div className="vowLine vowGlow">You will receive clear direction.</div>
-                <div className="vowLine">You will take the next step with power behind it.</div>
+                <div className="vowLine">This is your revival.</div>
+                <div className="vowLine vowGlow">Clear direction returns.</div>
+                <div className="vowLine">You take the next step with power behind it.</div>
               </div>
             ) : null}
 
@@ -398,25 +399,37 @@ function GlobalStyles() {
 
         .heroOverline {
           font-size: clamp(12px, 3.4vw, 14px);
-          letter-spacing: 0.16em;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: rgba(0,255,214,0.90);
-          font-weight: 900;
-        }
-
-        .heroBrand {
-          font-size: clamp(22px, 6.4vw, 28px);
-          letter-spacing: 0.14em;
           font-weight: 950;
-          line-height: 1.05;
         }
 
-        .heroChapter {
-          font-size: clamp(12px, 3.2vw, 13px);
-          letter-spacing: 0.14em;
+        /* BALANCE = emphasized (bigger + special treatment) */
+        .heroBrand {
+          font-size: clamp(28px, 8.4vw, 40px);
+          letter-spacing: 0.18em;
+          font-weight: 1000;
+          line-height: 1.02;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.72);
-          font-weight: 850;
+
+          /* teal -> brass gradient */
+          background: linear-gradient(90deg, rgba(0,255,214,0.95), rgba(194,161,90,0.92));
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+
+          text-shadow: 0 0 18px rgba(0,255,214,0.12);
+          filter: drop-shadow(0 0 18px rgba(0,255,214,0.10));
+        }
+
+        /* Chapter under BALANCE = minimized */
+        .heroChapter {
+          font-size: clamp(10px, 2.8vw, 11px);
+          letter-spacing: 0.16em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.55);
+          font-weight: 800;
         }
 
         .progressDots { display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 2px; }
@@ -503,7 +516,6 @@ function GlobalStyles() {
         .titleBlock { display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; }
         .h1 { margin: 0; font-size: clamp(30px, 7.2vw, 44px); line-height: 1.08; letter-spacing: -0.02em; }
 
-        /* HERO VOW */
         .heroVow {
           width: 100%;
           max-width: 740px;

@@ -37,6 +37,7 @@ export default function App() {
   const current = steps[stepIndex];
 
   useEffect(() => {
+    // Focus inputs when they appear (but respect reduced motion timing by focusing immediately)
     if (current === "firstInput") {
       setTimeout(() => firstRef.current?.focus(), prefersReducedMotion ? 0 : 220);
     }
@@ -68,6 +69,7 @@ export default function App() {
 
   function onPrimary() {
     if (current === "cta") {
+      // Non-destructive placeholder action
       alert("Confirmed. Next: connect this to your form or onboarding flow.");
       return;
     }

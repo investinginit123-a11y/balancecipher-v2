@@ -41,10 +41,10 @@ export default function App() {
               <div style={styles.leadTitle}>What happens next</div>
               <ol style={styles.ol}>
                 <li style={styles.li}>
-                  <strong>Step 1:</strong> You choose what you want clarity on.
+                  <strong>Step 1:</strong> Choose what you want clarity on.
                 </li>
                 <li style={styles.li}>
-                  <strong>Step 2:</strong> The Co-Pilot decodes the Cipher into one simple action (10 seconds).
+                  <strong>Step 2:</strong> The AI Co-Pilot decodes the Cipher into one simple action (10 seconds).
                 </li>
                 <li style={styles.li}>
                   <strong>Step 3:</strong> You execute one clean step. Progress is recorded.
@@ -53,8 +53,8 @@ export default function App() {
             </div>
 
             <div style={styles.microNote}>
-              The Cipher is the structure. The AI Co-Pilot has the goods to decode it into simple, actionable steps — via
-              the BALANCE Formula.
+              The Cipher is the structure. The Co-Pilot has the goods to decode it into simple, actionable steps — via the
+              BALANCE Formula.
             </div>
           </>
         ),
@@ -96,9 +96,7 @@ export default function App() {
               </div>
             </div>
 
-            <div style={styles.microNote}>
-              This is how we keep the experience moving: one screen, one clear action.
-            </div>
+            <div style={styles.microNote}>One screen. One action. Keep moving.</div>
           </>
         ),
         primaryCta: "Apply This (Like Code)",
@@ -135,9 +133,6 @@ export default function App() {
         ),
         primaryCta: "Enter the Cipher",
         onPrimary: () => {
-          // Replace this with your real entry path when ready.
-          // window.location.href = "/app";
-          // window.location.hash = "#/app";
           window.location.hash = "#start";
         },
         secondaryCta: "Back",
@@ -155,20 +150,15 @@ export default function App() {
 
       <div className="bgGlow" aria-hidden="true" />
       <div className="gridOverlay" aria-hidden="true" />
-
-      {/* Optional watermark logo in the background (subtle). */}
       <div className="watermark" aria-hidden="true" />
 
       <header style={styles.header}>
         <div style={styles.brandRow}>
           <img
-            src="/brand/Cipher-Emblem.png"
+            src="/brand/cipher-emblem.png"
             alt="BALANCE Cipher emblem"
             style={styles.emblem}
             className="emblemPulse"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-            }}
           />
           <div>
             <div style={styles.eyebrow}>{active.eyebrow}</div>
@@ -233,9 +223,7 @@ export default function App() {
       </main>
 
       <footer style={styles.footer}>
-        <div style={styles.footerLine}>
-          Tip: If the button feels too intense, we can dial the pulse down in one place (CSS only).
-        </div>
+        <div style={styles.footerLine}>If the button pulse is too intense, we can dial it down in one CSS block.</div>
       </footer>
     </div>
   );
@@ -250,52 +238,30 @@ function GlobalStyles() {
   return (
     <style>
       {`
-        /* Motion + style system (self-contained) */
-        :root {
-          --navy: #071423;
-          --panel: rgba(10, 24, 40, 0.78);
-          --line: rgba(255,255,255,0.10);
-          --text: rgba(255,255,255,0.92);
-          --muted: rgba(255,255,255,0.72);
-          --teal: rgba(0,255,214,0.85);
-          --tealSoft: rgba(0,255,214,0.18);
-          --shadow: rgba(0,0,0,0.55);
-        }
-
-        @keyframes slideInFromRight {
-          from { transform: translateX(26px); opacity: 0.0; }
-          to   { transform: translateX(0px);  opacity: 1.0; }
-        }
-        @keyframes slideInFromLeft {
-          from { transform: translateX(-26px); opacity: 0.0; }
-          to   { transform: translateX(0px);   opacity: 1.0; }
-        }
+        @keyframes slideInFromRight { from { transform: translateX(26px); opacity: 0.0; } to { transform: translateX(0px); opacity: 1.0; } }
+        @keyframes slideInFromLeft  { from { transform: translateX(-26px); opacity: 0.0; } to { transform: translateX(0px); opacity: 1.0; } }
 
         @keyframes breatheGlow {
-          0%   { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px var(--shadow); }
-          50%  { box-shadow: 0 0 28px rgba(0,255,214,0.22), 0 16px 60px var(--shadow); }
-          100% { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px var(--shadow); }
+          0%   { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px rgba(0,0,0,0.55); }
+          50%  { box-shadow: 0 0 28px rgba(0,255,214,0.22), 0 16px 60px rgba(0,0,0,0.55); }
+          100% { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px rgba(0,0,0,0.55); }
         }
-
         @keyframes cipherCorePulse {
           0%   { transform: translate(-50%,-50%) scale(0.98); opacity: 0.55; }
           50%  { transform: translate(-50%,-50%) scale(1.03); opacity: 0.95; }
           100% { transform: translate(-50%,-50%) scale(0.98); opacity: 0.55; }
         }
-
         @keyframes shimmerSweep {
           0%   { transform: translateX(-140%); opacity: 0.0; }
           25%  { opacity: 0.55; }
           100% { transform: translateX(140%); opacity: 0.0; }
         }
-
         @keyframes emblemFloat {
-          0%   { transform: translateY(0px); }
-          50%  { transform: translateY(-2px); }
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-2px); }
           100% { transform: translateY(0px); }
         }
 
-        /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
           * { animation: none !important; transition: none !important; }
         }
@@ -303,11 +269,10 @@ function GlobalStyles() {
         .bgGlow {
           position: absolute;
           inset: -20%;
-          background: radial-gradient(closest-side, rgba(0,255,214,0.10), rgba(0,0,0,0) 70%);
+          background: radial-gradient(closest-side, rgba(0, 255, 214, 0.10), rgba(0, 0, 0, 0) 70%);
           filter: blur(14px);
           pointer-events: none;
         }
-
         .gridOverlay {
           position: absolute;
           inset: 0;
@@ -318,7 +283,6 @@ function GlobalStyles() {
           opacity: 0.12;
           pointer-events: none;
         }
-
         .watermark {
           position: absolute;
           top: 50%;
@@ -326,14 +290,12 @@ function GlobalStyles() {
           width: 520px;
           height: 520px;
           transform: translate(-50%,-50%);
-          background-image: url('/brand/Cipher-Emblem.png');
+          background-image: url('/brand/cipher-emblem.png');
           background-size: contain;
           background-repeat: no-repeat;
           opacity: 0.06;
-          filter: blur(0px);
           pointer-events: none;
         }
-
         .emblemPulse {
           animation: emblemFloat 2.6s ease-in-out infinite;
           box-shadow: 0 0 26px rgba(0,255,214,0.20);
@@ -353,13 +315,7 @@ function GlobalStyles() {
           box-shadow: 0 0 18px rgba(0,255,214,0.18);
         }
 
-        .ctaWrap {
-          position: relative;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
+        .ctaWrap { position: relative; display: inline-flex; align-items: center; justify-content: center; }
         .cipherCore {
           position: absolute;
           left: 50%;
@@ -369,9 +325,7 @@ function GlobalStyles() {
           border-radius: 999px;
           transform: translate(-50%,-50%);
           border: 1px solid rgba(0,255,214,0.22);
-          box-shadow:
-            0 0 34px rgba(0,255,214,0.12),
-            inset 0 0 22px rgba(0,255,214,0.08);
+          box-shadow: 0 0 34px rgba(0,255,214,0.12), inset 0 0 22px rgba(0,255,214,0.08);
           background: radial-gradient(circle, rgba(0,255,214,0.10), rgba(0,0,0,0) 60%);
           animation: cipherCorePulse 1.8s ease-in-out infinite;
           pointer-events: none;
@@ -384,7 +338,7 @@ function GlobalStyles() {
           padding: 14px 18px;
           border: 1px solid rgba(0,255,214,0.42);
           background: rgba(0,255,214,0.14);
-          color: var(--text);
+          color: rgba(255,255,255,0.92);
           font-weight: 900;
           letter-spacing: 0.02em;
           cursor: pointer;
@@ -392,15 +346,8 @@ function GlobalStyles() {
           backdrop-filter: blur(8px);
           animation: breatheGlow 2.4s ease-in-out infinite;
         }
-        .btnPrimary:active {
-          transform: translateY(1px);
-        }
-
-        .btnPrimaryText {
-          position: relative;
-          z-index: 2;
-        }
-
+        .btnPrimary:active { transform: translateY(1px); }
+        .btnPrimaryText { position: relative; z-index: 2; }
         .btnShimmer {
           position: absolute;
           top: -40%;
@@ -413,7 +360,6 @@ function GlobalStyles() {
           z-index: 1;
           pointer-events: none;
         }
-
         .btnSecondary {
           border-radius: 16px;
           padding: 12px 16px;
@@ -429,220 +375,39 @@ function GlobalStyles() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "#071423",
-    color: "rgba(255,255,255,0.92)",
-    position: "relative",
-    overflow: "hidden",
-  },
-  header: {
-    padding: "22px 18px 12px",
-    maxWidth: 1040,
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 16,
-    position: "relative",
-    zIndex: 2,
-  },
-  brandRow: {
-    display: "flex",
-    alignItems: "center",
-    gap: 14,
-  },
-  emblem: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-  },
-  eyebrow: {
-    fontSize: 12,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: "rgba(0,255,214,0.86)",
-    fontWeight: 850,
-  },
-  brandTitle: {
-    fontSize: 18,
-    letterSpacing: "0.10em",
-    fontWeight: 900,
-  },
-  dots: {
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-  },
-  main: {
-    padding: "10px 18px 22px",
-    maxWidth: 1040,
-    margin: "0 auto",
-    position: "relative",
-    zIndex: 2,
-  },
-  viewport: {
-    position: "relative",
-  },
-  card: {
-    borderRadius: 24,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(10, 24, 40, 0.78)",
-    boxShadow: "0 18px 60px rgba(0,0,0,0.55)",
-    padding: 22,
-    backdropFilter: "blur(12px)",
-    maxWidth: 840,
-    margin: "0 auto",
-  },
-  titleBlock: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 8,
-  },
-  h1: {
-    margin: 0,
-    fontSize: 30,
-    lineHeight: 1.12,
-    letterSpacing: "-0.02em",
-  },
-  subtitle: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 15,
-    lineHeight: 1.5,
-    maxWidth: 680,
-  },
-  divider: {
-    height: 1,
-    background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))",
-    margin: "14px 0 16px",
-  },
-  leadCard: {
-    borderRadius: 18,
-    border: "1px solid rgba(0,255,214,0.18)",
-    background: "rgba(0,255,214,0.06)",
-    padding: 14,
-    marginBottom: 14,
-  },
-  leadTitle: {
-    fontSize: 12,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "rgba(0,255,214,0.88)",
-    fontWeight: 900,
-    marginBottom: 10,
-  },
-  microNote: {
-    marginTop: 8,
-    color: "rgba(255,255,255,0.70)",
-    fontSize: 13,
-    lineHeight: 1.55,
-  },
-  ol: {
-    margin: 0,
-    paddingLeft: 18,
-  },
-  ul: {
-    margin: 0,
-    paddingLeft: 18,
-  },
-  li: {
-    margin: "10px 0",
-    color: "rgba(255,255,255,0.86)",
-    lineHeight: 1.55,
-    fontSize: 14,
-  },
-  split: {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: 12,
-  },
-  panel: {
-    borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.04)",
-    padding: 14,
-  },
-  panelTitle: {
-    fontSize: 12,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.72)",
-    fontWeight: 900,
-    marginBottom: 10,
-  },
-  quote: {
-    fontSize: 18,
-    lineHeight: 1.35,
-    color: "rgba(255,255,255,0.92)",
-    marginBottom: 10,
-  },
-  underline: {
-    borderBottom: "2px solid rgba(0,255,214,0.55)",
-    paddingBottom: 1,
-  },
-  panelText: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 14,
-    lineHeight: 1.55,
-  },
-  exampleGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-  },
-  exampleBad: {
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.04)",
-    padding: 12,
-  },
-  exampleGood: {
-    borderRadius: 16,
-    border: "1px solid rgba(0,255,214,0.20)",
-    background: "rgba(0,255,214,0.06)",
-    padding: 12,
-  },
-  exampleLabel: {
-    fontSize: 12,
-    letterSpacing: "0.10em",
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.72)",
-    fontWeight: 900,
-    marginBottom: 8,
-  },
-  exampleText: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.88)",
-    lineHeight: 1.5,
-  },
-  ctaRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 18,
-    flexWrap: "wrap",
-  },
-  footerHint: {
-    marginTop: 14,
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: "rgba(255,255,255,0.62)",
-    borderTop: "1px solid rgba(255,255,255,0.10)",
-    paddingTop: 12,
-  },
-  footer: {
-    maxWidth: 1040,
-    margin: "0 auto",
-    padding: "0 18px 22px",
-    color: "rgba(255,255,255,0.60)",
-    fontSize: 12,
-    lineHeight: 1.45,
-    position: "relative",
-    zIndex: 2,
-  },
-  footerLine: {
-    borderTop: "1px solid rgba(255,255,255,0.10)",
-    paddingTop: 12,
-  },
+  page: { minHeight: "100vh", background: "#071423", color: "rgba(255,255,255,0.92)", position: "relative", overflow: "hidden" },
+  header: { padding: "22px 18px 12px", maxWidth: 1040, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, position: "relative", zIndex: 2 },
+  brandRow: { display: "flex", alignItems: "center", gap: 14 },
+  emblem: { width: 44, height: 44, borderRadius: 12 },
+  eyebrow: { fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(0,255,214,0.86)", fontWeight: 850 },
+  brandTitle: { fontSize: 18, letterSpacing: "0.10em", fontWeight: 900 },
+  dots: { display: "flex", gap: 8, alignItems: "center" },
+  main: { padding: "10px 18px 22px", maxWidth: 1040, margin: "0 auto", position: "relative", zIndex: 2 },
+  viewport: { position: "relative" },
+  card: { borderRadius: 24, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10, 24, 40, 0.78)", boxShadow: "0 18px 60px rgba(0,0,0,0.55)", padding: 22, backdropFilter: "blur(12px)", maxWidth: 840, margin: "0 auto" },
+  titleBlock: { display: "flex", flexDirection: "column", gap: 8 },
+  h1: { margin: 0, fontSize: 30, lineHeight: 1.12, letterSpacing: "-0.02em" },
+  subtitle: { color: "rgba(255,255,255,0.78)", fontSize: 15, lineHeight: 1.5, maxWidth: 680 },
+  divider: { height: 1, background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))", margin: "14px 0 16px" },
+  leadCard: { borderRadius: 18, border: "1px solid rgba(0,255,214,0.18)", background: "rgba(0,255,214,0.06)", padding: 14, marginBottom: 14 },
+  leadTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(0,255,214,0.88)", fontWeight: 900, marginBottom: 10 },
+  microNote: { marginTop: 8, color: "rgba(255,255,255,0.70)", fontSize: 13, lineHeight: 1.55 },
+  ol: { margin: 0, paddingLeft: 18 },
+  ul: { margin: 0, paddingLeft: 18 },
+  li: { margin: "10px 0", color: "rgba(255,255,255,0.86)", lineHeight: 1.55, fontSize: 14 },
+  split: { display: "grid", gridTemplateColumns: "1fr", gap: 12 },
+  panel: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14 },
+  panelTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
+  quote: { fontSize: 18, lineHeight: 1.35, color: "rgba(255,255,255,0.92)", marginBottom: 10 },
+  underline: { borderBottom: "2px solid rgba(0,255,214,0.55)", paddingBottom: 1 },
+  panelText: { color: "rgba(255,255,255,0.78)", fontSize: 14, lineHeight: 1.55 },
+  exampleGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+  exampleBad: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 12 },
+  exampleGood: { borderRadius: 16, border: "1px solid rgba(0,255,214,0.20)", background: "rgba(0,255,214,0.06)", padding: 12 },
+  exampleLabel: { fontSize: 12, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 8 },
+  exampleText: { fontSize: 14, color: "rgba(255,255,255,0.88)", lineHeight: 1.5 },
+  ctaRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 18, flexWrap: "wrap" },
+  footerHint: { marginTop: 14, fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.62)", borderTop: "1px solid rgba(255,255,255,0.10)", paddingTop: 12 },
+  footer: { maxWidth: 1040, margin: "0 auto", padding: "0 18px 22px", color: "rgba(255,255,255,0.60)", fontSize: 12, lineHeight: 1.45, position: "relative", zIndex: 2 },
+  footerLine: { borderTop: "1px solid rgba(255,255,255,0.10)", paddingTop: 12 },
 };

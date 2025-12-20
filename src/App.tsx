@@ -91,7 +91,7 @@ export default function App() {
     if (view === "p5") setTimeout(() => codeRef.current?.focus(), 50);
   }, [view]);
 
-  // Focus Page 2 input after the full “gift” sequence completes (slower meaning lines).
+  // Focus Page 2 input after the full “gift” sequence completes.
   useEffect(() => {
     if (view !== "p2") return;
     const t = setTimeout(() => p2FirstRef.current?.focus(), 36500);
@@ -114,8 +114,10 @@ export default function App() {
           --text: rgba(255,255,255,0.96);
           --muted: rgba(255,255,255,0.72);
 
-          /* Canon system font stack (Page 1) */
-          --uiFont: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+          /* Your typography spec (best-effort across devices)
+             NOTE: "Helvetica Neue Lite" is effectively weight 300; availability varies by OS.
+          */
+          --uiFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
         *{ box-sizing:border-box; }
@@ -129,16 +131,16 @@ export default function App() {
             linear-gradient(180deg, var(--bg0), var(--bg1));
           color: var(--text);
           font-family: var(--uiFont);
+          font-weight: 300; /* Neue Lite / 300 */
           overflow-x: hidden;
           text-align:center;
 
-          /* Crisp rendering */
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
           text-rendering: geometricPrecision;
         }
 
-        /* IMPORTANT: force form controls to inherit font stack + rendering */
+        /* Force form controls to inherit font + weight (mobile browsers often don't) */
         button, input, textarea, select {
           font: inherit;
           -webkit-font-smoothing: inherit;
@@ -182,7 +184,6 @@ export default function App() {
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          text-align:center;
           padding: 34px 18px 60px;
         }
 
@@ -243,20 +244,20 @@ export default function App() {
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.86);
-          font-weight: 800;
+          font-weight: 700; /* your “strong” spec */
         }
 
         .eqSym{
           font-size: 18px;
           color: rgba(255,255,255,0.62);
-          font-weight: 900;
+          font-weight: 700;
         }
 
         .balance{
           font-size: 24px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          font-weight: 950;
+          font-weight: 700;
           color: var(--brass);
           padding: 2px 6px;
           border-radius: 10px;
@@ -267,10 +268,11 @@ export default function App() {
           margin-top: 6px;
           font-size: 15px;
           color: rgba(255,255,255,0.88);
+          font-weight: 500;
         }
 
         .cornerstone strong{
-          font-weight: 850;
+          font-weight: 700;
           color: rgba(255,255,255,0.98);
         }
 
@@ -280,6 +282,7 @@ export default function App() {
           font-size: 16px;
           line-height: 1.55;
           margin-top: 8px;
+          font-weight: 300;
         }
 
         .btn{
@@ -290,7 +293,7 @@ export default function App() {
           background: linear-gradient(180deg, rgba(40,240,255,0.08), rgba(40,240,255,0.03));
           box-shadow: 0 0 24px rgba(40,240,255,0.18), 0 12px 30px rgba(0,0,0,0.35);
           cursor:pointer;
-          font-weight: 800;
+          font-weight: 700;
           font-size: 16px;
           transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
           max-width: min(560px, 100%);
@@ -307,9 +310,10 @@ export default function App() {
           margin-top: 10px;
           font-size: 13px;
           color: rgba(255,255,255,0.58);
+          font-weight: 300;
         }
 
-        /* PAGE 2 — matched typography + bigger meaning + refined timing */
+        /* PAGE 2 */
         .p2{
           min-height:100vh;
           background:#000;
@@ -320,7 +324,6 @@ export default function App() {
           padding: 24px 18px 112px;
           position: relative;
           overflow:hidden;
-          font-family: var(--uiFont);
         }
 
         .p2Fade{
@@ -348,7 +351,7 @@ export default function App() {
         .stage{
           width: min(780px, 100%);
           min-height: 150px;
-          margin-top: -10px; /* tuck stage closer to core */
+          margin-top: -10px;
           position: relative;
           display:flex;
           flex-direction:column;
@@ -357,7 +360,6 @@ export default function App() {
           gap: 12px;
         }
 
-        /* Titles: quicker (cinematic), Meaning: slower (readable) */
         @keyframes titleInOut{
           0%   { opacity:0; transform: translateY(10px); }
           18%  { opacity:1; transform: translateY(0); }
@@ -377,21 +379,18 @@ export default function App() {
           100% { opacity:1; transform: translateY(0); }
         }
 
-        /* Title typography is now explicitly aligned to Page 1 eqText style */
         .title{
-          font-family: var(--uiFont);
           font-size: clamp(42px, 9.6vw, 60px);
-          font-weight: 800;
-          letter-spacing: 0.12em;
+          font-weight: 700;            /* Helvetica emphasis */
+          letter-spacing: 0.12em;      /* same refined spacing as Page 1 */
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
         }
 
         .meaning{
-          font-family: var(--uiFont);
           font-size: clamp(24px, 6.2vw, 34px);
-          font-weight: 520;
+          font-weight: 300;            /* Neue Lite / 300 */
           color: rgba(255,255,255,0.90);
           text-shadow: 0 0 22px rgba(40,240,255,0.10);
           max-width: 780px;
@@ -432,27 +431,24 @@ export default function App() {
         }
 
         .finalWord{
-          font-family: var(--uiFont);
           font-size: 22px;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.92);
-          font-weight: 800;
+          font-weight: 700;
         }
 
         .finalSym{
-          font-family: var(--uiFont);
           font-size: 22px;
           color: rgba(255,255,255,0.78);
-          font-weight: 950;
+          font-weight: 700;
         }
 
         .finalBalance{
-          font-family: var(--uiFont);
           font-size: 34px;
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          font-weight: 950;
+          font-weight: 700;
           color: var(--brass);
           text-shadow: 0 0 22px var(--brassGlow);
           padding: 2px 10px;
@@ -461,11 +457,11 @@ export default function App() {
         }
 
         .finalLine{
-          font-family: var(--uiFont);
           font-size: 18px;
           color: rgba(40,240,255,0.70);
           line-height: 1.45;
           max-width: 780px;
+          font-weight: 300;
         }
 
         .dock{
@@ -488,16 +484,15 @@ export default function App() {
         }
 
         .unlockText{
-          font-family: var(--uiFont);
           font-size: 18px;
           color: rgba(255,255,255,0.78);
           max-width: 780px;
           line-height: 1.5;
           padding: 0 8px;
+          font-weight: 300;
         }
 
         .underlineOnly{
-          font-family: var(--uiFont);
           width: min(560px, 90vw);
           background: transparent;
           border: none;
@@ -505,6 +500,7 @@ export default function App() {
           padding: 18px 10px 12px;
           color: rgba(255,255,255,0.94);
           font-size: 22px;
+          font-weight: 500; /* input should feel “confident,” not wispy */
           text-align: center;
           outline: none;
           caret-color: rgba(40,240,255,0.95);
@@ -516,7 +512,7 @@ export default function App() {
           box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
-        /* Pages 3–5 baseline */
+        /* Pages 3–5 */
         .pX{
           min-height:100vh;
           display:flex;
@@ -526,7 +522,6 @@ export default function App() {
           padding: 34px 18px 84px;
           background:#000;
           text-align:center;
-          font-family: var(--uiFont);
         }
 
         .arcSmall{
@@ -556,8 +551,7 @@ export default function App() {
         }
 
         .line{
-          font-family: var(--uiFont);
-          font-weight: 350;
+          font-weight: 500;
           font-size: clamp(24px, 5.6vw, 32px);
           max-width: 560px;
           line-height: 1.25;
@@ -566,19 +560,21 @@ export default function App() {
         }
 
         .whisper{
-          font-family: var(--uiFont);
           margin-top: 10px;
           font-size: 14px;
           color: rgba(255,255,255,0.56);
           max-width: 460px;
           line-height: 1.45;
+          font-weight: 300;
         }
 
         .tinyLink{
-          font-family: var(--uiFont);
           margin-top: 8px;
           font-size: 12px;
           color: rgba(0,255,255,0.55);
+          font-weight: 500;
+          letter-spacing: 0.04em;
+          text-transform: lowercase;
         }
 
         /* Reduced motion */
@@ -681,6 +677,7 @@ export default function App() {
                 You — the most powerful of all three, designed and built around endless potential.
               </div>
 
+              {/* FIX: all pluses, single equals */}
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow">
                   <span className="finalWord">Cipher</span>
@@ -699,7 +696,16 @@ export default function App() {
                   </span>
                   <span className="finalSym">)</span>
 
-                  <span className="finalSym">=</span>
+                  <span className="finalSym">+</span>
+
+                  <span className="finalWord">You</span>
+                  <span className="finalSym">(</span>
+                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.78)" }}>
+                    endless potential
+                  </span>
+                  <span className="finalSym">)</span>
+
+                  <span className="finalSym">+</span>
 
                   <span className="finalWord" style={{ color: "rgba(255,255,255,0.92)" }}>
                     Your Potential
@@ -800,7 +806,9 @@ export default function App() {
           <div className="tinyLink">balancecipher.com/info</div>
 
           <div className="whisper" style={{ marginTop: 14 }}>
-            Preview code (temporary): <strong>{accessCode || "(generated after email entry)"}</strong>
+            Preview code (temporary): <strong style={{ fontWeight: 700 }}>
+              {accessCode || "(generated after email entry)"}
+            </strong>
           </div>
         </main>
       ) : null}

@@ -708,7 +708,7 @@ const css = `
 }
 
 .codeValue{
-  font-family: ui-mono SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 22px;
   letter-spacing: 2px;
   color: var(--teal);

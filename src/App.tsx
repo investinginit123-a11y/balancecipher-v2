@@ -33,27 +33,61 @@ export default function App() {
       {
         key: "hero",
         chapter: "CHAPTER 1 — THE CALL",
-        title: "Some things are hidden in plain sight.",
+        title: "A cipher is not a concept. It’s leverage.",
         subtitle:
-          "A cipher turns chaos into a pattern. This one is powered by AI — like an arc reactor for your money decisions.",
+          "When the stakes are real, information is power. A cipher is how you hold that power without losing it.",
         body: (
           <>
+            <div style={styles.impactCard}>
+              <div style={styles.impactLabel}>WHAT A CIPHER DOES</div>
+
+              <div style={styles.impactLine}>
+                A cipher takes something valuable and makes it{" "}
+                <strong>safe to carry through danger.</strong>
+              </div>
+
+              <div style={styles.impactLine}>
+                It turns a message into a locked form — so only the right hands can open it.
+              </div>
+
+              <div style={styles.impactLine}>
+                That is why ciphers have lived inside revolutions, wars, and turning points:
+                <strong> not loud power — quiet power.</strong>
+              </div>
+
+              <div style={styles.impactPunch}>
+                When you hold the cipher, you hold the key.
+              </div>
+            </div>
+
             <div style={styles.storyCard}>
-              <div style={styles.storyTitle}>What a cipher really does</div>
+              <div style={styles.storyTitle}>Why this matters (the real version)</div>
+
               <p style={styles.p}>
-                A cipher is a tool that <strong>locks complexity</strong> into a structure — so it can be decoded into
-                something usable.
+                In conflict, the difference between success and disaster is often one thing:
+                <strong> who knows what — and when.</strong>
               </p>
+
               <p style={styles.p}>
-                Throughout history, ciphers protected messages, shaped outcomes, and changed what was possible. Not
-                because they were loud — because they were precise.
+                Ciphers protected plans, routes, timing, and lives. And when a cipher was broken, outcomes shifted.
+                Ambushes failed. Traps were avoided. The map changed.
+              </p>
+
+              <p style={styles.p}>
+                This is the feeling we’re building here: not “finance advice.”{" "}
+                <strong>A decoding moment.</strong>
               </p>
             </div>
 
             <div style={styles.mysteryCard}>
               <div style={styles.mysteryTitle}>The BALANCE Cipher</div>
+
               <p style={styles.p}>
-                Here, the Cipher is the <strong>structure</strong>.
+                Your money life can feel like noise. Too many tabs open. Too many unknowns.
+              </p>
+
+              <p style={styles.p}>
+                The BALANCE Cipher is the <strong>structure</strong>.
                 <br />
                 The AI Co-Pilot is the <strong>decoder</strong>.
                 <br />
@@ -61,61 +95,66 @@ export default function App() {
               </p>
 
               <div style={styles.whisper}>
-                You don’t need to “fix your life.” You need a clear next step you can say in 10 seconds.
+                We don’t “fix everything.” We decode one step that changes the next 24 hours.
               </div>
             </div>
 
             <div style={styles.inviteLine}>
-              If you’re ready, we start with one small decode — no pressure. Just the first door.
+              If you want to see what this feels like, we start with the first door. No pressure. No performance.
             </div>
           </>
         ),
         primaryCta: "Open the First Door",
         onPrimary: () => next(),
-        secondaryCta: "What does “decoding” mean?",
+        secondaryCta: "Show me the decoding rule",
         onSecondary: () => next(),
       },
       {
         key: "ten-second",
         chapter: "CHAPTER 2 — THE THRESHOLD",
-        title: "The Arc Reactor Protocol: 10 seconds.",
+        title: "The first protocol: 10 seconds.",
         subtitle:
-          "If your next step can’t be said in 10 seconds, the Cipher isn’t decoded yet. That’s not failure. That’s the signal.",
+          "This is the Arc Reactor rule. If you can’t say the next step in 10 seconds, the Cipher isn’t decoded yet. That’s the signal — not the shame.",
         body: (
           <>
             <div style={styles.protocolGrid}>
               <div style={styles.protocolPanel}>
-                <div style={styles.panelTitle}>Say this</div>
+                <div style={styles.panelTitle}>Say it out loud</div>
                 <div style={styles.quote}>
                   “My next step is <span style={styles.underline}>_____</span>.”
                 </div>
+
                 <div style={styles.panelText}>
-                  If you hesitate, we reduce the step until it becomes obvious.
+                  If you hesitate, the step is too big. We reduce it until it becomes obvious.
+                </div>
+
+                <div style={styles.protocolNote}>
+                  This is how the “suit” powers up: one system at a time. One clean action.
                 </div>
               </div>
 
               <div style={styles.protocolPanel}>
-                <div style={styles.panelTitle}>Example</div>
+                <div style={styles.panelTitle}>Example (what decoding looks like)</div>
                 <div style={styles.exampleGrid}>
                   <div style={styles.exampleBad}>
                     <div style={styles.exampleLabel}>Too big</div>
                     <div style={styles.exampleText}>“Fix my finances.”</div>
+                    <div style={styles.exampleSub}>No handle. No first move.</div>
                   </div>
                   <div style={styles.exampleGood}>
                     <div style={styles.exampleLabel}>Decoded</div>
                     <div style={styles.exampleText}>“List my four bills due this week.”</div>
+                    <div style={styles.exampleSub}>Now you have power in your hand.</div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div style={styles.microNote}>
-              This is the hero’s move: one clean step across the threshold. Not everything. Just the next thing.
+              Hero’s Journey rule: you don’t cross the threshold with a speech. You cross it with a step.
             </div>
 
-            <div style={styles.cornerstoneLine}>
-              Are you ready to start decoding?
-            </div>
+            <div style={styles.cornerstoneLine}>Are you ready to start decoding?</div>
           </>
         ),
         primaryCta: "Decode My Next Step",
@@ -126,8 +165,8 @@ export default function App() {
       {
         key: "apply",
         chapter: "CHAPTER 3 — FIRST ACTION",
-        title: "Small inputs. Clear outputs.",
-        subtitle: "The Cipher gives structure. The Co-Pilot decodes. You execute — and keep the power.",
+        title: "Structure. Decode. Execute.",
+        subtitle: "The Cipher gives structure. The Co-Pilot decodes. You execute — and you keep the power.",
         body: (
           <>
             <div style={styles.storyCard}>
@@ -146,13 +185,12 @@ export default function App() {
             </div>
 
             <div style={styles.inviteLine}>
-              When you enter, we don’t overwhelm you. We power up one system at a time.
+              This is where balance and freedom start: not with intensity — with clarity you can use.
             </div>
           </>
         ),
         primaryCta: "Enter the Cipher",
         onPrimary: () => {
-          // Replace with your real entry point when ready.
           window.location.hash = "#start";
         },
         secondaryCta: "Back",
@@ -172,7 +210,7 @@ export default function App() {
       <div className="gridOverlay" aria-hidden="true" />
       <div className="dust" aria-hidden="true" />
 
-      {/* HERO REACTOR BAY (mobile-first, top 25% feel) */}
+      {/* HERO REACTOR BAY */}
       <section style={styles.heroTop}>
         <div className="reactor" aria-hidden="true">
           <div className="reactorRing ringA" />
@@ -251,7 +289,8 @@ export default function App() {
 
       <footer style={styles.footer}>
         <div style={styles.footerLine}>
-          Next build option: add a “Cipher Lore” micro-screen (30 seconds) before Chapter 2, if you want deeper mystery.
+          Next upgrade (if you want it): a 20–30 second “Cipher Lore” reveal panel before the CTA, to deepen the mystery
+          without adding complexity.
         </div>
       </footer>
     </div>
@@ -272,7 +311,7 @@ function GlobalStyles() {
 
         @keyframes breatheGlow {
           0%   { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px rgba(0,0,0,0.55); }
-          50%  { box-shadow: 0 0 24px rgba(0,255,214,0.20), 0 16px 60px rgba(0,0,0,0.55); }
+          50%  { box-shadow: 0 0 26px rgba(0,255,214,0.22), 0 16px 60px rgba(0,0,0,0.55); }
           100% { box-shadow: 0 0 0 rgba(0,255,214,0.0), 0 16px 60px rgba(0,0,0,0.55); }
         }
 
@@ -296,7 +335,7 @@ function GlobalStyles() {
 
         @keyframes emblemBreath {
           0%   { transform: scale(0.99); filter: drop-shadow(0 0 18px rgba(0,255,214,0.10)); }
-          50%  { transform: scale(1.02); filter: drop-shadow(0 0 30px rgba(0,255,214,0.18)); }
+          50%  { transform: scale(1.02); filter: drop-shadow(0 0 32px rgba(0,255,214,0.18)); }
           100% { transform: scale(0.99); filter: drop-shadow(0 0 18px rgba(0,255,214,0.10)); }
         }
 
@@ -343,10 +382,10 @@ function GlobalStyles() {
 
         .reactor {
           position: relative;
-          width: min(52vw, 240px);
-          height: min(52vw, 240px);
-          max-height: 28vh;
-          max-width: 28vh;
+          width: min(56vw, 260px);
+          height: min(56vw, 260px);
+          max-height: 30vh;
+          max-width: 30vh;
           border-radius: 999px;
           display: grid;
           place-items: center;
@@ -361,15 +400,12 @@ function GlobalStyles() {
           border-radius: 999px;
           transform: translate(-50%,-50%);
           border: 1px solid rgba(0,255,214,0.18);
-          box-shadow: 0 0 40px rgba(0,255,214,0.10), inset 0 0 24px rgba(0,255,214,0.06);
+          box-shadow: 0 0 44px rgba(0,255,214,0.10), inset 0 0 26px rgba(0,255,214,0.06);
           background: radial-gradient(circle, rgba(0,255,214,0.10), rgba(0,0,0,0) 62%);
           pointer-events: none;
         }
 
-        .ringA {
-          animation: ringSpin 6.2s linear infinite;
-        }
-
+        .ringA { animation: ringSpin 6.2s linear infinite; }
         .ringB {
           width: 86%;
           height: 86%;
@@ -388,15 +424,11 @@ function GlobalStyles() {
           border-radius: 999px;
           border: 1px solid rgba(0,255,214,0.24);
           background: radial-gradient(circle, rgba(0,255,214,0.16), rgba(0,0,0,0) 70%);
-          box-shadow: 0 0 44px rgba(0,255,214,0.14);
+          box-shadow: 0 0 48px rgba(0,255,214,0.14);
           pointer-events: none;
         }
 
-        .heroEmblem {
-          width: 70%;
-          height: auto;
-          animation: emblemBreath 2.6s ease-in-out infinite;
-        }
+        .heroEmblem { width: 70%; height: auto; animation: emblemBreath 2.6s ease-in-out infinite; }
 
         .dot {
           width: 10px;
@@ -406,7 +438,6 @@ function GlobalStyles() {
           background: rgba(255,255,255,0.06);
           cursor: pointer;
         }
-
         .dotActive {
           background: rgba(0,255,214,0.70);
           border: 1px solid rgba(0,255,214,0.90);
@@ -440,7 +471,7 @@ function GlobalStyles() {
           font-weight: 900;
           letter-spacing: 0.02em;
           cursor: pointer;
-          min-width: 240px;
+          min-width: 260px;
           backdrop-filter: blur(8px);
           animation: breatheGlow 2.8s ease-in-out infinite;
         }
@@ -474,13 +505,7 @@ function GlobalStyles() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "#071423",
-    color: "rgba(255,255,255,0.92)",
-    position: "relative",
-    overflow: "hidden",
-  },
+  page: { minHeight: "100vh", background: "#071423", color: "rgba(255,255,255,0.92)", position: "relative", overflow: "hidden" },
 
   heroTop: {
     padding: "18px 18px 6px",
@@ -493,56 +518,17 @@ const styles: Record<string, React.CSSProperties> = {
     position: "relative",
     zIndex: 2,
   },
-  heroEmblem: {
-    width: "100%",
-    height: "auto",
-  },
-  heroTopText: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    gap: 6,
-    minWidth: 180,
-  },
+  heroEmblem: { width: "100%", height: "auto" },
+  heroTopText: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, minWidth: 180 },
 
-  header: {
-    padding: "0 18px 10px",
-    maxWidth: 1040,
-    margin: "0 auto",
-    display: "flex",
-    justifyContent: "flex-end",
-    position: "relative",
-    zIndex: 2,
-  },
+  header: { padding: "0 18px 10px", maxWidth: 1040, margin: "0 auto", display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 2 },
 
-  chapter: {
-    fontSize: 12,
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    color: "rgba(0,255,214,0.86)",
-    fontWeight: 850,
-    textAlign: "right",
-  },
+  chapter: { fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(0,255,214,0.86)", fontWeight: 850, textAlign: "right" },
+  brandTitle: { fontSize: 18, letterSpacing: "0.10em", fontWeight: 900 },
 
-  brandTitle: {
-    fontSize: 18,
-    letterSpacing: "0.10em",
-    fontWeight: 900,
-  },
+  dots: { display: "flex", gap: 8, alignItems: "center" },
 
-  dots: {
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-  },
-
-  main: {
-    padding: "6px 18px 22px",
-    maxWidth: 1040,
-    margin: "0 auto",
-    position: "relative",
-    zIndex: 2,
-  },
+  main: { padding: "6px 18px 22px", maxWidth: 1040, margin: "0 auto", position: "relative", zIndex: 2 },
   viewport: { position: "relative" },
 
   card: {
@@ -556,68 +542,46 @@ const styles: Record<string, React.CSSProperties> = {
     margin: "0 auto",
   },
 
-  titleBlock: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-  },
-  h1: {
-    margin: 0,
-    fontSize: 30,
-    lineHeight: 1.14,
-    letterSpacing: "-0.02em",
-  },
-  subtitle: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 15,
-    lineHeight: 1.6,
-    maxWidth: 760,
-  },
+  titleBlock: { display: "flex", flexDirection: "column", gap: 10 },
+  h1: { margin: 0, fontSize: 30, lineHeight: 1.14, letterSpacing: "-0.02em" },
+  subtitle: { color: "rgba(255,255,255,0.78)", fontSize: 15, lineHeight: 1.6, maxWidth: 760 },
 
-  divider: {
-    height: 1,
-    background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))",
-    margin: "14px 0 16px",
-  },
+  divider: { height: 1, background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))", margin: "14px 0 16px" },
 
-  p: {
-    margin: "0 0 12px",
-    fontSize: 15,
-    lineHeight: 1.7,
-    color: "rgba(255,255,255,0.86)",
-  },
+  p: { margin: "0 0 12px", fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.86)" },
 
-  storyCard: {
+  impactCard: {
     borderRadius: 18,
-    border: "1px solid rgba(0,255,214,0.18)",
-    background: "rgba(0,255,214,0.06)",
+    border: "1px solid rgba(0,255,214,0.20)",
+    background: "rgba(0,255,214,0.07)",
     padding: 14,
     marginBottom: 14,
   },
-  storyTitle: {
+  impactLabel: {
     fontSize: 12,
-    letterSpacing: "0.12em",
+    letterSpacing: "0.14em",
     textTransform: "uppercase",
-    color: "rgba(0,255,214,0.88)",
+    color: "rgba(0,255,214,0.92)",
     fontWeight: 900,
     marginBottom: 10,
+  },
+  impactLine: { fontSize: 15, lineHeight: 1.65, color: "rgba(255,255,255,0.90)", marginBottom: 10 },
+  impactPunch: {
+    marginTop: 10,
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.05)",
+    fontSize: 16,
+    lineHeight: 1.6,
+    fontWeight: 900,
   },
 
-  mysteryCard: {
-    borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.04)",
-    padding: 14,
-    marginBottom: 12,
-  },
-  mysteryTitle: {
-    fontSize: 12,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.72)",
-    fontWeight: 900,
-    marginBottom: 10,
-  },
+  storyCard: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14, marginBottom: 14 },
+  storyTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
+
+  mysteryCard: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14, marginBottom: 12 },
+  mysteryTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
 
   whisper: {
     marginTop: 10,
@@ -630,128 +594,33 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.55,
   },
 
-  inviteLine: {
-    marginTop: 8,
-    color: "rgba(255,255,255,0.70)",
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
+  inviteLine: { marginTop: 8, color: "rgba(255,255,255,0.70)", fontSize: 13, lineHeight: 1.6 },
 
-  protocolGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr",
-    gap: 12,
-  },
-  protocolPanel: {
-    borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.04)",
-    padding: 14,
-  },
-  panelTitle: {
-    fontSize: 12,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.72)",
-    fontWeight: 900,
-    marginBottom: 10,
-  },
-  quote: {
-    fontSize: 18,
-    lineHeight: 1.35,
-    color: "rgba(255,255,255,0.92)",
-    marginBottom: 10,
-  },
-  underline: {
-    borderBottom: "2px solid rgba(0,255,214,0.55)",
-    paddingBottom: 1,
-  },
-  panelText: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 14,
-    lineHeight: 1.55,
-  },
+  protocolGrid: { display: "grid", gridTemplateColumns: "1fr", gap: 12 },
+  protocolPanel: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14 },
+  panelTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
+  quote: { fontSize: 18, lineHeight: 1.35, color: "rgba(255,255,255,0.92)", marginBottom: 10 },
+  underline: { borderBottom: "2px solid rgba(0,255,214,0.55)", paddingBottom: 1 },
+  panelText: { color: "rgba(255,255,255,0.78)", fontSize: 14, lineHeight: 1.55 },
+  protocolNote: { marginTop: 10, color: "rgba(255,255,255,0.70)", fontSize: 13, lineHeight: 1.6 },
 
-  exampleGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: 10,
-  },
-  exampleBad: {
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.04)",
-    padding: 12,
-  },
-  exampleGood: {
-    borderRadius: 16,
-    border: "1px solid rgba(0,255,214,0.20)",
-    background: "rgba(0,255,214,0.06)",
-    padding: 12,
-  },
-  exampleLabel: {
-    fontSize: 12,
-    letterSpacing: "0.10em",
-    textTransform: "uppercase",
-    color: "rgba(255,255,255,0.72)",
-    fontWeight: 900,
-    marginBottom: 8,
-  },
-  exampleText: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.88)",
-    lineHeight: 1.5,
-  },
+  exampleGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
+  exampleBad: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 12 },
+  exampleGood: { borderRadius: 16, border: "1px solid rgba(0,255,214,0.20)", background: "rgba(0,255,214,0.06)", padding: 12 },
+  exampleLabel: { fontSize: 12, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 8 },
+  exampleText: { fontSize: 14, color: "rgba(255,255,255,0.92)", lineHeight: 1.5, fontWeight: 900 },
+  exampleSub: { marginTop: 6, fontSize: 12, color: "rgba(255,255,255,0.68)", lineHeight: 1.45 },
 
-  microNote: {
-    marginTop: 10,
-    color: "rgba(255,255,255,0.70)",
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
-
-  cornerstoneLine: {
-    marginTop: 14,
-    paddingTop: 12,
-    borderTop: "1px solid rgba(255,255,255,0.10)",
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 13,
-    lineHeight: 1.6,
-  },
+  microNote: { marginTop: 10, color: "rgba(255,255,255,0.70)", fontSize: 13, lineHeight: 1.6 },
+  cornerstoneLine: { marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.78)", fontSize: 13, lineHeight: 1.6 },
 
   ul: { margin: 0, paddingLeft: 18 },
   li: { margin: "10px 0", color: "rgba(255,255,255,0.86)", lineHeight: 1.55, fontSize: 14 },
 
-  ctaRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 18,
-    flexWrap: "wrap",
-  },
+  ctaRow: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginTop: 18, flexWrap: "wrap" },
 
-  footerHint: {
-    marginTop: 14,
-    fontSize: 12,
-    lineHeight: 1.5,
-    color: "rgba(255,255,255,0.62)",
-    borderTop: "1px solid rgba(255,255,255,0.10)",
-    paddingTop: 12,
-  },
+  footerHint: { marginTop: 14, fontSize: 12, lineHeight: 1.5, color: "rgba(255,255,255,0.62)", borderTop: "1px solid rgba(255,255,255,0.10)", paddingTop: 12 },
 
-  footer: {
-    maxWidth: 1040,
-    margin: "0 auto",
-    padding: "0 18px 22px",
-    color: "rgba(255,255,255,0.60)",
-    fontSize: 12,
-    lineHeight: 1.45,
-    position: "relative",
-    zIndex: 2,
-  },
-  footerLine: {
-    borderTop: "1px solid rgba(255,255,255,0.10)",
-    paddingTop: 12,
-  },
+  footer: { maxWidth: 1040, margin: "0 auto", padding: "0 18px 22px", color: "rgba(255,255,255,0.60)", fontSize: 12, lineHeight: 1.45, position: "relative", zIndex: 2 },
+  footerLine: { borderTop: "1px solid rgba(255,255,255,0.10)", paddingTop: 12 },
 };

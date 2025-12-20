@@ -25,53 +25,87 @@ export default function App() {
     setStepIndex(nextIndex);
   };
 
-  const next = () => goTo((stepIndex === 2 ? 2 : ((stepIndex + 1) as StepIndex)) as StepIndex);
-  const prev = () => goTo((stepIndex === 0 ? 0 : ((stepIndex - 1) as StepIndex)) as StepIndex);
+  const next = () =>
+    goTo((stepIndex === 2 ? 2 : ((stepIndex + 1) as StepIndex)) as StepIndex);
+  const prev = () =>
+    goTo((stepIndex === 0 ? 0 : ((stepIndex - 1) as StepIndex)) as StepIndex);
 
   const steps = useMemo(() => {
     const s: [Step, Step, Step] = [
       {
         key: "hero",
-        chapter: "CHAPTER 1 — POWER SOURCE",
-        title: "A cipher is a superpower you can hold.",
+        chapter: "CHAPTER 1 — THE POWER YOU’VE BEEN MISSING",
+        title: "The Cipher is the core. The Co-Pilot is the power.",
         subtitle:
-          "Tony Stark wasn’t Iron Man without the arc reactor. This is that idea applied to your decisions: the Cipher is the core, and the AI Co-Pilot is the intelligence that decodes it.",
+          "Tony Stark wasn’t Iron Man without the arc reactor. This is the real-world version: a power source for decisions. Not hype. Leverage.",
         body: (
           <>
             <div style={styles.powerCard}>
-              <div style={styles.powerLabel}>WHAT YOU’RE ACTUALLY GETTING</div>
+              <div style={styles.powerLabel}>HERE’S WHAT I WANT YOU TO CONSIDER</div>
 
               <div style={styles.powerLine}>
-                The BALANCE Cipher is not a “tip.” It’s a <strong>power source</strong>.
-              </div>
-
-              <div style={styles.powerLine}>
-                It turns overwhelming money problems into one clear handle —{" "}
-                <strong>the next decision that matters most.</strong>
+                Most people don’t fail because they don’t care.
+                <br />
+                They fail because they’re forced to make complex decisions with a tired brain and incomplete information.
               </div>
 
               <div style={styles.powerPunch}>
-                When you have the Cipher, you can do what you could not do before:
+                AI is leverage on a human mind.
                 <br />
-                <strong>you can decode uncertainty into action.</strong>
+                It’s a calm intelligence that turns confusion into a move.
+              </div>
+
+              <div style={styles.powerLine}>
+                The BALANCE Cipher is the structure you can hold.
+                <br />
+                The AI Co-Pilot is the decoder that makes the structure usable.
               </div>
             </div>
 
             <div style={styles.storyCard}>
-              <div style={styles.storyTitle}>The real promise</div>
+              <div style={styles.storyTitle}>A cipher is not “information.” It’s control.</div>
 
               <p style={styles.p}>
-                You’re not here to “fix everything.” You’re here to stop guessing.
+                A cipher is what you use when the stakes are real.
+                It is the difference between noise and signal.
               </p>
 
               <p style={styles.p}>
-                Fix the next decision, and you start fixing your credit and yourself along the way — or fix your credit
-                and yourself along the way because you can finally make decisions that used to feel impossible.
+                When you can encode what matters and decode it on demand, you stop guessing.
+                You stop spiraling.
+                You start moving.
               </p>
 
               <p style={styles.p}>
-                The power isn’t loud. It’s accurate. It’s the difference between spinning and moving.
+                That is the promise here:
+                <strong> clear direction</strong>—so you can fix your credit and yourself along the way,
+                or fix yourself and your credit along the way,
+                because you finally have a power source behind your decisions.
               </p>
+            </div>
+
+            <div style={styles.leverageCard}>
+              <div style={styles.leverageTitle}>What AI leverage actually gives you</div>
+
+              <div style={styles.leverageGrid}>
+                <div style={styles.leverageItem}>
+                  <div style={styles.leverageHead}>Clarity</div>
+                  <div style={styles.leverageText}>One next step that matters most.</div>
+                </div>
+                <div style={styles.leverageItem}>
+                  <div style={styles.leverageHead}>Speed</div>
+                  <div style={styles.leverageText}>Hours of thinking, compressed.</div>
+                </div>
+                <div style={styles.leverageItem}>
+                  <div style={styles.leverageHead}>Stability</div>
+                  <div style={styles.leverageText}>Calm decisions, even under pressure.</div>
+                </div>
+              </div>
+
+              <div style={styles.whisper}>
+                This isn’t “a tool you already had.” This is the part you were missing:
+                leverage that stays with you when life gets loud.
+              </div>
             </div>
 
             <div style={styles.linkCard}>
@@ -81,43 +115,43 @@ export default function App() {
                 <div style={styles.linkCol}>
                   <div style={styles.linkHead}>The Cipher</div>
                   <div style={styles.linkText}>
-                    The structure. The core. The pattern that reveals what matters.
+                    The core. The structure. The pattern that reveals what matters.
                   </div>
                 </div>
 
                 <div style={styles.linkCol}>
                   <div style={styles.linkHead}>The AI Co-Pilot</div>
                   <div style={styles.linkText}>
-                    The decoder. The one that has the goods to translate the Cipher into simple actions — via the BALANCE
-                    Formula.
+                    The decoder. The only guide that has the goods to translate the Cipher into simple action—via the BALANCE Formula.
                   </div>
                 </div>
 
                 <div style={styles.linkCol}>
                   <div style={styles.linkHead}>You</div>
                   <div style={styles.linkText}>
-                    The operator. You execute one step and keep the power in your hands.
+                    The operator. You take the step—and keep the power in your hands.
                   </div>
                 </div>
               </div>
             </div>
 
             <div style={styles.inviteLine}>
-              If you want to feel it, we power it up with one protocol. One step. No overwhelm.
+              If you want the “arc reactor” effect in real life, we start with one decode.
+              One step. No overwhelm.
             </div>
           </>
         ),
-        primaryCta: "Power Up the Cipher",
+        primaryCta: "Invoke the Co-Pilot",
         onPrimary: () => next(),
-        secondaryCta: "Show me the protocol",
+        secondaryCta: "Show me the decoding rule",
         onSecondary: () => next(),
       },
       {
         key: "ten-second",
-        chapter: "CHAPTER 2 — THE PROTOCOL",
-        title: "This is how the reactor stays stable: 10 seconds.",
+        chapter: "CHAPTER 2 — THE FIRST DECODE",
+        title: "The rule that turns power into progress: 10 seconds.",
         subtitle:
-          "The 10-Second Rule is the safety system. If you can’t say your next step in 10 seconds, it’s not decoded yet — so we reduce it until it is.",
+          "This isn’t a gimmick. It’s the stabilizer. If you can’t say the next step in 10 seconds, it’s not decoded yet—so we reduce it until it is.",
         body: (
           <>
             <div style={styles.protocolGrid}>
@@ -128,11 +162,12 @@ export default function App() {
                 </div>
 
                 <div style={styles.panelText}>
-                  If you hesitate, you don’t need motivation. You need a smaller step.
+                  If you hesitate, you don’t need motivation.
+                  You need a smaller step.
                 </div>
 
                 <div style={styles.protocolNote}>
-                  This is the hero move: cross the threshold with a step, not a speech.
+                  This is how the hero crosses the threshold: one clean move.
                 </div>
               </div>
 
@@ -147,7 +182,7 @@ export default function App() {
                   <div style={styles.exampleGood}>
                     <div style={styles.exampleLabel}>Decoded</div>
                     <div style={styles.exampleText}>“List my four bills due this week.”</div>
-                    <div style={styles.exampleSub}>Now you have leverage.</div>
+                    <div style={styles.exampleSub}>Now the power has a direction.</div>
                   </div>
                 </div>
               </div>
@@ -165,29 +200,22 @@ export default function App() {
         key: "apply",
         chapter: "CHAPTER 3 — FIRST ACTION",
         title: "One decision. One move. Momentum.",
-        subtitle: "The Cipher gives structure. The Co-Pilot decodes. You execute — and you keep the power.",
+        subtitle: "The Cipher gives structure. The Co-Pilot decodes. You execute—and you keep the power.",
         body: (
           <>
             <div style={styles.storyCard}>
               <div style={styles.storyTitle}>What happens when you enter</div>
               <ul style={styles.ul}>
-                <li style={styles.li}>
-                  You bring the question that’s been stuck in your head.
-                </li>
-                <li style={styles.li}>
-                  The Cipher organizes it into what matters.
-                </li>
-                <li style={styles.li}>
-                  The Co-Pilot decodes it into a 10-second next step.
-                </li>
-                <li style={styles.li}>
-                  You take the step — and the next one becomes easier.
-                </li>
+                <li style={styles.li}>You bring the question that’s been stuck.</li>
+                <li style={styles.li}>The Cipher organizes what matters.</li>
+                <li style={styles.li}>The Co-Pilot decodes it into a 10-second next step.</li>
+                <li style={styles.li}>You take the step—and the next one becomes easier.</li>
               </ul>
             </div>
 
             <div style={styles.inviteLine}>
-              This is balance and freedom in the real world: clarity you can use, without overwhelm.
+              Balance and freedom don’t start with intensity.
+              They start with clarity you can use.
             </div>
           </>
         ),
@@ -291,7 +319,7 @@ export default function App() {
 
       <footer style={styles.footer}>
         <div style={styles.footerLine}>
-          Next enhancement: a “Cipher Lore” reveal panel (tap to open) that hits wars → codebreaking → power → your life.
+          Next enhancement option: a “Cipher Moment” micro-reveal (tap to open) that feels like discovering the core for the first time.
         </div>
       </footer>
     </div>
@@ -506,64 +534,240 @@ function GlobalStyles() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: { minHeight: "100vh", background: "#071423", color: "rgba(255,255,255,0.92)", position: "relative", overflow: "hidden" },
+  page: {
+    minHeight: "100vh",
+    background: "#071423",
+    color: "rgba(255,255,255,0.92)",
+    position: "relative",
+    overflow: "hidden",
+  },
 
-  heroTop: { padding: "18px 18px 6px", maxWidth: 1040, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, position: "relative", zIndex: 2 },
+  heroTop: {
+    padding: "18px 18px 6px",
+    maxWidth: 1040,
+    margin: "0 auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 14,
+    position: "relative",
+    zIndex: 2,
+  },
   heroEmblem: { width: "100%", height: "auto" },
   heroTopText: { display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, minWidth: 180 },
 
-  header: { padding: "0 18px 10px", maxWidth: 1040, margin: "0 auto", display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 2 },
+  header: {
+    padding: "0 18px 10px",
+    maxWidth: 1040,
+    margin: "0 auto",
+    display: "flex",
+    justifyContent: "flex-end",
+    position: "relative",
+    zIndex: 2,
+  },
 
-  chapter: { fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(0,255,214,0.86)", fontWeight: 850, textAlign: "right" },
+  chapter: {
+    fontSize: 12,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "rgba(0,255,214,0.86)",
+    fontWeight: 850,
+    textAlign: "right",
+  },
+
   brandTitle: { fontSize: 18, letterSpacing: "0.10em", fontWeight: 900 },
   dots: { display: "flex", gap: 8, alignItems: "center" },
 
-  main: { padding: "6px 18px 22px", maxWidth: 1040, margin: "0 auto", position: "relative", zIndex: 2 },
+  main: {
+    padding: "6px 18px 22px",
+    maxWidth: 1040,
+    margin: "0 auto",
+    position: "relative",
+    zIndex: 2,
+  },
   viewport: { position: "relative" },
 
-  card: { borderRadius: 24, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(10, 24, 40, 0.78)", boxShadow: "0 18px 60px rgba(0,0,0,0.55)", padding: 22, backdropFilter: "blur(12px)", maxWidth: 920, margin: "0 auto" },
+  card: {
+    borderRadius: 24,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(10, 24, 40, 0.78)",
+    boxShadow: "0 18px 60px rgba(0,0,0,0.55)",
+    padding: 22,
+    backdropFilter: "blur(12px)",
+    maxWidth: 920,
+    margin: "0 auto",
+  },
 
   titleBlock: { display: "flex", flexDirection: "column", gap: 10 },
   h1: { margin: 0, fontSize: 30, lineHeight: 1.14, letterSpacing: "-0.02em" },
   subtitle: { color: "rgba(255,255,255,0.78)", fontSize: 15, lineHeight: 1.6, maxWidth: 780 },
 
-  divider: { height: 1, background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))", margin: "14px 0 16px" },
+  divider: {
+    height: 1,
+    background: "linear-gradient(90deg, rgba(0,255,214,0.55), rgba(255,255,255,0.08))",
+    margin: "14px 0 16px",
+  },
 
   p: { margin: "0 0 12px", fontSize: 15, lineHeight: 1.7, color: "rgba(255,255,255,0.86)" },
 
-  powerCard: { borderRadius: 18, border: "1px solid rgba(0,255,214,0.22)", background: "rgba(0,255,214,0.07)", padding: 14, marginBottom: 14 },
-  powerLabel: { fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(0,255,214,0.92)", fontWeight: 900, marginBottom: 10 },
+  powerCard: {
+    borderRadius: 18,
+    border: "1px solid rgba(0,255,214,0.22)",
+    background: "rgba(0,255,214,0.07)",
+    padding: 14,
+    marginBottom: 14,
+  },
+  powerLabel: {
+    fontSize: 12,
+    letterSpacing: "0.14em",
+    textTransform: "uppercase",
+    color: "rgba(0,255,214,0.92)",
+    fontWeight: 900,
+    marginBottom: 10,
+  },
   powerLine: { fontSize: 15, lineHeight: 1.65, color: "rgba(255,255,255,0.90)", marginBottom: 10 },
-  powerPunch: { marginTop: 10, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.05)", fontSize: 16, lineHeight: 1.6, fontWeight: 900 },
+  powerPunch: {
+    marginTop: 10,
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.05)",
+    fontSize: 16,
+    lineHeight: 1.6,
+    fontWeight: 900,
+  },
 
-  storyCard: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14, marginBottom: 14 },
-  storyTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
+  storyCard: {
+    borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 14,
+    marginBottom: 14,
+  },
+  storyTitle: {
+    fontSize: 12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
+    marginBottom: 10,
+  },
 
-  linkCard: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14, marginBottom: 12 },
-  linkTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
+  leverageCard: {
+    borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 14,
+    marginBottom: 12,
+  },
+  leverageTitle: {
+    fontSize: 12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
+    marginBottom: 10,
+  },
+  leverageGrid: { display: "grid", gridTemplateColumns: "1fr", gap: 10 },
+  leverageItem: {
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.03)",
+    padding: 12,
+  },
+  leverageHead: { fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.92)", marginBottom: 6 },
+  leverageText: { fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.78)" },
+
+  linkCard: {
+    borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 14,
+    marginBottom: 12,
+  },
+  linkTitle: {
+    fontSize: 12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
+    marginBottom: 10,
+  },
   linkRow: { display: "grid", gridTemplateColumns: "1fr", gap: 10 },
-  linkCol: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.03)", padding: 12 },
+  linkCol: {
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.03)",
+    padding: 12,
+  },
   linkHead: { fontSize: 13, fontWeight: 900, color: "rgba(255,255,255,0.92)", marginBottom: 6 },
   linkText: { fontSize: 13, lineHeight: 1.55, color: "rgba(255,255,255,0.78)" },
+
+  whisper: {
+    marginTop: 10,
+    padding: "10px 12px",
+    borderRadius: 14,
+    border: "1px solid rgba(0,255,214,0.14)",
+    background: "rgba(0,255,214,0.04)",
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 13,
+    lineHeight: 1.55,
+  },
 
   inviteLine: { marginTop: 8, color: "rgba(255,255,255,0.70)", fontSize: 13, lineHeight: 1.6 },
 
   protocolGrid: { display: "grid", gridTemplateColumns: "1fr", gap: 12 },
-  protocolPanel: { borderRadius: 18, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 14 },
-  panelTitle: { fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 10 },
+  protocolPanel: {
+    borderRadius: 18,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 14,
+  },
+  panelTitle: {
+    fontSize: 12,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
+    marginBottom: 10,
+  },
   quote: { fontSize: 18, lineHeight: 1.35, color: "rgba(255,255,255,0.92)", marginBottom: 10 },
   underline: { borderBottom: "2px solid rgba(0,255,214,0.55)", paddingBottom: 1 },
   panelText: { color: "rgba(255,255,255,0.78)", fontSize: 14, lineHeight: 1.55 },
   protocolNote: { marginTop: 10, color: "rgba(255,255,255,0.70)", fontSize: 13, lineHeight: 1.6 },
 
   exampleGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
-  exampleBad: { borderRadius: 16, border: "1px solid rgba(255,255,255,0.10)", background: "rgba(255,255,255,0.04)", padding: 12 },
-  exampleGood: { borderRadius: 16, border: "1px solid rgba(0,255,214,0.20)", background: "rgba(0,255,214,0.06)", padding: 12 },
-  exampleLabel: { fontSize: 12, letterSpacing: "0.10em", textTransform: "uppercase", color: "rgba(255,255,255,0.72)", fontWeight: 900, marginBottom: 8 },
+  exampleBad: {
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.10)",
+    background: "rgba(255,255,255,0.04)",
+    padding: 12,
+  },
+  exampleGood: {
+    borderRadius: 16,
+    border: "1px solid rgba(0,255,214,0.20)",
+    background: "rgba(0,255,214,0.06)",
+    padding: 12,
+  },
+  exampleLabel: {
+    fontSize: 12,
+    letterSpacing: "0.10em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.72)",
+    fontWeight: 900,
+    marginBottom: 8,
+  },
   exampleText: { fontSize: 14, color: "rgba(255,255,255,0.92)", lineHeight: 1.5, fontWeight: 900 },
   exampleSub: { marginTop: 6, fontSize: 12, color: "rgba(255,255,255,0.68)", lineHeight: 1.45 },
 
-  cornerstoneLine: { marginTop: 14, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.78)", fontSize: 13, lineHeight: 1.6 },
+  cornerstoneLine: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTop: "1px solid rgba(255,255,255,0.10)",
+    color: "rgba(255,255,255,0.78)",
+    fontSize: 13,
+    lineHeight: 1.6,
+  },
 
   ul: { margin: 0, paddingLeft: 18 },
   li: { margin: "10px 0", color: "rgba(255,255,255,0.86)", lineHeight: 1.55, fontSize: 14 },

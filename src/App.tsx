@@ -3,15 +3,17 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 type Step = 1 | 2 | 3 | 4;
 
 type CapturePhase =
-  | "intro" // lines fade in
-  | "first" // first name input
-  | "inhale" // inhale transition between prompts
-  | "last" // last name input
-  | "flash" // quick bright flash before email
-  | "email" // email input
-  | "shrink" // arc shrinks to dot
-  | "ripple" // ripple expands off-screen
-  | "done"; // final message
+  | "intro"
+  | "first"
+  | "inhale"
+  | "last"
+  | "flash"
+  | "email"
+  | "shrink"
+  | "ripple"
+  | "done";
+
+const AUTO_ADVANCE_FROM_STEP2_TO_STEP3 = true; // no button; moves forward after "done"
 
 function safeTrimMax(v: string, maxLen: number) {
   return v.trim().slice(0, maxLen);
@@ -32,41 +34,50 @@ function generateAccessCode(): string {
 export default function App() {
   const [step, setStep] = useState<Step>(1);
 
-  // Captured identity
+  // Captured identity + access
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
 
-  // Screen2 UI state
-  const [phase, setPhase] = useState<CapturePhase>("intro");
-  const [line1, setLine1] = useState(false);
-  const [line2, setLine2] = useState(false);
-  const [line3, setLine3] = useState(false);
-  const [showInput, setShowInput] = useState(false);
+  // Step 2 (cinematic capture) state
+  const [phase2, setPhase2] = useState<CapturePhase>("intro");
+  const [s2Line1, setS2Line1] = useState(false);
+  const [s2Line2, setS2Line2] = useState(false);
+  const [s2Line3, setS2Line3] = useState(false);
+  const [s2ShowInput, setS2ShowInput] = useState(false);
+  const [s2Prompt, setS2Prompt] = useState<string>("");
+  const [s2Placeholder, setS2Placeholder] = useState<string>("your first name");
+  const [s2Value, setS2Value] = useState<string>("");
+  const [s2Error, setS2Error] = useState<string>("");
 
-  const [prompt, setPrompt] = useState<string>(""); // used after intro resets
-  const [inputValue, setInputValue] = useState<string>("");
-  const [placeholder, setPlaceholder] = useState<string>("your first name");
+  // “listening” pulse on word completion
+  const [s2PulseBump, setS2PulseBump] = useState(false);
+  const [s2PulseTick, setS2PulseTick] = useState(0);
+  const s2LastWordCount = useRef<number>(0);
 
-  const [error, setError] = useState<string>("");
+  const s2InputRef = useRef<HTMLInputElement | null>(null);
 
-  // Arc reactive pulse on word completion
-  const [pulseBump, setPulseBump] = useState(false);
-  const [pulseTick, setPulseTick] = useState(0);
-  const lastWordCountRef = useRef<number>(0);
+  // Step 3 (code paste) state
+  const [s3Line1, setS3Line1] = useState(false);
+  const [s3Line2, setS3Line2] = useState(false);
+  const [s3Line3, setS3Line3] = useState(false);
+  const [s3ShowInput, setS3ShowInput] = useState(false);
+  const [s3Error, setS3Error] = useState("");
+  const [s3CodeValue, setS3CodeValue] = useState("");
+  const s3InputRef = useRef<HTMLInputElement | null>(null);
 
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  const displayDomain = "balancecipher.com/info";
-
-  const displayName = useMemo(() => {
-    const fn = safeTrimMax(firstName, 40);
-    return fn.length ? fn : "you";
-  }, [firstName]);
+  const displayName = useMemo(() => safeTrimMax(firstName, 40) || "you", [firstName]);
+  const infoUrlText = "balancecipher.com/info";
 
   function goTo(next: Step) {
     setStep(next);
+  }
+
+  function softPulseStep2() {
+    setS2PulseTick((n) => n + 1);
+    setS2PulseBump(true);
+    window.setTimeout(() => setS2PulseBump(false), 220);
   }
 
   // Page 1 CTA → Page 2
@@ -74,181 +85,237 @@ export default function App() {
     setStep(2);
   }
 
-  // Initialize Screen2 when we enter step 2
+  // ---------- STEP 2: TIMING + STATE ----------
   useEffect(() => {
     if (step !== 2) return;
 
-    // Reset everything for Screen2 experience
-    setError("");
-    setPhase("intro");
-    setLine1(false);
-    setLine2(false);
-    setLine3(false);
-    setShowInput(false);
+    // Reset Step2
+    setS2Error("");
+    setPhase2("intro");
+    setS2Line1(false);
+    setS2Line2(false);
+    setS2Line3(false);
+    setS2ShowInput(false);
+    setS2Prompt("");
+    setS2Placeholder("your first name");
+    setS2Value("");
+    s2LastWordCount.current = 0;
 
-    setPrompt("");
-    setInputValue("");
-    setPlaceholder("your first name");
-
-    lastWordCountRef.current = 0;
-
-    // Intro timing per your spec:
-    // Line 1 (22px) appears, then after 1.8s line 2, then after 1.5s line 3,
-    // then pause 2.2s, then input slides up.
+    // Intro timing
     const timers: number[] = [];
 
-    timers.push(window.setTimeout(() => setLine1(true), 650));
-    timers.push(window.setTimeout(() => setLine2(true), 650 + 1800));
-    timers.push(window.setTimeout(() => setLine3(true), 650 + 1800 + 1500));
+    timers.push(window.setTimeout(() => setS2Line1(true), 650));
+    timers.push(window.setTimeout(() => setS2Line2(true), 650 + 1800));
+    timers.push(window.setTimeout(() => setS2Line3(true), 650 + 1800 + 1500));
 
     const inputAt = 650 + 1800 + 1500 + 2200;
     timers.push(
       window.setTimeout(() => {
-        setPhase("first");
-        setShowInput(true);
-        setTimeout(() => inputRef.current?.focus(), 180);
+        setPhase2("first");
+        setS2ShowInput(true);
+        setTimeout(() => s2InputRef.current?.focus(), 180);
       }, inputAt)
     );
 
     return () => timers.forEach((t) => window.clearTimeout(t));
   }, [step]);
 
-  // Word-count pulse: pulse once per word (when word count increases)
+  // Step2 word-count pulse (once per word)
   useEffect(() => {
     if (step !== 2) return;
-    if (!showInput) return;
+    if (!s2ShowInput) return;
+    if (!(phase2 === "first" || phase2 === "last" || phase2 === "email")) return;
 
-    const count = (inputValue.match(/\b\w+\b/g) || []).length;
-    const last = lastWordCountRef.current;
+    const count = (s2Value.match(/\b\w+\b/g) || []).length;
+    const last = s2LastWordCount.current;
 
     if (count > last) {
-      lastWordCountRef.current = count;
-      softPulse();
+      s2LastWordCount.current = count;
+      softPulseStep2();
     }
-  }, [inputValue, showInput, step]);
+  }, [s2Value, s2ShowInput, step, phase2]);
 
-  function softPulse() {
-    // A soft “listening” bump: toggle a short animation class.
-    setPulseTick((n) => n + 1);
-    setPulseBump(true);
-    window.setTimeout(() => setPulseBump(false), 220);
-  }
+  function resetToNewPromptStep2(nextPrompt: string, nextPlaceholder: string, nextPhase: CapturePhase) {
+    setPhase2("inhale");
+    setS2Error("");
 
-  function hardFlash() {
-    // 300ms bright flash
-    setPulseTick((n) => n + 1);
-    // handled via phase class "flash"
-  }
+    // dissolve
+    setS2Line1(false);
+    setS2Line2(false);
+    setS2Line3(false);
+    setS2ShowInput(false);
 
-  function resetToNewPrompt(nextPrompt: string, nextPlaceholder: string, nextPhase: CapturePhase) {
-    // “Screen inhales. Arc dims. Everything resets.”
-    setPhase("inhale");
-    setError("");
-
-    // Remove intro lines and input quickly
-    setLine1(false);
-    setLine2(false);
-    setLine3(false);
-    setShowInput(false);
-
-    // Small inhale pause
     window.setTimeout(() => {
-      setPrompt(nextPrompt);
-      setPlaceholder(nextPlaceholder);
-      setInputValue("");
-      lastWordCountRef.current = 0;
+      setS2Prompt(nextPrompt);
+      setS2Placeholder(nextPlaceholder);
+      setS2Value("");
+      s2LastWordCount.current = 0;
 
-      setPhase(nextPhase);
-      setShowInput(true);
-      setTimeout(() => inputRef.current?.focus(), 160);
+      setPhase2(nextPhase);
+      setS2ShowInput(true);
+      setTimeout(() => s2InputRef.current?.focus(), 160);
     }, 520);
   }
 
-  function advanceFromFirstName() {
-    const fn = safeTrimMax(inputValue, 40);
+  function advanceStep2First() {
+    const fn = safeTrimMax(s2Value, 40);
     if (!fn) {
-      setError("First name required.");
+      setS2Error("First name required.");
       return;
     }
     setFirstName(fn);
-
-    resetToNewPrompt("Last name. Make it real.", "last name", "last");
+    resetToNewPromptStep2("Last name. Make it real.", "last name", "last");
   }
 
-  function advanceFromLastName() {
-    const ln = safeTrimMax(inputValue, 60);
+  function advanceStep2Last() {
+    const ln = safeTrimMax(s2Value, 60);
     if (!ln) {
-      setError("Last name required.");
+      setS2Error("Last name required.");
       return;
     }
     setLastName(ln);
 
-    // Arc brightens. 300ms flash. Then email field.
-    setPhase("flash");
-    hardFlash();
-
+    // flare 150ms, then email prompt
+    setPhase2("flash");
     window.setTimeout(() => {
-      setPrompt(""); // per your spec, no extra line needed; the field itself carries it
-      setPlaceholder("where your code lands");
-      setInputValue("");
-      lastWordCountRef.current = 0;
+      setS2Prompt("Email — your key arrives here, once.");
+      setS2Placeholder("where your code lands");
+      setS2Value("");
+      s2LastWordCount.current = 0;
 
-      setPhase("email");
-      setShowInput(true);
-      setTimeout(() => inputRef.current?.focus(), 140);
-    }, 320);
+      setPhase2("email");
+      setS2ShowInput(true);
+      setTimeout(() => s2InputRef.current?.focus(), 140);
+    }, 170);
   }
 
-  function advanceFromEmail() {
-    const em = safeTrimMax(inputValue, 120);
+  function advanceStep2Email() {
+    const em = safeTrimMax(s2Value, 120);
     if (!isValidEmail(em)) {
-      setError("Valid email required.");
+      setS2Error("Valid email required.");
       return;
     }
     setEmail(em);
 
-    // Generate code now (prototype behavior; later you’d send it)
     if (!accessCode) setAccessCode(generateAccessCode());
 
-    // Arc shrinks to a dot. 0.7s. Then ripple.
-    setPhase("shrink");
-    setShowInput(false);
-    setError("");
+    // confirmation: two slow pulses (handled as class timing)
+    setPhase2("shrink");
+    setS2ShowInput(false);
+    setS2Error("");
 
-    window.setTimeout(() => {
-      setPhase("ripple");
+    const timers: number[] = [];
+    timers.push(
       window.setTimeout(() => {
-        setPhase("done");
-      }, 620);
-    }, 700);
+        setPhase2("ripple");
+        timers.push(
+          window.setTimeout(() => {
+            setPhase2("done");
+
+            if (AUTO_ADVANCE_FROM_STEP2_TO_STEP3) {
+              timers.push(window.setTimeout(() => setStep(3), 1200));
+            }
+          }, 620)
+        );
+      }, 700)
+    );
+
+    return () => timers.forEach((t) => window.clearTimeout(t));
   }
 
-  function onEnterSubmit() {
+  function submitStep2OnEnter() {
     if (step !== 2) return;
 
-    if (phase === "first") return advanceFromFirstName();
-    if (phase === "last") return advanceFromLastName();
-    if (phase === "email") return advanceFromEmail();
+    if (phase2 === "first") return advanceStep2First();
+    if (phase2 === "last") return advanceStep2Last();
+    if (phase2 === "email") return advanceStep2Email();
   }
 
-  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  function onKeyDownStep2(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
-      onEnterSubmit();
+      submitStep2OnEnter();
     }
   }
+
+  // ---------- STEP 3: CODE PASTE SCREEN ----------
+  useEffect(() => {
+    if (step !== 3) return;
+
+    setS3Error("");
+    setS3Line1(false);
+    setS3Line2(false);
+    setS3Line3(false);
+    setS3ShowInput(false);
+    setS3CodeValue("");
+
+    const timers: number[] = [];
+
+    // one breath
+    const breath = 900;
+    timers.push(window.setTimeout(() => setS3Line1(true), breath));
+    timers.push(window.setTimeout(() => setS3Line2(true), breath + 1800));
+    timers.push(window.setTimeout(() => setS3Line3(true), breath + 1800 + 1500));
+
+    // 2s silence → input appears
+    const inputAt = breath + 1800 + 1500 + 2000;
+    timers.push(
+      window.setTimeout(() => {
+        setS3ShowInput(true);
+        setTimeout(() => s3InputRef.current?.focus(), 160);
+      }, inputAt)
+    );
+
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [step]);
+
+  function onKeyDownStep3(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+
+      const entered = safeTrimMax(s3CodeValue, 30).toUpperCase();
+      const expected = safeTrimMax(accessCode, 30).toUpperCase();
+
+      if (!entered) return; // no hints, no validation text
+
+      if (!expected) {
+        // if code missing (prototype safeguard), allow creation but keep it quiet
+        setS3Error("No code is available yet.");
+        return;
+      }
+
+      if (entered !== expected) {
+        setS3Error("Code mismatch.");
+        return;
+      }
+
+      // success → Step 4 (app entry placeholder for now)
+      setS3Error("");
+      setStep(4);
+    }
+  }
+
+  // ---------- STEP 4: APP ENTRY PLACEHOLDER ----------
+  useEffect(() => {
+    if (step !== 4) return;
+
+    // Optional: redirect if an env var exists
+    const entryUrl = (import.meta as any)?.env?.VITE_APP_ENTRY_URL || "";
+    if (entryUrl) {
+      window.location.href = entryUrl;
+    }
+  }, [step]);
 
   return (
     <div className="app">
       <style>{styles}</style>
 
-      {/* PAGE 1 (kept intentionally simple; your existing Page 1 can be merged later) */}
+      {/* PAGE 1 */}
       {step === 1 && (
         <div className="screen">
           <div className="arc corePulse" aria-hidden="true" />
-
           <div className="centerBlock">
-            <div className="h1">You’re not broken. You were never given a map.</div>
+            <div className="h1">You're not broken. You were never given a map.</div>
             <div className="p">
               BALANCE Cipher turns confusion into the next clear step—starting with your credit life.
             </div>
@@ -262,111 +329,140 @@ export default function App() {
         </div>
       )}
 
-      {/* PAGE 2 / Screen2 (your spec) */}
+      {/* PAGE 2 (working capture) */}
       {step === 2 && (
-        <div className={`screen ${phase}`}>
+        <div className={`screen ${phase2}`}>
           <div
             className={[
               "arc",
               "arcBase",
               "corePulse",
-              pulseBump ? "bump" : "",
-              phase === "inhale" ? "dim" : "",
-              phase === "flash" ? "flashOn" : "",
-              phase === "shrink" ? "shrinkToDot" : "",
-              phase === "ripple" ? "rippleBurst" : "",
-              phase === "done" ? "doneHold" : "",
+              s2PulseBump ? "bump" : "",
+              phase2 === "inhale" ? "dim" : "",
+              phase2 === "flash" ? "flashOn150" : "",
+              phase2 === "shrink" ? "shrinkToDot" : "",
+              phase2 === "ripple" ? "rippleBurst" : "",
+              phase2 === "done" ? "doneHold" : "",
             ].join(" ")}
             aria-hidden="true"
-            // pulseTick used to re-trigger CSS animations when needed
-            data-tick={pulseTick}
+            data-tick={s2PulseTick}
           />
 
           {/* Intro lines */}
-          {prompt === "" && phase !== "inhale" && phase !== "last" && phase !== "email" && phase !== "done" && (
+          {s2Prompt === "" && phase2 !== "inhale" && phase2 !== "last" && phase2 !== "email" && phase2 !== "done" && (
             <div className="lines">
-              <div className={`line l1 ${line1 ? "show" : ""}`}>
-                A cipher is the first machine that only spoke when spoken to.
+              <div className={`line l1 ${s2Line1 ? "show" : ""}`}>
+                A cipher is the first machine that only spoke when spoken to
               </div>
-              <div className={`line l2 ${line2 ? "show" : ""}`}>
-                AI does the same — except it remembers everything. Forever.
+              <div className={`line l2 ${s2Line2 ? "show" : ""}`}>
+                AI does the same — except it remembers every word forever
               </div>
-              <div className={`line l3 ${line3 ? "show" : ""}`}>You don’t need to be loud. Just honest.</div>
+              <div className={`line l3 ${s2Line3 ? "show" : ""}`}>
+                You're the only voice it waits for
+              </div>
             </div>
           )}
 
-          {/* Prompt after reset (Last name…) */}
-          {prompt !== "" && (phase === "last" || phase === "inhale") && (
+          {/* Reset prompt lines */}
+          {s2Prompt !== "" && (phase2 === "last" || phase2 === "email" || phase2 === "inhale") && (
             <div className="promptWrap">
-              <div className={`prompt ${phase === "last" ? "show" : ""}`}>{prompt}</div>
+              <div className={`prompt ${(phase2 === "last" || phase2 === "email") ? "show" : ""}`}>{s2Prompt}</div>
             </div>
           )}
 
-          {/* Input (slides up from bottom, underline style) */}
-          {(phase === "first" || phase === "last" || phase === "email") && (
-            <div className={`inputDock ${showInput ? "show" : ""}`}>
+          {(phase2 === "first" || phase2 === "last" || phase2 === "email") && (
+            <div className={`inputDock ${s2ShowInput ? "show" : ""}`}>
               <input
-                ref={inputRef}
+                ref={s2InputRef}
                 className="underlineInput"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder={placeholder}
-                onKeyDown={onKeyDown}
-                autoComplete={
-                  phase === "first" ? "given-name" : phase === "last" ? "family-name" : "email"
-                }
-                inputMode={phase === "email" ? "email" : "text"}
-                type={phase === "email" ? "email" : "text"}
-                aria-label={phase === "first" ? "First name" : phase === "last" ? "Last name" : "Email"}
+                value={s2Value}
+                onChange={(e) => setS2Value(e.target.value)}
+                placeholder={s2Placeholder}
+                onKeyDown={onKeyDownStep2}
+                autoComplete={phase2 === "first" ? "given-name" : phase2 === "last" ? "family-name" : "email"}
+                inputMode={phase2 === "email" ? "email" : "text"}
+                type={phase2 === "email" ? "email" : "text"}
+                aria-label={phase2 === "first" ? "First name" : phase2 === "last" ? "Last name" : "Email"}
               />
-              <div className="inputHint">
-                Press Enter
-              </div>
+              {/* No hints requested; this stays extremely quiet */}
+              <div className="inputHintQuiet">Enter</div>
             </div>
           )}
 
-          {/* Error (quiet, minimal) */}
-          {error && <div className="quietError">{error}</div>}
+          {s2Error && <div className="quietError">{s2Error}</div>}
 
-          {/* Done message (no button) */}
-          {phase === "done" && (
+          {phase2 === "done" && (
             <div className="doneBlock">
-              <div className="doneMain">Your private code is on its way.</div>
-              <div className="doneSub">60 seconds.</div>
-              <div className="doneLink">{displayDomain}</div>
-
-              {/* Stored for later pages 3/4 integration; not displayed here per spec. */}
-              <div className="hiddenMeta" aria-hidden="true">
-                code:{accessCode} name:{firstName} {lastName} email:{email}
+              <div className="doneMain">Code’s on the way</div>
+              <div className="doneSub">60 seconds</div>
+              <div className="doneLink">{infoUrlText}</div>
+              <div className="doneSub" style={{ marginTop: 6 }}>
+                Paste it. You're in.
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Placeholder Pages 3 & 4 (kept minimal now; we’ll build them after Screen2 is locked) */}
+      {/* PAGE 3 (your new cinematic paste-code screen; no CTA) */}
       {step === 3 && (
         <div className="screen">
           <div className="arc corePulse" aria-hidden="true" />
-          <div className="centerBlock">
-            <div className="h1">Page 3 placeholder</div>
-            <div className="p">
-              Captured: {displayName}. Email: {email || "—"}.
+
+          <div className="lines">
+            <div className={`line l1 ${s3Line1 ? "show" : ""}`}>
+              A cipher is the first machine that only spoke when spoken to
             </div>
-            <button className="cta" type="button" onClick={() => goTo(4)}>
-              Continue
-            </button>
+            <div className={`line l2 ${s3Line2 ? "show" : ""}`}>
+              AI does the same — except it remembers every word forever
+            </div>
+            <div className={`line l3 ${s3Line3 ? "show" : ""}`}>
+              You're the only voice it waits for
+            </div>
+          </div>
+
+          <div className={`inputDock ${s3ShowInput ? "show" : ""}`} style={{ bottom: 64 }}>
+            <input
+              ref={s3InputRef}
+              className="underlineInput noPlaceholder"
+              value={s3CodeValue}
+              onChange={(e) => setS3CodeValue(e.target.value)}
+              placeholder=""
+              onKeyDown={onKeyDownStep3}
+              inputMode="text"
+              type="text"
+              aria-label="Access code"
+              autoComplete="one-time-code"
+            />
+          </div>
+
+          {/* No CTA. Only the quiet instruction text. */}
+          <div className="s3Footer">
+            <div className="doneMainMini">Code’s on the way. 60 seconds.</div>
+            <div className="doneLinkMini">{infoUrlText}</div>
+            <div className="doneSubMini">Paste it. You’re in.</div>
+          </div>
+
+          {s3Error && <div className="quietError">{s3Error}</div>}
+
+          {/* Hidden debug info for you (remove later) */}
+          <div className="hiddenMeta" aria-hidden="true">
+            name:{displayName} last:{lastName} email:{email} expected:{accessCode}
           </div>
         </div>
       )}
 
+      {/* PAGE 4 (app entry placeholder) */}
       {step === 4 && (
         <div className="screen">
           <div className="arc corePulse" aria-hidden="true" />
           <div className="centerBlock">
-            <div className="h1">Page 4 placeholder</div>
+            <div className="h1">Access confirmed.</div>
             <div className="p">
-              Access code stored: {accessCode || "—"} (prototype).
+              {displayName}, you're inside the entry gate. Next step is wiring this into the BALANCE Engine route.
+            </div>
+            <div className="micro">
+              If you set <span className="mono">VITE_APP_ENTRY_URL</span>, this screen will auto-redirect.
             </div>
           </div>
         </div>
@@ -377,13 +473,7 @@ export default function App() {
 
 const styles = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  .app {
-    min-height: 100vh;
-    background: #000;
-    color: #fff;
-    font-family: "Helvetica Neue", Arial, sans-serif;
-  }
+  .app { min-height: 100vh; background: #000; color: #fff; font-family: "Helvetica Neue", Arial, sans-serif; }
 
   .screen {
     min-height: 100vh;
@@ -411,20 +501,15 @@ const styles = `
     will-change: transform, opacity, box-shadow;
   }
 
-  /* Base pulse every 2.8 seconds: quiet heart */
-  .corePulse {
-    animation: corePulse 2.8s ease-in-out infinite;
-  }
+  .corePulse { animation: corePulse 2.8s ease-in-out infinite; }
 
   @keyframes corePulse {
     0%, 100% { box-shadow: 0 0 12px rgba(0,255,255,0.18); }
     50%      { box-shadow: 0 0 28px rgba(0,255,255,0.36); }
   }
 
-  /* “listening” bump: once per word */
-  .bump {
-    animation: bumpPulse 220ms ease-out 1;
-  }
+  /* Listening bump */
+  .bump { animation: bumpPulse 220ms ease-out 1; }
 
   @keyframes bumpPulse {
     0%   { transform: scale(1); box-shadow: 0 0 16px rgba(0,255,255,0.22); }
@@ -432,33 +517,25 @@ const styles = `
     100% { transform: scale(1); box-shadow: 0 0 16px rgba(0,255,255,0.22); }
   }
 
-  /* INHALE: arc dims + slight sink */
-  .dim {
-    opacity: 0.45;
-    transform: scale(0.96);
-    transition: opacity 380ms ease, transform 380ms ease;
+  /* Inhale */
+  .dim { opacity: 0.45; transform: scale(0.96); transition: opacity 380ms ease, transform 380ms ease; }
+
+  /* 150ms flare */
+  .flashOn150 { animation: flashOn150 150ms ease-out 1; }
+  @keyframes flashOn150 {
+    0%   { box-shadow: 0 0 18px rgba(0,255,255,0.25); }
+    50%  { box-shadow: 0 0 55px rgba(0,255,255,0.85); }
+    100% { box-shadow: 0 0 18px rgba(0,255,255,0.28); }
   }
 
-  /* FLASH: 300ms bright */
-  .flashOn {
-    animation: flashOn 300ms ease-out 1;
-  }
-  @keyframes flashOn {
-    0%   { box-shadow: 0 0 12px rgba(0,255,255,0.22); opacity: 0.9; }
-    50%  { box-shadow: 0 0 60px rgba(0,255,255,0.85); opacity: 1; }
-    100% { box-shadow: 0 0 18px rgba(0,255,255,0.28); opacity: 1; }
-  }
-
-  /* SHRINK: arc collapses to dot over 0.7s */
-  .shrinkToDot {
-    animation: shrinkToDot 700ms ease-in forwards;
-  }
+  /* Shrink to dot */
+  .shrinkToDot { animation: shrinkToDot 700ms ease-in forwards; }
   @keyframes shrinkToDot {
     0%   { transform: scale(1); opacity: 1; }
     100% { transform: scale(0.08); opacity: 0.9; box-shadow: 0 0 6px rgba(0,255,255,0.55); }
   }
 
-  /* RIPPLE: ring expands off-screen like water */
+  /* Ripple */
   .rippleBurst::after {
     content: "";
     position: absolute;
@@ -478,9 +555,9 @@ const styles = `
     100% { opacity: 0; transform: translate(-50%, -50%) scale(18); }
   }
 
-  /* TEXT LINES */
+  /* Lines */
   .lines {
-    max-width: 520px;
+    max-width: 560px;
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -495,20 +572,14 @@ const styles = `
     text-shadow: 0 0 18px rgba(0,255,255,0.08);
   }
 
-  .line.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  .line.show { opacity: 1; transform: translateY(0); }
 
   .l1 { font-size: 22px; font-weight: 300; line-height: 1.55; }
   .l2 { font-size: 20px; font-weight: 300; line-height: 1.55; color: rgba(255,255,255,0.86); }
-  .l3 { font-size: 19px; font-weight: 300; line-height: 1.55; color: rgba(255,255,255,0.82); }
+  .l3 { font-size: 19px; font-weight: 300; line-height: 1.55; color: rgba(255,255,255,0.82); margin-top: -2px; }
 
-  /* Prompt after reset */
-  .promptWrap {
-    max-width: 520px;
-    margin-bottom: 16px;
-  }
+  /* Prompt */
+  .promptWrap { max-width: 560px; margin-bottom: 16px; }
   .prompt {
     opacity: 0;
     transform: translateY(10px);
@@ -519,16 +590,12 @@ const styles = `
     color: rgba(255,255,255,0.92);
     text-shadow: 0 0 16px rgba(0,255,255,0.08);
   }
-  .prompt.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  .prompt.show { opacity: 1; transform: translateY(0); }
 
-  /* INPUT DOCK: slides up from bottom */
+  /* Input dock */
   .inputDock {
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 0; right: 0;
     bottom: 52px;
     display: flex;
     flex-direction: column;
@@ -539,7 +606,6 @@ const styles = `
     transition: opacity 750ms ease, transform 750ms ease;
     pointer-events: none;
   }
-
   .inputDock.show {
     opacity: 1;
     transform: translateY(0);
@@ -558,20 +624,19 @@ const styles = `
     outline: none;
     caret-color: rgba(0,255,255,0.95);
   }
-
   .underlineInput::placeholder {
     color: rgba(0,255,255,0.45);
     text-transform: lowercase;
   }
-
   .underlineInput:focus {
     border-bottom-color: rgba(0,255,255,0.65);
     box-shadow: 0 10px 30px rgba(0,255,255,0.10);
   }
+  .noPlaceholder::placeholder { color: transparent; }
 
-  .inputHint {
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
+  .inputHintQuiet {
+    font-size: 11px;
+    color: rgba(255,255,255,0.20);
     letter-spacing: 0.2px;
   }
 
@@ -587,56 +652,37 @@ const styles = `
     max-width: min(420px, 86vw);
   }
 
-  /* DONE STATE */
+  /* Done blocks */
   .doneBlock {
     margin-top: 8px;
-    max-width: 520px;
+    max-width: 560px;
     display: flex;
     flex-direction: column;
     gap: 10px;
     align-items: center;
   }
+  .doneMain { font-size: 22px; font-weight: 300; color: rgba(255,255,255,0.94); }
+  .doneSub  { font-size: 14px; color: rgba(255,255,255,0.70); }
+  .doneLink { font-size: 12px; color: rgba(0,255,255,0.55); margin-top: 6px; }
 
-  .doneMain {
-    font-size: 22px;
-    font-weight: 300;
-    color: rgba(255,255,255,0.94);
-    text-shadow: 0 0 18px rgba(0,255,255,0.10);
+  /* Step 3 footer text (no CTA) */
+  .s3Footer {
+    position: absolute;
+    bottom: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    opacity: 0.85;
   }
+  .doneMainMini { font-size: 14px; color: rgba(255,255,255,0.70); }
+  .doneLinkMini { font-size: 12px; color: rgba(0,255,255,0.55); }
+  .doneSubMini  { font-size: 12px; color: rgba(255,255,255,0.60); }
 
-  .doneSub {
-    font-size: 14px;
-    color: rgba(255,255,255,0.70);
-  }
-
-  .doneLink {
-    font-size: 12px;
-    color: rgba(0,255,255,0.55);
-    margin-top: 8px;
-  }
-
-  .hiddenMeta { display: none; }
-
-  /* Page 1 simple styling */
-  .centerBlock {
-    max-width: 520px;
-  }
-
-  .h1 {
-    font-size: 26px;
-    font-weight: 650;
-    line-height: 1.25;
-    margin-bottom: 12px;
-    letter-spacing: 0.2px;
-  }
-
-  .p {
-    font-size: 16px;
-    font-weight: 300;
-    line-height: 1.65;
-    color: rgba(255,255,255,0.78);
-    margin: 0 auto 14px;
-  }
+  /* Page 1 styling */
+  .centerBlock { max-width: 560px; }
+  .h1 { font-size: 26px; font-weight: 650; line-height: 1.25; margin-bottom: 12px; letter-spacing: 0.2px; }
+  .p  { font-size: 16px; font-weight: 300; line-height: 1.65; color: rgba(255,255,255,0.78); margin: 0 auto 14px; }
 
   .cta {
     margin-top: 8px;
@@ -650,24 +696,16 @@ const styles = `
     cursor: pointer;
     transition: background 250ms ease, box-shadow 250ms ease;
   }
+  .cta:hover { background: rgba(0,255,255,0.10); box-shadow: 0 0 20px rgba(0,255,255,0.16); }
+  .micro { margin-top: 10px; font-size: 12px; color: rgba(255,255,255,0.55); }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
 
-  .cta:hover {
-    background: rgba(0,255,255,0.10);
-    box-shadow: 0 0 20px rgba(0,255,255,0.16);
-  }
+  .hiddenMeta { display: none; }
 
-  .micro {
-    margin-top: 10px;
-    font-size: 12px;
-    color: rgba(255,255,255,0.55);
-  }
-
-  /* Motion safety */
   @media (prefers-reduced-motion: reduce) {
     .corePulse { animation: none; }
     .line, .prompt, .inputDock { transition: none; transform: none; }
-    .bump, .flashOn, .shrinkToDot { animation: none; }
+    .bump, .flashOn150, .shrinkToDot { animation: none; }
     .rippleBurst::after { animation: none; }
   }
 `;
-

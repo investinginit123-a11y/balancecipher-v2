@@ -211,6 +211,7 @@ export default function App() {
   }, [stepIndex]);
 
   const active = steps[stepIndex];
+  const showHeroVow = stepIndex === 0;
 
   return (
     <div className="page">
@@ -220,17 +221,12 @@ export default function App() {
       <div className="gridOverlay" aria-hidden="true" />
       <div className="dust" aria-hidden="true" />
 
-      {/* CENTERED HERO — MOBILE FIRST */}
       <section className="heroStack">
         <div className="reactor" aria-hidden="true">
           <div className="reactorRing ringA" />
           <div className="reactorRing ringB" />
           <div className="reactorCore" />
-          <img
-            src="/brand/cipher-emblem.png"
-            alt="BALANCE Cipher emblem"
-            className="heroEmblem"
-          />
+          <img src="/brand/cipher-emblem.png" alt="BALANCE Cipher emblem" className="heroEmblem" />
         </div>
 
         <div className="heroText">
@@ -253,12 +249,18 @@ export default function App() {
       </section>
 
       <main className="main">
-        <div
-          key={active.key}
-          className={`shell ${direction === 1 ? "slideR" : "slideL"}`}
-        >
+        <div key={active.key} className={`shell ${direction === 1 ? "slideR" : "slideL"}`}>
           <div className="titleBlock">
             <h1 className="h1">{active.title}</h1>
+
+            {showHeroVow ? (
+              <div className="heroVow" aria-label="Hero vow">
+                <div className="vowLine">You will not be left guessing.</div>
+                <div className="vowLine vowGlow">You will receive clear direction.</div>
+                <div className="vowLine">You will take the next step with power behind it.</div>
+              </div>
+            ) : null}
+
             {active.subtitle ? <div className="subtitle">{active.subtitle}</div> : null}
           </div>
 
@@ -297,7 +299,6 @@ function GlobalStyles() {
   return (
     <style>
       {`
-        /* Animations */
         @keyframes slideInFromRight { from { transform: translateX(22px); opacity: 0.0; } to { transform: translateX(0px); opacity: 1.0; } }
         @keyframes slideInFromLeft  { from { transform: translateX(-22px); opacity: 0.0; } to { transform: translateX(0px); opacity: 1.0; } }
 
@@ -341,7 +342,6 @@ function GlobalStyles() {
           * { animation: none !important; transition: none !important; }
         }
 
-        /* Page */
         .page {
           min-height: 100vh;
           background: #071423;
@@ -381,7 +381,6 @@ function GlobalStyles() {
           pointer-events: none;
         }
 
-        /* HERO STACK (centered, mobile-first) */
         .heroStack {
           position: relative;
           z-index: 2;
@@ -437,7 +436,6 @@ function GlobalStyles() {
           box-shadow: 0 0 18px rgba(0,255,214,0.18);
         }
 
-        /* Reactor sizing built for phones first */
         .reactor {
           position: relative;
           width: min(74vw, 320px);
@@ -484,20 +482,9 @@ function GlobalStyles() {
           pointer-events: none;
         }
 
-        .heroEmblem {
-          width: 72%;
-          height: auto;
-          animation: emblemBreath 2.6s ease-in-out infinite;
-        }
+        .heroEmblem { width: 72%; height: auto; animation: emblemBreath 2.6s ease-in-out infinite; }
 
-        /* Main shell */
-        .main {
-          position: relative;
-          z-index: 2;
-          padding: 8px 16px 26px;
-          max-width: 960px;
-          margin: 0 auto;
-        }
+        .main { position: relative; z-index: 2; padding: 8px 16px 26px; max-width: 960px; margin: 0 auto; }
 
         .shell {
           border-radius: 22px;
@@ -515,156 +502,72 @@ function GlobalStyles() {
 
         .titleBlock { display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center; }
         .h1 { margin: 0; font-size: clamp(30px, 7.2vw, 44px); line-height: 1.08; letter-spacing: -0.02em; }
-        .subtitle { color: rgba(255,255,255,0.80); font-size: clamp(15px, 4.2vw, 18px); line-height: 1.55; max-width: 760px; }
 
-        .divider {
-          height: 1px;
-          background: linear-gradient(90deg, rgba(0,255,214,0.60), rgba(255,255,255,0.08));
-          margin: 16px 0 16px;
-        }
-
-        /* Panels + Type (big, bold, optimistic; not textbook) */
-        .content { display: flex; flex-direction: column; gap: 12px; }
-
-        .panel {
+        /* HERO VOW */
+        .heroVow {
+          width: 100%;
+          max-width: 740px;
           border-radius: 18px;
-          border: 1px solid rgba(255,255,255,0.10);
-          background: rgba(255,255,255,0.04);
-          padding: 14px;
-        }
-
-        .panelStrong {
-          border: 1px solid rgba(0,255,214,0.18);
-          background: rgba(0,255,214,0.06);
-        }
-
-        .panelEyebrow {
-          font-size: 12px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          color: rgba(0,255,214,0.92);
-          font-weight: 900;
-          margin-bottom: 10px;
-          text-align: center;
-        }
-
-        .panelTitle {
-          font-size: 12px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.76);
-          font-weight: 900;
-          margin-bottom: 10px;
-          text-align: center;
-        }
-
-        .punch {
-          font-size: clamp(20px, 5.8vw, 26px);
-          font-weight: 950;
-          line-height: 1.16;
-          margin-bottom: 10px;
-          text-align: center;
-        }
-
-        .punch2 {
-          font-size: clamp(18px, 5.2vw, 22px);
-          font-weight: 900;
-          line-height: 1.22;
-          margin-top: 10px;
-          text-align: center;
-        }
-
-        .p {
-          font-size: clamp(15px, 4.1vw, 18px);
-          line-height: 1.65;
-          color: rgba(255,255,255,0.88);
-          margin-top: 8px;
-          text-align: center;
-        }
-
-        .micro {
-          margin-top: 10px;
-          padding-top: 10px;
-          border-top: 1px solid rgba(255,255,255,0.10);
-          font-size: clamp(13px, 3.6vw, 14px);
-          line-height: 1.55;
-          color: rgba(255,255,255,0.70);
-          text-align: center;
-        }
-
-        .bullets { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
-        .bullet {
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,0.10);
-          background: rgba(255,255,255,0.03);
-          padding: 12px;
-          font-size: clamp(15px, 4.0vw, 17px);
-          line-height: 1.45;
-          color: rgba(255,255,255,0.90);
-          text-align: center;
-          font-weight: 800;
-        }
-
-        .triad { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        .triadItem {
-          border-radius: 16px;
-          border: 1px solid rgba(255,255,255,0.10);
-          background: rgba(255,255,255,0.03);
-          padding: 12px;
-          text-align: center;
-        }
-
-        .triadGlow {
           border: 1px solid rgba(0,255,214,0.18);
           background: rgba(0,255,214,0.05);
+          padding: 12px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
         }
+
+        .vowLine {
+          font-size: clamp(16px, 4.8vw, 20px);
+          line-height: 1.25;
+          font-weight: 950;
+          color: rgba(255,255,255,0.92);
+        }
+
+        .vowGlow {
+          color: rgba(0,255,214,0.92);
+          text-shadow: 0 0 18px rgba(0,255,214,0.14);
+        }
+
+        .subtitle { color: rgba(255,255,255,0.80); font-size: clamp(15px, 4.2vw, 18px); line-height: 1.55; max-width: 760px; }
+
+        .divider { height: 1px; background: linear-gradient(90deg, rgba(0,255,214,0.60), rgba(255,255,255,0.08)); margin: 16px 0 16px; }
+
+        .content { display: flex; flex-direction: column; gap: 12px; }
+
+        .panel { border-radius: 18px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.04); padding: 14px; }
+        .panelStrong { border: 1px solid rgba(0,255,214,0.18); background: rgba(0,255,214,0.06); }
+
+        .panelEyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(0,255,214,0.92); font-weight: 900; margin-bottom: 10px; text-align: center; }
+        .panelTitle { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.76); font-weight: 900; margin-bottom: 10px; text-align: center; }
+
+        .punch { font-size: clamp(20px, 5.8vw, 26px); font-weight: 950; line-height: 1.16; margin-bottom: 10px; text-align: center; }
+        .punch2 { font-size: clamp(18px, 5.2vw, 22px); font-weight: 900; line-height: 1.22; margin-top: 10px; text-align: center; }
+
+        .p { font-size: clamp(15px, 4.1vw, 18px); line-height: 1.65; color: rgba(255,255,255,0.88); margin-top: 8px; text-align: center; }
+
+        .micro { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.10); font-size: clamp(13px, 3.6vw, 14px); line-height: 1.55; color: rgba(255,255,255,0.70); text-align: center; }
+
+        .bullets { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+        .bullet { border-radius: 14px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03); padding: 12px; font-size: clamp(15px, 4.0vw, 17px); line-height: 1.45; color: rgba(255,255,255,0.90); text-align: center; font-weight: 800; }
+
+        .triad { display: grid; grid-template-columns: 1fr; gap: 10px; }
+        .triadItem { border-radius: 16px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03); padding: 12px; text-align: center; }
+        .triadGlow { border: 1px solid rgba(0,255,214,0.18); background: rgba(0,255,214,0.05); }
 
         .triadHead { font-size: 14px; font-weight: 950; margin-bottom: 6px; }
         .triadText { font-size: clamp(14px, 3.9vw, 16px); line-height: 1.55; color: rgba(255,255,255,0.82); }
 
         .cards { display: grid; grid-template-columns: 1fr; gap: 10px; }
-        .cardSmall {
-          border-radius: 16px;
-          border: 1px solid rgba(255,255,255,0.10);
-          background: rgba(255,255,255,0.03);
-          padding: 12px;
-          text-align: center;
-        }
+        .cardSmall { border-radius: 16px; border: 1px solid rgba(255,255,255,0.10); background: rgba(255,255,255,0.03); padding: 12px; text-align: center; }
         .cardHead { font-weight: 950; font-size: 15px; margin-bottom: 6px; }
         .cardText { font-size: clamp(14px, 3.9vw, 16px); line-height: 1.5; color: rgba(255,255,255,0.82); }
 
-        .quote {
-          font-size: clamp(18px, 5.2vw, 24px);
-          font-weight: 950;
-          line-height: 1.2;
-          text-align: center;
-          margin-top: 6px;
-        }
+        .quote { font-size: clamp(18px, 5.2vw, 24px); font-weight: 950; line-height: 1.2; text-align: center; margin-top: 6px; }
+        .underline { border-bottom: 2px solid rgba(0,255,214,0.58); padding-bottom: 1px; }
 
-        .underline {
-          border-bottom: 2px solid rgba(0,255,214,0.58);
-          padding-bottom: 1px;
-        }
+        .cornerstone { margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.10); font-size: clamp(14px, 3.9vw, 16px); line-height: 1.55; color: rgba(255,255,255,0.80); text-align: center; font-weight: 900; }
 
-        .cornerstone {
-          margin-top: 12px;
-          padding-top: 12px;
-          border-top: 1px solid rgba(255,255,255,0.10);
-          font-size: clamp(14px, 3.9vw, 16px);
-          line-height: 1.55;
-          color: rgba(255,255,255,0.80);
-          text-align: center;
-          font-weight: 900;
-        }
-
-        /* CTA row (mobile-first: big buttons) */
-        .ctaRow {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          margin-top: 16px;
-          align-items: stretch;
-        }
+        .ctaRow { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; align-items: stretch; }
 
         .ctaWrap { position: relative; display: block; width: 100%; }
 
@@ -700,7 +603,6 @@ function GlobalStyles() {
         }
 
         .btnPrimary:active { transform: translateY(1px); }
-
         .btnPrimaryText { position: relative; z-index: 2; }
 
         .btnShimmer {
@@ -738,7 +640,6 @@ function GlobalStyles() {
           text-align: center;
         }
 
-        /* Wider screens: still centered, but allow multi-column cards if you want later */
         @media (min-width: 860px) {
           .cards { grid-template-columns: 1fr 1fr; }
           .triad { grid-template-columns: 1fr 1fr 1fr; }
@@ -746,6 +647,7 @@ function GlobalStyles() {
           .btnSecondary { width: auto; min-width: 260px; }
           .btnPrimary { width: auto; min-width: 360px; }
           .ctaWrap { width: auto; }
+          .heroVow { padding: 14px 14px; }
         }
       `}
     </style>

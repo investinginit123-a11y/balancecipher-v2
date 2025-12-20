@@ -114,9 +114,6 @@ export default function App() {
           --text: rgba(255,255,255,0.96);
           --muted: rgba(255,255,255,0.72);
 
-          /* Your typography spec (best-effort across devices)
-             NOTE: "Helvetica Neue Lite" is effectively weight 300; availability varies by OS.
-          */
           --uiFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
 
@@ -131,7 +128,7 @@ export default function App() {
             linear-gradient(180deg, var(--bg0), var(--bg1));
           color: var(--text);
           font-family: var(--uiFont);
-          font-weight: 300; /* Neue Lite / 300 */
+          font-weight: 300;
           overflow-x: hidden;
           text-align:center;
 
@@ -140,7 +137,6 @@ export default function App() {
           text-rendering: geometricPrecision;
         }
 
-        /* Force form controls to inherit font + weight (mobile browsers often don't) */
         button, input, textarea, select {
           font: inherit;
           -webkit-font-smoothing: inherit;
@@ -244,7 +240,7 @@ export default function App() {
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.86);
-          font-weight: 700; /* your “strong” spec */
+          font-weight: 700;
         }
 
         .eqSym{
@@ -379,10 +375,11 @@ export default function App() {
           100% { opacity:1; transform: translateY(0); }
         }
 
+        /* Requested: titles less bold */
         .title{
           font-size: clamp(42px, 9.6vw, 60px);
-          font-weight: 700;            /* Helvetica emphasis */
-          letter-spacing: 0.12em;      /* same refined spacing as Page 1 */
+          font-weight: 500;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
@@ -390,7 +387,7 @@ export default function App() {
 
         .meaning{
           font-size: clamp(24px, 6.2vw, 34px);
-          font-weight: 300;            /* Neue Lite / 300 */
+          font-weight: 300;
           color: rgba(255,255,255,0.90);
           text-shadow: 0 0 22px rgba(40,240,255,0.10);
           max-width: 780px;
@@ -422,12 +419,18 @@ export default function App() {
           pointer-events:none;
         }
 
+        /* TIGHTEN: use a smaller gap for the final row only */
         .finalRow{
           display:flex;
           align-items: baseline;
           justify-content:center;
           flex-wrap: wrap;
-          gap: 12px;
+          gap: 10px;
+        }
+
+        /* Extra-tight row spacing for bracket groups */
+        .tightRow{
+          gap: 8px;
         }
 
         .finalWord{
@@ -462,6 +465,31 @@ export default function App() {
           line-height: 1.45;
           max-width: 780px;
           font-weight: 300;
+        }
+
+        /* The compact parenthetical group:
+           "(" + descriptor + ")" should behave like ONE unit, not 3 spread-out items.
+        */
+        .parenGroup{
+          display:inline-flex;
+          align-items: baseline;
+          gap: 4px; /* << tightens parentheses */
+          white-space: nowrap; /* prevents splitting */
+        }
+
+        .paren{
+          font-size: 22px;
+          color: rgba(255,255,255,0.78);
+          font-weight: 700;
+          margin: 0;
+          padding: 0;
+        }
+
+        .parenText{
+          font-size: 20px;
+          font-weight: 500;
+          letter-spacing: 0.02em;
+          color: rgba(40,240,255,0.78);
         }
 
         .dock{
@@ -500,7 +528,7 @@ export default function App() {
           padding: 18px 10px 12px;
           color: rgba(255,255,255,0.94);
           font-size: 22px;
-          font-weight: 500; /* input should feel “confident,” not wispy */
+          font-weight: 500;
           text-align: center;
           outline: none;
           caret-color: rgba(40,240,255,0.95);
@@ -577,7 +605,6 @@ export default function App() {
           text-transform: lowercase;
         }
 
-        /* Reduced motion */
         @media (prefers-reduced-motion: reduce){
           .p2Fade{ display:none; }
           .scene1Title, .scene1Mean, .scene2Title, .scene2Mean, .scene3Title, .scene3Mean{
@@ -677,33 +704,33 @@ export default function App() {
                 You — the most powerful of all three, designed and built around endless potential.
               </div>
 
-              {/* FIX: all pluses, single equals */}
+              {/* Tightened bracket groups + tightened spacing */}
               <div className="finalWrap" aria-label="Final equation">
-                <div className="finalRow">
+                <div className="finalRow tightRow">
                   <span className="finalWord">Cipher</span>
-                  <span className="finalSym">(</span>
-                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.78)" }}>
-                    a pattern reader
+                  <span className="parenGroup" aria-label="Cipher descriptor">
+                    <span className="paren">(</span>
+                    <span className="parenText">a pattern reader</span>
+                    <span className="paren">)</span>
                   </span>
-                  <span className="finalSym">)</span>
 
                   <span className="finalSym">+</span>
 
                   <span className="finalWord">Co-Pilot</span>
-                  <span className="finalSym">(</span>
-                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.78)" }}>
-                    your AI power source
+                  <span className="parenGroup" aria-label="Co-Pilot descriptor">
+                    <span className="paren">(</span>
+                    <span className="parenText">your AI power source</span>
+                    <span className="paren">)</span>
                   </span>
-                  <span className="finalSym">)</span>
 
                   <span className="finalSym">+</span>
 
                   <span className="finalWord">You</span>
-                  <span className="finalSym">(</span>
-                  <span className="finalWord" style={{ color: "rgba(40,240,255,0.78)" }}>
-                    endless potential
+                  <span className="parenGroup" aria-label="You descriptor">
+                    <span className="paren">(</span>
+                    <span className="parenText">endless potential</span>
+                    <span className="paren">)</span>
                   </span>
-                  <span className="finalSym">)</span>
 
                   <span className="finalSym">+</span>
 
@@ -806,7 +833,8 @@ export default function App() {
           <div className="tinyLink">balancecipher.com/info</div>
 
           <div className="whisper" style={{ marginTop: 14 }}>
-            Preview code (temporary): <strong style={{ fontWeight: 700 }}>
+            Preview code (temporary):{" "}
+            <strong style={{ fontWeight: 700 }}>
               {accessCode || "(generated after email entry)"}
             </strong>
           </div>

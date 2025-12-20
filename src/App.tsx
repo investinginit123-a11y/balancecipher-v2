@@ -17,7 +17,347 @@ export default function App() {
   const [view, setView] = useState<View>("landing");
 
   // Page 2 state (step flow)
-  const [stepIndex, setStepIndex] = useState<number>(0);
+  const [stepIn<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Decode | Step 2</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        color: #fff;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        overflow: hidden;
+        padding: 24px;
+      }
+
+      .core {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 1px solid #00ffff50;
+        background: radial-gradient(circle, #00ffff20 0%, transparent 70%);
+        margin-bottom: 36px;
+        animation: pulse 3.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 15px #00ffff30;
+        }
+        50% {
+          box-shadow: 0 0 35px #00ffff60;
+        }
+      }
+
+      .text {
+        font-weight: 300;
+        font-size: 18px;
+        line-height: 1.65;
+        max-width: 360px;
+        margin-bottom: 12px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.8s ease, transform 0.7s ease;
+      }
+
+      .text.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .field,
+      .next-btn {
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.7s ease, transform 0.7s ease, border 0.3s ease,
+          box-shadow 0.3s ease, background 0.3s ease;
+      }
+
+      .field.show,
+      .next-btn.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .field {
+        width: 280px;
+        padding: 14px 20px;
+        background: transparent;
+        border: 1.2px solid #00ffff50;
+        color: #fff;
+        font-size: 18px;
+        text-align: center;
+        border-radius: 14px;
+        margin: 28px 0 0;
+      }
+
+      .field:focus {
+        outline: none;
+        border-color: #00ffff90;
+        box-shadow: 0 0 18px #00ffff40;
+      }
+
+      .next-btn {
+        background: transparent;
+        border: 1.5px solid #00ffff;
+        color: #00ffff;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 12px 36px;
+        border-radius: 25px;
+        cursor: pointer;
+        margin-top: 12px;
+      }
+
+      .next-btn:hover {
+        background: #00ffff15;
+      }
+
+      .hint {
+        margin-top: 10px;
+        font-size: 12px;
+        opacity: 0.7;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .core {
+          animation: none;
+        }
+        .text,
+        .field,
+        .next-btn {
+          transition: none;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="core"></div>
+
+    <div class="text">A cipher was the first AI — made of ink, not silicon.</div>
+    <div class="text">AI doesn’t lead. It listens. Then hands you the key.</div>
+    <div class="text">You’re the only code that matters.</div>
+
+    <input class="field" placeholder="Your first name" type="text" autocomplete="given-name" />
+    <button class="next-btn" type="button">Continue</button>
+    <div class="hint">Your info stays private. This is step-by-step, not spam.</div>
+
+    <script>
+      const texts = document.querySelectorA<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Private Decode | Step 2</title>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        color: #fff;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        overflow: hidden;
+        padding: 24px;
+      }
+
+      .core {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 1px solid #00ffff50;
+        background: radial-gradient(circle, #00ffff20 0%, transparent 70%);
+        margin-bottom: 36px;
+        animation: pulse 3.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 15px #00ffff30;
+        }
+        50% {
+          box-shadow: 0 0 35px #00ffff60;
+        }
+      }
+
+      .text {
+        font-weight: 300;
+        font-size: 18px;
+        line-height: 1.65;
+        max-width: 360px;
+        margin-bottom: 12px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.8s ease, transform 0.7s ease;
+      }
+
+      .text.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .field,
+      .next-btn {
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.7s ease, transform 0.7s ease, border 0.3s ease,
+          box-shadow 0.3s ease, background 0.3s ease;
+      }
+
+      .field.show,
+      .next-btn.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .field {
+        width: 280px;
+        padding: 14px 20px;
+        background: transparent;
+        border: 1.2px solid #00ffff50;
+        color: #fff;
+        font-size: 18px;
+        text-align: center;
+        border-radius: 14px;
+        margin: 28px 0 0;
+      }
+
+      .field:focus {
+        outline: none;
+        border-color: #00ffff90;
+        box-shadow: 0 0 18px #00ffff40;
+      }
+
+      .next-btn {
+        background: transparent;
+        border: 1.5px solid #00ffff;
+        color: #00ffff;
+        font-size: 16px;
+        font-weight: 500;
+        padding: 12px 36px;
+        border-radius: 25px;
+        cursor: pointer;
+        margin-top: 12px;
+      }
+
+      .next-btn:hover {
+        background: #00ffff15;
+      }
+
+      .hint {
+        margin-top: 10px;
+        font-size: 12px;
+        opacity: 0.7;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .core {
+          animation: none;
+        }
+        .text,
+        .field,
+        .next-btn {
+          transition: none;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="core"></div>
+
+    <div class="text">A cipher was the first AI — made of ink, not silicon.</div>
+    <div class="text">AI doesn’t lead. It listens. Then hands you the key.</div>
+    <div class="text">You’re the only code that matters.</div>
+
+    <input class="field" placeholder="Your first name" type="text" autocomplete="given-name" />
+    <button class="next-btn" type="button">Continue</button>
+    <div class="hint">Your info stays private. This is step-by-step, not spam.</div>
+
+    <script>
+      const texts = document.querySelectorAll(".text");
+      const field = document.querySelector(".field");
+      const btn = document.querySelector(".next-btn");
+
+      // Defensive: if anything is missing, fail gracefully
+      if (texts.length >= 3 && field && btn) {
+        setTimeout(() => texts[0].classList.add("show"), 800);
+        setTimeout(() => texts[1].classList.add("show"), 2500);
+        setTimeout(() => texts[2].classList.add("show"), 4300);
+        setTimeout(() => field.classList.add("show"), 6200);
+        setTimeout(() => btn.classList.add("show"), 6350);
+      }
+
+      // Optional: simple validation for the next step wiring later
+      btn.addEventListener("click", () => {
+        const firstName = field.value.trim();
+        if (!firstName) {
+          field.focus();
+          return;
+        }
+        // For now: proof it works. Next: route to Page 3 + persist.
+        console.log("First name captured:", firstName);
+      });
+    </script>
+  </body>
+</html>
+ll(".text");
+      const field = document.querySelector(".field");
+      const btn = document.querySelector(".next-btn");
+
+      // Defensive: if anything is missing, fail gracefully
+      if (texts.length >= 3 && field && btn) {
+        setTimeout(() => texts[0].classList.add("show"), 800);
+        setTimeout(() => texts[1].classList.add("show"), 2500);
+        setTimeout(() => texts[2].classList.add("show"), 4300);
+        setTimeout(() => field.classList.add("show"), 6200);
+        setTimeout(() => btn.classList.add("show"), 6350);
+      }
+
+      // Optional: simple validation for the next step wiring later
+      btn.addEventListener("click", () => {
+        const firstName = field.value.trim();
+        if (!firstName) {
+          field.focus();
+          return;
+        }
+        // For now: proof it works. Next: route to Page 3 + persist.
+        console.log("First name captured:", firstName);
+      });
+    </script>
+  </body>
+</html>
+dex, setStepIndex] = useState<number>(0);
   const [firstName, setFirstName] = useState<string>("");
   const [lastName, setLastName] = useState<string>("");
 

@@ -23,6 +23,7 @@ export default function App() {
 
   const firstRef = useRef<HTMLInputElement | null>(null);
   const lastRef = useRef<HTMLInputElement | null>(null);
+  const autoTimerRef = useRef<number | null>(null);
 
   const prefersReducedMotion = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -42,6 +43,51 @@ export default function App() {
 
   const current = steps[stepIndex];
 
+  function clearAutoTimer() {
+    if (autoTimerRef.current) {
+      window.clearTimeout(autoTimerRef.current);
+      autoTimerRef.current = null;
+    }
+  }
+
+  // Auto-reveal behavior on Page 2
+  useEffect(() => {
+    clearAutoTimer();
+
+    if (view !== "decode") return;
+
+    // If reduced motion is on, do not auto-advance—show controls immediately.
+    if (prefersReducedMotion) return;
+
+    // Auto-advance: welcome -> firstPrompt -> firstInput (then stop for typing)
+    if (stepIndex === 0) {
+      autoTimerRef.current = window.setTimeout(() => setStepIndex(1), 900);
+      return;
+    }
+    if (stepIndex === 1) {
+      autoTimerRef.current = window.setTimeout(() => setStepIndex(2), 900);
+      return;
+    }
+
+    // Auto-advance: lastPrompt -> lastInput (then stop for typing)
+    if (stepIndex === 3) {
+      autoTimerRef.current = window.setTimeout(() => setStepIndex(4), 900);
+      return;
+    }
+
+    // After last name is completed, we can lightly auto-reveal the final info
+    // cipherExplain -> equation -> cta (still with buttons visible)
+    if (stepIndex === 5) {
+      autoTimerRef.current = window.setTimeout(() => setStepIndex(6), 950);
+      return;
+    }
+    if (stepIndex === 6) {
+      autoTimerRef.current = window.setTimeout(() => setStepIndex(7), 950);
+      return;
+    }
+  }, [view, stepIndex, prefersReducedMotion]);
+
+  // Focus inputs when they appear on Page 2
   useEffect(() => {
     if (view !== "decode") return;
 
@@ -72,29 +118,49 @@ export default function App() {
   }
 
   function primaryLabel(): string {
-    if (current === "firstInput") return "Continue";
-    if (current === "lastInput") return "Continue";
     if (current === "cta") return "Continue";
     return "Continue";
   }
 
   function onPrimary() {
+    // Page 2 final CTA hook — replace later with your real next page / form submit.
     if (current === "cta") {
       alert("Confirmed. Next: connect this to your real form / next page.");
       return;
     }
+
     if (!canAdvanceFromThisStep()) return;
     next();
   }
 
   function goToDecodePage() {
+    clearAutoTimer();
     setView("decode");
     setStepIndex(0);
   }
 
   function goBackToLanding() {
+    clearAutoTimer();
     setView("landing");
   }
+
+  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      onPrimary();
+    }
+  }
+
+  // Show control buttons whenever user interaction is needed (or reduced motion is on)
+  const showControlsOnDecode =
+    view === "decode" &&
+    (prefersReducedMotion ||
+      current === "firstInput" ||
+      current === "lastPrompt" ||
+      current === "lastInput" ||
+      current === "cipherExplain" ||
+      current === "equation" ||
+      current === "cta");
 
   return (
     <>
@@ -124,6 +190,7 @@ export default function App() {
           color: var(--text);
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
           overflow-x: hidden;
+          text-align:center;
         }
 
         @keyframes corePulse{
@@ -518,7 +585,12 @@ export default function App() {
         <main className="p1">
           <div className="p1Wrap">
             <div className="core" aria-label="Cipher core">
-              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" />
+              <img
+                className="emblemLg"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+              />
             </div>
 
             <div className="equation" aria-label="Cipher equation">
@@ -577,6 +649,7 @@ export default function App() {
                 placeholder="First name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
+                onKeyDown={handleInputKeyDown}
                 autoComplete="given-name"
               />
             </div>
@@ -597,6 +670,7 @@ export default function App() {
                 placeholder="Last name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
+                onKeyDown={handleInputKeyDown}
                 autoComplete="family-name"
               />
             </div>
@@ -624,25 +698,32 @@ export default function App() {
               </div>
             </div>
 
-            <div className={`step ${show("cta") ? "show" : ""}`}>
-              <div className="btnRow">
-                {stepIndex > 0 && current !== "cta" ? (
-                  <button className="btn2 btn2Secondary" type="button" onClick={back}>
-                    Back
+            {showControlsOnDecode ? (
+              <div className={`step show`}>
+                <div className="btnRow">
+                  {stepIndex > 0 && current !== "cta" ? (
+                    <button className="btn2 btn2Secondary" type="button" onClick={back}>
+                      Back
+                    </button>
+                  ) : null}
+
+                  <button
+                    className="btn2"
+                    type="button"
+                    onClick={onPrimary}
+                    disabled={!canAdvanceFromThisStep()}
+                  >
+                    {primaryLabel()}
                   </button>
-                ) : null}
+                </div>
 
-                <button className="btn2" type="button" onClick={onPrimary} disabled={!canAdvanceFromThisStep()}>
-                  {primaryLabel()}
-                </button>
+                <div className="hint2">
+                  {current === "firstInput" || current === "lastInput"
+                    ? "This is just for personalization. No hype. No shame."
+                    : "Cipher + Co-Pilot + You = BALANCE. Clear direction returns."}
+                </div>
               </div>
-
-              <div className="hint2">
-                {current === "firstInput" || current === "lastInput"
-                  ? "This is just for personalization. No hype. No shame."
-                  : "Cipher + Co-Pilot + You = BALANCE. Clear direction returns."}
-              </div>
-            </div>
+            ) : null}
           </div>
         </main>
       )}

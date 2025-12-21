@@ -839,15 +839,17 @@ export default function App() {
             <div className="stage" aria-label="Cinematic sequence">
               <div className="title scene1Title">Cipher</div>
               <div className="meaning scene1Mean">
-                The first human intelligence device built to create and figure out unbreakable codes.
+                The first human intelligent device designed to crack the unbreakable codes.
               </div>
 
               <div className="title scene2Title">Co-Pilot + AI</div>
-              <div className="meaning scene2Mean">AI — built to complete once-impossible tasks in seconds.</div>
+              <div className="meaning scene2Mean">
+                AI. Built to complete once-impossible tasks in mere seconds.
+              </div>
 
               <div className="title scene3Title">You</div>
               <div className="meaning scene3Mean">
-                You — the most powerful of all three, designed and built around endless potential.
+                You are the most powerful of all three, and designed and built for endless potential.
               </div>
 
               {/* Tightened bracket groups + tightened spacing */}

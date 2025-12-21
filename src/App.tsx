@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+imprt ReactDOM from "react-dom/client";
 
 console.log("[BALANCE DIAG] main.tsx loaded");
 

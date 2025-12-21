@@ -96,7 +96,7 @@ export default function App() {
   }
 
   // STEP 3 (one move):
-  // User gives last name -> receives A + Break Away sentence -> auto-advance to email.
+  // User gives last name -> receives A + Awakening line -> then Break Away sentence -> auto-advance to email.
   function submitLast() {
     if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
@@ -104,9 +104,17 @@ export default function App() {
 
     setLastName(ln);
 
-    showReward("A", "Your full name just unlocked Break Away.", 1500, () => {
-      goTo("p4");
-    });
+    showReward(
+      "A",
+      "True Awakening.\nNow you know where you want to go — and how you want to get there.",
+      1750,
+      () => {
+        // Keep the original Break Away line as the “chapter title” payoff:
+        showReward("A", "Your full name just unlocked Break Away.", 1250, () => {
+          goTo("p4");
+        });
+      }
+    );
   }
 
   // STEP 4 (email):
@@ -259,6 +267,7 @@ export default function App() {
           flex-direction: column;
           z-index: 9999;
           pointer-events: none;
+          padding: 18px;
         }
 
         @keyframes slamIn {
@@ -282,7 +291,7 @@ export default function App() {
 
         .rewardCopy{
           margin-top: 12px;
-          max-width: min(720px, 92vw);
+          max-width: min(760px, 92vw);
           white-space: pre-line;
           font-size: clamp(18px, 4.6vw, 26px);
           line-height: 1.4;
@@ -337,6 +346,14 @@ export default function App() {
           pointer-events:none;
         }
 
+        /* Step 3+: ensure the Cipher is present and feels intentional */
+        .coreSm{
+          width: 220px;
+          height: 220px;
+          opacity: 0.86;
+          animation: corePulse 3.5s ease-in-out infinite;
+        }
+
         .emblemLg{
           width: 220px;
           height: 220px;
@@ -344,6 +361,13 @@ export default function App() {
           filter: drop-shadow(0 0 20px rgba(40,240,255,0.60));
           position: relative;
           z-index: 1;
+        }
+
+        .emblemSm{
+          width: 178px;
+          height: 178px;
+          opacity: 0.92;
+          filter: drop-shadow(0 0 18px rgba(40,240,255,0.58));
         }
 
         .equation{
@@ -495,7 +519,6 @@ export default function App() {
           100% { opacity:1; transform: translateY(0); }
         }
 
-        /* Requested: titles less bold */
         .title{
           font-size: clamp(42px, 9.6vw, 60px);
           font-weight: 500;
@@ -565,7 +588,6 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* PAGE 2: BALANCE slightly bigger + bigger/faster pulse (AI mode) */
         .finalBalance{
           font-size: 38px;
           letter-spacing: 0.16em;
@@ -627,7 +649,6 @@ export default function App() {
           to { opacity:1; transform: translateY(0); }
         }
 
-        /* Updated unlock text: larger + bold */
         .unlockText{
           font-size: 22px;
           color: rgba(255,255,255,0.90);
@@ -678,43 +699,37 @@ export default function App() {
           text-align:center;
         }
 
-        .arcSmall{
-          width: 150px;
-          height: 150px;
-          border-radius: 999px;
-          border: 1.8px solid rgba(0,255,255,0.33);
-          margin: 0 auto 18px;
-          box-shadow: 0 0 22px rgba(0,255,255,0.20);
-          animation: corePulse 3.8s ease-in-out infinite;
-          position: relative;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          overflow:hidden;
+        /* Step 3 copy block */
+        .roadmapLine{
+          margin-top: 14px;
+          font-size: 16px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: rgba(255,255,255,0.86);
         }
 
-        .arcSmall::before{
-          content:"";
-          position:absolute;
-          inset:-60%;
-          background: radial-gradient(circle, rgba(0,255,255,0.14), transparent 55%);
-          transform: rotate(18deg);
-          opacity: 0.85;
-          animation: slowDrift 10s ease-in-out infinite;
-          pointer-events:none;
-        }
-
-        .line{
+        .stepPrompt{
           font-weight: 500;
           font-size: clamp(24px, 5.6vw, 32px);
-          max-width: 640px;
+          max-width: 720px;
           line-height: 1.25;
-          margin: 0 auto 14px;
+          margin: 8px auto 10px;
           color: rgba(255,255,255,0.94);
         }
 
-        .whisper{
+        .stepInstruction{
           margin-top: 10px;
+          font-size: 16px;
+          color: rgba(255,255,255,0.78);
+          max-width: 620px;
+          line-height: 1.45;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+        }
+
+        .stepConfirm{
+          margin-top: 6px;
           font-size: 14px;
           color: rgba(255,255,255,0.56);
           max-width: 520px;
@@ -747,7 +762,7 @@ export default function App() {
             animation: none !important;
             transform: none !important;
           }
-          .core, .core::before, .finalBalance, .arcSmall, .arcSmall::before, .balance{
+          .core, .core::before, .finalBalance, .balance{
             animation: none !important;
           }
           .rewardLetter{ animation: none !important; }
@@ -757,8 +772,9 @@ export default function App() {
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
           .btn{ width: 100%; max-width: 340px; }
-          .arcSmall{ width: 136px; height: 136px; }
           .unlockText{ font-size: 20px; }
+          .coreSm{ width: 206px; height: 206px; }
+          .emblemSm{ width: 166px; height: 166px; }
         }
       `}</style>
 
@@ -833,16 +849,13 @@ export default function App() {
               </div>
 
               <div className="title scene2Title">Co-Pilot + AI</div>
-              <div className="meaning scene2Mean">
-                AI. Built to complete once-impossible tasks in mere seconds.
-              </div>
+              <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
 
               <div className="title scene3Title">You</div>
               <div className="meaning scene3Mean">
                 You are the most powerful of all three, and designed and built for endless potential.
               </div>
 
-              {/* FIXED SEQUENCING (no extra "AI reader" layer) */}
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow tightRow">
                   <span className="finalWord">Cipher</span>
@@ -901,11 +914,20 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 — STEP 3 (one move) */}
+      {/* PAGE 3 — STEP 3 (Option B: roadmap line + Break Free feeling) */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
-          <div className="arcSmall" aria-label="Cipher core" />
-          <div className="line">Does it feel good to finally break free?</div>
+          <div className="core coreSm" aria-label="Cipher core">
+            <img
+              className="emblemLg emblemSm"
+              src="/brand/cipher-emblem.png"
+              alt="BALANCE Cipher Core"
+              loading="eager"
+            />
+          </div>
+
+          <div className="roadmapLine">B is the beginning of the roadmap.</div>
+          <div className="stepPrompt">Imagine how good it would feel to finally break free.</div>
 
           <input
             ref={lastRef}
@@ -919,15 +941,25 @@ export default function App() {
             disabled={rewardOn}
           />
 
-          <div className="whisper">Enter confirms. No noise.</div>
+          <div className="stepInstruction">Enter last name to take one more step.</div>
+          <div className="stepConfirm">Confirmed. No noise.</div>
         </main>
       ) : null}
 
       {/* PAGE 4 — STEP 4 (email / L receivable on submit) */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
-          <div className="arcSmall" aria-label="Cipher core" />
-          <div className="line">Where do you want the full map delivered?</div>
+          <div className="core coreSm" aria-label="Cipher core">
+            <img
+              className="emblemLg emblemSm"
+              src="/brand/cipher-emblem.png"
+              alt="BALANCE Cipher Core"
+              loading="eager"
+              style={{ opacity: 0.9 }}
+            />
+          </div>
+
+          <div className="stepPrompt">Where do you want the full map delivered?</div>
 
           <input
             ref={emailRef}
@@ -942,7 +974,8 @@ export default function App() {
             disabled={rewardOn}
           />
 
-          <div className="whisper">Enter confirms. No noise.</div>
+          <div className="stepInstruction">Please enter to continue.</div>
+          <div className="stepConfirm">Confirmed. No noise.</div>
           <div className="tinyLink">balancecipher.com/info</div>
         </main>
       ) : null}
@@ -950,9 +983,20 @@ export default function App() {
       {/* PAGE 5 */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
-          <div className="arcSmall" aria-label="Final gate" />
-          <div className="line">You brought the key.</div>
-          <div className="whisper">Paste it below. One time only.</div>
+          <div className="core coreSm" aria-label="Final gate">
+            <img
+              className="emblemLg emblemSm"
+              src="/brand/cipher-emblem.png"
+              alt="BALANCE Cipher Core"
+              loading="eager"
+              style={{ opacity: 0.88 }}
+            />
+          </div>
+
+          <div className="stepPrompt">You brought the key.</div>
+          <div className="stepConfirm" style={{ marginTop: 0 }}>
+            Paste it below. One time only.
+          </div>
 
           <input
             ref={codeRef}
@@ -966,12 +1010,12 @@ export default function App() {
             disabled={rewardOn}
           />
 
-          <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
+          <div className="stepConfirm">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
           <div className="tinyLink">balancecipher.com/info</div>
 
-          <div className="whisper" style={{ marginTop: 14 }}>
+          <div className="stepConfirm" style={{ marginTop: 14 }}>
             Preview code (temporary):{" "}
-            <strong style={{ fontWeight: 700 }}>
+            <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
               {accessCode || "(generated after email entry)"}
             </strong>
           </div>

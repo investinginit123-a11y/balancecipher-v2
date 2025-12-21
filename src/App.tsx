@@ -1080,7 +1080,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 4 — A / Awakening (no email here) */}
+      {/* PAGE 4 — A / Awakening (COPY A LOCKED) */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="core coreSm" aria-label="Cipher core">
@@ -1098,7 +1098,7 @@ export default function App() {
             <div className="bigSubline">Awakening</div>
           </div>
 
-          <div className="breakTitle">This is what Freedom feels like when it turns on the lights.</div>
+          <div className="breakTitle">This is what Freedom starts to feel like when it turns on the lights.</div>
 
           <div className="breakList" aria-label="Awakening bullets">
             <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
@@ -1108,16 +1108,16 @@ export default function App() {
               Your mind gets quieter. The <strong>noise</strong> backs off.
             </div>
             <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
-              You feel <strong>options</strong> again—real ones.
+              You feel the <strong>power of options</strong> again—real ones.
             </div>
             <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
-              You can tell what <strong>matters</strong>, and what doesn’t.
+              You can start to <strong>see</strong> what matters—and what doesn’t.
             </div>
             <div className="breakItem" style={{ ["--d" as any]: "600ms" }}>
-              You don’t feel fixed. You feel <strong>awake</strong>.
+              You don’t feel fixed. You feel <strong>alive—awakening</strong>.
             </div>
 
-            <div className="breakCloser">Not because life got easier. Because you finally saw it.</div>
+            <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
           </div>
 
           <div className="ctaStack" aria-label="Continue from Awakening">
@@ -1126,7 +1126,7 @@ export default function App() {
             </button>
           </div>
 
-          <div className="stepInstruction">Awakening is the moment the fog lifts. Keep going.</div>
+          <div className="stepInstruction">Awakening is the moment the fog lifts—and you understand. Keep going.</div>
           <div className="stepConfirm">Confirmed. No noise.</div>
         </main>
       ) : null}

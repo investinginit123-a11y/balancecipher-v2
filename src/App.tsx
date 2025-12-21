@@ -35,6 +35,43 @@ export default function App() {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const codeRef = useRef<HTMLInputElement | null>(null);
 
+  // Receivable overlay (B / A / L)
+  const [rewardOn, setRewardOn] = useState(false);
+  const [rewardLetter, setRewardLetter] = useState<"B" | "A" | "L" | null>(null);
+  const [rewardCopy, setRewardCopy] = useState<string>("");
+  const rewardTimerRef = useRef<number | null>(null);
+
+  function clearRewardTimer() {
+    if (rewardTimerRef.current) {
+      window.clearTimeout(rewardTimerRef.current);
+      rewardTimerRef.current = null;
+    }
+  }
+
+  function showReward(
+    letter: "B" | "A" | "L",
+    copy: string,
+    holdMs: number,
+    after?: () => void
+  ) {
+    clearRewardTimer();
+    setRewardLetter(letter);
+    setRewardCopy(copy);
+    setRewardOn(true);
+
+    rewardTimerRef.current = window.setTimeout(() => {
+      setRewardOn(false);
+      setRewardLetter(null);
+      setRewardCopy("");
+      rewardTimerRef.current = null;
+      after?.();
+    }, holdMs);
+  }
+
+  useEffect(() => {
+    return () => clearRewardTimer();
+  }, []);
+
   function goTo(v: View) {
     setView(v);
   }
@@ -44,30 +81,53 @@ export default function App() {
     goTo("p2");
   }
 
+  // STEP 2 -> STEP 3 transition:
+  // User gives first name -> receives B -> then Page 3 starts.
   function submitFirstFromP2() {
+    if (rewardOn) return;
     const fn = safeTrimMax(p2First, 40);
     if (!fn) return;
+
     setFirstName(fn);
-    goTo("p3");
+
+    showReward("B", "", 950, () => {
+      goTo("p3");
+    });
   }
 
+  // STEP 3 (one move):
+  // User gives last name -> receives A + Break Away sentence -> auto-advance to email.
   function submitLast() {
+    if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
     if (!ln) return;
+
     setLastName(ln);
-    goTo("p4");
+
+    showReward("A", "Your full name just unlocked Break Away.", 1500, () => {
+      goTo("p4");
+    });
   }
 
+  // STEP 4 (email):
+  // User gives email -> receives L + awakened/learn prompt -> then code gate.
   function submitEmail() {
+    if (rewardOn) return;
     const em = safeTrimMax(email, 120);
     if (!isValidEmail(em)) return;
+
     setEmail(em);
 
-    if (!accessCode) setAccessCode(generateAccessCode());
-    goTo("p5");
+    const nextCode = accessCode || generateAccessCode();
+    if (!accessCode) setAccessCode(nextCode);
+
+    showReward("L", "Do you feel like you’ve been awakened?\nAre you ready to learn more?", 1550, () => {
+      goTo("p5");
+    });
   }
 
   function submitCode() {
+    if (rewardOn) return;
     const expected = accessCode.trim().toUpperCase();
     const entered = codeInput.trim().toUpperCase();
     if (!entered) return;
@@ -86,10 +146,11 @@ export default function App() {
 
   // Focus management for Pages 3–5
   useEffect(() => {
-    if (view === "p3") setTimeout(() => lastRef.current?.focus(), 50);
-    if (view === "p4") setTimeout(() => emailRef.current?.focus(), 50);
-    if (view === "p5") setTimeout(() => codeRef.current?.focus(), 50);
-  }, [view]);
+    if (rewardOn) return;
+    if (view === "p3") setTimeout(() => lastRef.current?.focus(), 60);
+    if (view === "p4") setTimeout(() => emailRef.current?.focus(), 60);
+    if (view === "p5") setTimeout(() => codeRef.current?.focus(), 60);
+  }, [view, rewardOn]);
 
   // Focus Page 2 input after the full “gift” sequence completes.
   useEffect(() => {
@@ -185,6 +246,51 @@ export default function App() {
             opacity: 1;
             text-shadow: 0 0 30px rgba(215,176,107,0.58);
           }
+        }
+
+        /* Receivable overlay (B / A / L) */
+        .rewardOverlay{
+          position: fixed;
+          inset: 0;
+          background: #000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          z-index: 9999;
+          pointer-events: none;
+        }
+
+        @keyframes slamIn {
+          0%   { opacity: 0; transform: translateY(18px) scale(0.86); filter: blur(2px); }
+          45%  { opacity: 1; transform: translateY(0) scale(1.10); filter: blur(0px); }
+          72%  { opacity: 1; transform: translateY(0) scale(0.99); }
+          100% { opacity: 1; transform: translateY(0) scale(1.00); }
+        }
+
+        .rewardLetter{
+          font-size: clamp(120px, 24vw, 220px);
+          line-height: 0.95;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          color: rgba(255,255,255,0.96);
+          text-shadow: 0 0 26px rgba(40,240,255,0.14);
+          animation: slamIn 520ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
+          margin: 0;
+          padding: 0;
+        }
+
+        .rewardCopy{
+          margin-top: 12px;
+          max-width: min(720px, 92vw);
+          white-space: pre-line;
+          font-size: clamp(18px, 4.6vw, 26px);
+          line-height: 1.4;
+          color: rgba(255,255,255,0.90);
+          font-weight: 300;
+          letter-spacing: 0.01em;
+          text-shadow: 0 0 22px rgba(40,240,255,0.10);
+          padding: 0 10px;
         }
 
         /* PAGE 1 */
@@ -433,7 +539,6 @@ export default function App() {
           pointer-events:none;
         }
 
-        /* TIGHTEN: use a smaller gap for the final row only */
         .finalRow{
           display:flex;
           align-items: baseline;
@@ -442,7 +547,6 @@ export default function App() {
           gap: 10px;
         }
 
-        /* Extra-tight row spacing for bracket groups */
         .tightRow{
           gap: 8px;
         }
@@ -463,7 +567,7 @@ export default function App() {
 
         /* PAGE 2: BALANCE slightly bigger + bigger/faster pulse (AI mode) */
         .finalBalance{
-          font-size: 38px; /* slightly bigger than prior 34 */
+          font-size: 38px;
           letter-spacing: 0.16em;
           text-transform: uppercase;
           font-weight: 700;
@@ -471,7 +575,7 @@ export default function App() {
           text-shadow: 0 0 22px var(--brassGlow);
           padding: 2px 10px;
           border-radius: 10px;
-          animation: balancePulseAI 2.35s ease-in-out infinite; /* faster + larger */
+          animation: balancePulseAI 2.35s ease-in-out infinite;
         }
 
         .finalLine{
@@ -482,14 +586,11 @@ export default function App() {
           font-weight: 300;
         }
 
-        /* The compact parenthetical group:
-           "(" + descriptor + ")" should behave like ONE unit, not 3 spread-out items.
-        */
         .parenGroup{
           display:inline-flex;
           align-items: baseline;
-          gap: 4px; /* << tightens parentheses */
-          white-space: nowrap; /* prevents splitting */
+          gap: 4px;
+          white-space: nowrap;
         }
 
         .paren{
@@ -507,7 +608,6 @@ export default function App() {
           color: rgba(40,240,255,0.78);
         }
 
-        /* Bracketed AI power source term (tight, single unit) */
         .bracketGroup{
           display:inline-flex;
           align-items: baseline;
@@ -618,7 +718,7 @@ export default function App() {
         .line{
           font-weight: 500;
           font-size: clamp(24px, 5.6vw, 32px);
-          max-width: 560px;
+          max-width: 640px;
           line-height: 1.25;
           margin: 0 auto 14px;
           color: rgba(255,255,255,0.94);
@@ -628,7 +728,7 @@ export default function App() {
           margin-top: 10px;
           font-size: 14px;
           color: rgba(255,255,255,0.56);
-          max-width: 460px;
+          max-width: 520px;
           line-height: 1.45;
           font-weight: 300;
         }
@@ -661,6 +761,7 @@ export default function App() {
           .core, .core::before, .finalBalance, .arcSmall, .arcSmall::before, .balance{
             animation: none !important;
           }
+          .rewardLetter{ animation: none !important; }
         }
 
         @media (max-width: 420px){
@@ -670,6 +771,14 @@ export default function App() {
           .arcSmall{ width: 136px; height: 136px; }
         }
       `}</style>
+
+      {/* RECEIVABLE OVERLAY */}
+      {rewardOn && rewardLetter ? (
+        <div className="rewardOverlay" aria-label="Receivable reward overlay">
+          <div className="rewardLetter">{rewardLetter}</div>
+          {rewardCopy ? <div className="rewardCopy">{rewardCopy}</div> : null}
+        </div>
+      ) : null}
 
       {/* PAGE 1 */}
       {view === "landing" ? (
@@ -762,7 +871,6 @@ export default function App() {
 
                   <span className="finalSym">+</span>
 
-                  {/* Bracketed AI power source term (no duplication of potential terms) */}
                   <span className="bracketGroup" aria-label="AI power source term">
                     <span className="bracket">[</span>
                     <span className="bracketText">Your AI Power Source</span>
@@ -777,8 +885,6 @@ export default function App() {
                     <span className="parenText">endless potential</span>
                     <span className="paren">)</span>
                   </span>
-
-                  {/* Removed the extra standalone "+ Your Potential" to eliminate duplication */}
 
                   <span className="finalSym">=</span>
 
@@ -804,16 +910,17 @@ export default function App() {
               aria-label="First name"
               autoComplete="given-name"
               placeholder=""
+              disabled={rewardOn}
             />
           </div>
         </main>
       ) : null}
 
-      {/* PAGE 3 */}
+      {/* PAGE 3 — STEP 3 (one move) */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="arcSmall" aria-label="Cipher core" />
-          <div className="line">Last name. Make it real.</div>
+          <div className="line">Does it feel good to finally break free?</div>
 
           <input
             ref={lastRef}
@@ -824,17 +931,18 @@ export default function App() {
             aria-label="Last name"
             autoComplete="family-name"
             placeholder=""
+            disabled={rewardOn}
           />
 
           <div className="whisper">Enter confirms. No noise.</div>
         </main>
       ) : null}
 
-      {/* PAGE 4 */}
+      {/* PAGE 4 — STEP 4 (email / L receivable on submit) */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="arcSmall" aria-label="Cipher core" />
-          <div className="line">Email — your key arrives here, once.</div>
+          <div className="line">Where do you want the full map delivered?</div>
 
           <input
             ref={emailRef}
@@ -846,9 +954,10 @@ export default function App() {
             autoComplete="email"
             inputMode="email"
             placeholder=""
+            disabled={rewardOn}
           />
 
-          <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
+          <div className="whisper">Enter confirms. No noise.</div>
           <div className="tinyLink">balancecipher.com/info</div>
         </main>
       ) : null}
@@ -869,6 +978,7 @@ export default function App() {
             aria-label="Private cipher code"
             autoComplete="one-time-code"
             placeholder=""
+            disabled={rewardOn}
           />
 
           <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>

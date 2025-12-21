@@ -146,7 +146,8 @@ export default function App() {
     const nextCode = accessCode || generateAccessCode();
     if (!accessCode) setAccessCode(nextCode);
 
-    showReward("L", "Delivery unlocked.\nYour map is ready to be sent.", 1350, () => {
+    // L receivable (kept short; the full meaning lives on the page)
+    showReward("L", "Learning unlocked.", 1050, () => {
       setP5Stage("code");
       setTimeout(() => codeRef.current?.focus(), 80);
     });
@@ -1131,10 +1132,10 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 5 — Email + Code Gate */}
+      {/* PAGE 5 — L / Learning + Email + Code Gate */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
-          <div className="core coreSm" aria-label="Final gate">
+          <div className="core coreSm" aria-label="Cipher core">
             <img
               className="emblemLg emblemSm"
               src="/brand/cipher-emblem.png"
@@ -1144,13 +1145,40 @@ export default function App() {
             />
           </div>
 
+          <div className="letterHeader" aria-label="Learning header">
+            <div className="bigLetter">L</div>
+            <div className="bigSubline">Learning</div>
+          </div>
+
           {p5Stage === "email" ? (
             <>
-              <div className="breakTitle" style={{ marginTop: 14 }}>
-                Where do you want the full map delivered?
+              {/* Two locked anchor lines (built around them) */}
+              <div className="breakTitle">
+                Learning is where the Cipher starts learning you—so your map can finally fit your life.
+              </div>
+
+              <div className="breakList" aria-label="Learning support bullets">
+                <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
+                  It learns your <strong>pattern</strong>—what pulls you back, and what moves you forward.
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
+                  It learns what to ignore, so the <strong>noise</strong> stops winning.
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
+                  It turns confusion into <strong>clear next steps</strong>.
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
+                  So the Co-Pilot can deliver the map in a way that fits <strong>you</strong>.
+                </div>
+
+                <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
               </div>
 
               <div className="ctaStack" aria-label="Email entry">
+                <div className="stepInstruction" style={{ marginTop: 0 }}>
+                  Where do you want the full map delivered?
+                </div>
+
                 <input
                   ref={emailRef}
                   className="underlineOnly"
@@ -1175,7 +1203,6 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="stepInstruction">This delivers your map. Then you’ll use your code.</div>
               <div className="stepConfirm">Confirmed. No noise.</div>
               <div className="tinyLink">balancecipher.com/info</div>
             </>
@@ -1184,6 +1211,7 @@ export default function App() {
               <div className="breakTitle" style={{ marginTop: 14 }}>
                 You brought the key.
               </div>
+
               <div className="stepConfirm" style={{ marginTop: 0 }}>
                 Paste it below to continue.
               </div>

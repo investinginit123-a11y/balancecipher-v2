@@ -21,6 +21,9 @@ function generateAccessCode(): string {
 export default function App() {
   const [view, setView] = useState<View>("landing");
 
+  // If anything blows up at runtime, show it on-screen (no more “white mystery”).
+  const [fatalError, setFatalError] = useState<string | null>(null);
+
   // Capture data
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -71,6 +74,34 @@ export default function App() {
     return () => clearRewardTimer();
   }, []);
 
+  // Runtime crash catcher (shows the real error on the page)
+  useEffect(() => {
+    const onError = (e: ErrorEvent) => {
+      const msg = [
+        "Runtime error:",
+        e.message || "(no message)",
+        e.filename ? `File: ${e.filename}` : "",
+        e.lineno ? `Line: ${e.lineno}:${e.colno || 0}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+      setFatalError(msg);
+    };
+
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const reason = typeof e.reason === "string" ? e.reason : JSON.stringify(e.reason, null, 2);
+      setFatalError(`Unhandled promise rejection:\n${reason}`);
+    };
+
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+    };
+  }, []);
+
   function goTo(v: View) {
     setView(v);
   }
@@ -87,6 +118,7 @@ export default function App() {
     setRewardOn(false);
     setRewardLetter(null);
     setRewardCopy("");
+    setFatalError(null);
   }
 
   function goToDecode() {
@@ -94,7 +126,7 @@ export default function App() {
     goTo("p2");
   }
 
-  // STEP 2 -> STEP 3 transition:
+  // STEP 2 -> STEP 3 transition
   function submitFirstFromP2() {
     if (rewardOn) return;
     const fn = safeTrimMax(p2First, 40);
@@ -107,7 +139,7 @@ export default function App() {
     });
   }
 
-  // STEP 3:
+  // STEP 3
   function submitLast() {
     if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
@@ -179,7 +211,7 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // Focus Page 2 input after the cinematic sequence completes.
+  // Focus Page 2 input after cinematic sequence completes
   useEffect(() => {
     if (view !== "p2") return;
     const t = setTimeout(() => p2FirstRef.current?.focus(), 36500);
@@ -190,9 +222,6 @@ export default function App() {
   const canSubmitLast = !!safeTrimMax(lastName, 60);
   const canSubmitEmail = isValidEmail(email);
   const canSubmitCode = !!codeInput.trim();
-
-  // Projection glow only on Page 5 code stage
-  const showProjection = view === "p5" && p5Stage === "code" && !rewardOn;
 
   return (
     <>
@@ -208,7 +237,6 @@ export default function App() {
           --brassGlow: rgba(215, 176, 107, 0.32);
 
           --text: rgba(255,255,255,0.96);
-          --muted: rgba(255,255,255,0.72);
 
           --uiFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
@@ -227,17 +255,14 @@ export default function App() {
           font-weight: 300;
           overflow-x: hidden;
           text-align:center;
-
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
-          text-rendering: geometricPrecision;
         }
 
-        button, input, textarea, select {
+        button, input {
           font: inherit;
           -webkit-font-smoothing: inherit;
           -moz-osx-font-smoothing: inherit;
-          text-rendering: inherit;
         }
 
         @keyframes corePulse{
@@ -267,6 +292,49 @@ export default function App() {
             opacity: 1;
             text-shadow: 0 0 30px rgba(215,176,107,0.58);
           }
+        }
+
+        /* Fatal error overlay */
+        .fatalOverlay{
+          position: fixed;
+          inset: 0;
+          background: rgba(0,0,0,0.92);
+          z-index: 10000;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding: 18px;
+          text-align:left;
+        }
+        .fatalCard{
+          width: min(860px, 96vw);
+          border: 1px solid rgba(40,240,255,0.35);
+          border-radius: 16px;
+          background: rgba(5,11,20,0.72);
+          box-shadow: 0 0 40px rgba(40,240,255,0.12);
+          padding: 16px;
+        }
+        .fatalTitle{
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 10px;
+        }
+        .fatalText{
+          white-space: pre-wrap;
+          font-size: 13px;
+          line-height: 1.45;
+          color: rgba(255,255,255,0.88);
+        }
+        .fatalBtn{
+          margin-top: 12px;
+          border-radius: 12px;
+          border: 1px solid rgba(40,240,255,0.55);
+          background: rgba(40,240,255,0.06);
+          color: rgba(255,255,255,0.92);
+          padding: 10px 12px;
+          cursor: pointer;
+          font-weight: 700;
         }
 
         /* Receivable overlay (B / A / L) */
@@ -299,7 +367,6 @@ export default function App() {
           text-shadow: 0 0 26px rgba(40,240,255,0.14);
           animation: slamIn 520ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
           margin: 0;
-          padding: 0;
         }
 
         .rewardCopy{
@@ -310,20 +377,25 @@ export default function App() {
           line-height: 1.45;
           color: rgba(255,255,255,0.90);
           font-weight: 300;
-          letter-spacing: 0.01em;
           text-shadow: 0 0 22px rgba(40,240,255,0.10);
           padding: 0 10px;
         }
 
-        /* PAGE 1 */
-        .p1{
+        /* Shared layout */
+        .p1, .p2, .pX{
           min-height:100vh;
           display:flex;
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          padding: 34px 18px 60px;
+          padding: 34px 18px 84px;
+          background: #000;
+          text-align:center;
+          position: relative;
+          overflow:hidden;
         }
+
+        .p1{ background: transparent; padding: 34px 18px 60px; }
 
         .p1Wrap{
           width: min(820px, 100%);
@@ -478,15 +550,7 @@ export default function App() {
 
         /* PAGE 2 */
         .p2{
-          min-height:100vh;
-          background:#000;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
           padding: 24px 18px 132px;
-          position: relative;
-          overflow:hidden;
         }
 
         .p2Fade{
@@ -686,111 +750,7 @@ export default function App() {
           letter-spacing: 0.04em;
         }
 
-        .underlineOnly{
-          width: min(560px, 90vw);
-          background: transparent;
-          border: none;
-          border-bottom: 2px solid rgba(40,240,255,0.46);
-          padding: 18px 10px 12px;
-          color: rgba(255,255,255,0.94);
-          font-size: 22px;
-          font-weight: 500;
-          text-align: center;
-          outline: none;
-          caret-color: rgba(40,240,255,0.95);
-          transition: border-color 250ms ease, box-shadow 250ms ease;
-        }
-
-        .underlineOnly:focus{
-          border-bottom-color: rgba(40,240,255,0.92);
-          box-shadow: 0 14px 34px rgba(40,240,255,0.12);
-        }
-
         /* Pages 3–5 */
-        .pX{
-          min-height:100vh;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          padding: 34px 18px 84px;
-          background:#000;
-          text-align:center;
-          position: relative;
-          overflow:hidden;
-        }
-
-        /* SAFE projection glow layer (no clip-path, no mask-image, no pseudos) */
-        .projectionLayer{
-          position:absolute;
-          inset: 0;
-          display:flex;
-          align-items:flex-start;
-          justify-content:center;
-          pointer-events:none;
-          z-index: 0;
-          opacity: 0;
-          animation: projIn 620ms ease forwards;
-        }
-
-        @keyframes projIn{
-          to { opacity: 1; }
-        }
-
-        .projectionConeWrap{
-          width: min(820px, 96vw);
-          height: 78vh;
-          margin-top: 178px;
-          position: relative;
-          opacity: 0.9;
-          transform-origin: 50% 0%;
-          animation: projBreathe 5.6s ease-in-out infinite;
-        }
-
-        /* A “cone” illusion using layered gradients + rounded base */
-        .projectionConeA{
-          position:absolute;
-          inset: 0;
-          border-radius: 0 0 900px 900px;
-          background:
-            radial-gradient(900px 520px at 50% 0%, rgba(40,240,255,0.16), transparent 65%),
-            linear-gradient(180deg, rgba(40,240,255,0.18), rgba(40,240,255,0.06) 44%, rgba(0,0,0,0) 78%);
-          filter: blur(0.3px);
-        }
-
-        /* A faint “grid” feel without pseudo elements */
-        .projectionConeB{
-          position:absolute;
-          inset: 0;
-          border-radius: 0 0 900px 900px;
-          background:
-            linear-gradient(rgba(40,240,255,0.10) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(40,240,255,0.10) 1px, transparent 1px);
-          background-size: 34px 34px;
-          opacity: 0.18;
-          filter: blur(0.2px);
-        }
-
-        /* Warm nodes */
-        .projectionConeC{
-          position:absolute;
-          inset: 0;
-          border-radius: 0 0 900px 900px;
-          background:
-            radial-gradient(circle at 46% 54%, rgba(215,176,107,0.22) 0 3px, transparent 4px),
-            radial-gradient(circle at 54% 64%, rgba(215,176,107,0.18) 0 2px, transparent 3px),
-            radial-gradient(circle at 40% 70%, rgba(215,176,107,0.16) 0 2px, transparent 3px),
-            radial-gradient(circle at 60% 76%, rgba(215,176,107,0.14) 0 2px, transparent 3px);
-          opacity: 0.45;
-          filter: blur(0.25px);
-        }
-
-        @keyframes projBreathe{
-          0%, 100%{ transform: scaleY(1.0); opacity: 0.78; }
-          50%{ transform: scaleY(1.03); opacity: 0.92; }
-        }
-
-        /* ensure main content sits above projection */
         .contentLayer{
           position: relative;
           z-index: 2;
@@ -816,7 +776,6 @@ export default function App() {
           color: rgba(255,255,255,0.96);
           text-shadow: 0 0 26px rgba(40,240,255,0.14);
           margin: 0;
-          padding: 0;
         }
 
         .bigSubline{
@@ -916,28 +875,24 @@ export default function App() {
           text-transform: lowercase;
         }
 
-        @media (prefers-reduced-motion: reduce){
-          .p2Fade{ display:none; }
-          .scene1Title, .scene1Mean, .scene2Title, .scene2Mean, .scene3Title, .scene3Mean{
-            opacity: 0 !important;
-            animation: none !important;
-          }
-          .finalWrap{
-            opacity: 1 !important;
-            animation: none !important;
-            pointer-events: none !important;
-          }
-          .dock{
-            opacity: 1 !important;
-            animation: none !important;
-            transform: none !important;
-          }
-          .core, .core::before, .finalBalance{
-            animation: none !important;
-          }
-          .rewardLetter{ animation: none !important; }
-          .breakItem, .breakCloser{ opacity: 1 !important; animation: none !important; }
-          .projectionLayer{ display:none !important; }
+        .underlineOnly{
+          width: min(560px, 90vw);
+          background: transparent;
+          border: none;
+          border-bottom: 2px solid rgba(40,240,255,0.46);
+          padding: 18px 10px 12px;
+          color: rgba(255,255,255,0.94);
+          font-size: 22px;
+          font-weight: 500;
+          text-align: center;
+          outline: none;
+          caret-color: rgba(40,240,255,0.95);
+          transition: border-color 250ms ease, box-shadow 250ms ease;
+        }
+
+        .underlineOnly:focus{
+          border-bottom-color: rgba(40,240,255,0.92);
+          box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
         @media (max-width: 420px){
@@ -946,9 +901,21 @@ export default function App() {
           .unlockText{ font-size: 20px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
-          .projectionConeWrap{ margin-top: 168px; height: 74vh; }
         }
       `}</style>
+
+      {/* Fatal runtime overlay (only shows if app actually mounts and then crashes) */}
+      {fatalError ? (
+        <div className="fatalOverlay" aria-label="App error overlay">
+          <div className="fatalCard">
+            <div className="fatalTitle">BALANCE — Runtime Error</div>
+            <div className="fatalText">{fatalError}</div>
+            <button className="fatalBtn" type="button" onClick={() => setFatalError(null)}>
+              Dismiss
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* RECEIVABLE OVERLAY */}
       {rewardOn && rewardLetter ? (
@@ -1000,13 +967,7 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.92 }}
-              />
+              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
@@ -1083,7 +1044,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 — B / Break Free + last name */}
+      {/* PAGE 3 — B */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="contentLayer">
@@ -1142,18 +1103,12 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 4 — A / Awakening */}
+      {/* PAGE 4 — A */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.9 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1195,28 +1150,12 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 5 — L / Learning + Email + Bridge Code (SAFE projection glow) */}
+      {/* PAGE 5 — L */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
-          {showProjection ? (
-            <div className="projectionLayer" aria-hidden="true">
-              <div className="projectionConeWrap">
-                <div className="projectionConeA" />
-                <div className="projectionConeB" />
-                <div className="projectionConeC" />
-              </div>
-            </div>
-          ) : null}
-
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.88 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
             </div>
 
             <div className="letterHeader" aria-label="Learning header">
@@ -1226,9 +1165,7 @@ export default function App() {
 
             {p5Stage === "email" ? (
               <>
-                <div className="breakTitle">
-                  Learning is where the Cipher starts learning you—so your map can finally fit your life.
-                </div>
+                <div className="breakTitle">Learning is where the Cipher starts learning you—so your map can finally fit your life.</div>
 
                 <div className="breakList" aria-label="Learning support bullets">
                   <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
@@ -1243,7 +1180,6 @@ export default function App() {
                   <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
                     So the Co-Pilot can deliver the map in a way that fits <strong>you</strong>.
                   </div>
-
                   <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
                 </div>
 
@@ -1321,4 +1257,3 @@ export default function App() {
     </>
   );
 }
-

@@ -1,845 +1,831 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type View = "landing" | "p2" | "p3" | "p4" | "p5";
+type PageId = 1 | 2 | 3 | 4 | 5;
 
-function safeTrimMax(v: string, maxLen: number) {
-  return v.trim().slice(0, maxLen);
-}
-
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-}
-
-function generateAccessCode(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function generateAccessCode(len = 6) {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // avoid confusing I/1/O/0
   let out = "";
-  for (let i = 0; i < 8; i++) out += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
   return out;
 }
 
-export default function App() {
-  const [view, setView] = useState<View>("landing");
+function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
 
-  // Capture data
+export default function App() {
+  // --- Primary flow state (5 pages) ---
+  const [page, setPage] = useState<PageId>(1);
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [accessCode, setAccessCode] = useState("");
-  const [codeInput, setCodeInput] = useState("");
 
-  // Page 2 input (kept separate)
-  const [p2First, setP2First] = useState("");
+  const [generatedCode, setGeneratedCode] = useState<string>("");
+  const [enteredCode, setEnteredCode] = useState<string>("");
+  const [codeError, setCodeError] = useState<string>("");
 
-  const p2FirstRef = useRef<HTMLInputElement | null>(null);
-  const lastRef = useRef<HTMLInputElement | null>(null);
-  const emailRef = useRef<HTMLInputElement | null>(null);
-  const codeRef = useRef<HTMLInputElement | null>(null);
+  // --- Page 2 cinematic sequencing ---
+  const [seqStep, setSeqStep] = useState<number>(0);
+  const [aiMode, setAiMode] = useState<boolean>(false);
 
-  function goTo(v: View) {
-    setView(v);
-  }
+  // Timers cleanup (prevents runaway setTimeout causing sluggishness)
+  const timersRef = useRef<number[]>([]);
+  const reduceMotionRef = useRef<boolean>(false);
 
-  function goToDecode() {
-    setP2First("");
-    goTo("p2");
-  }
+  useEffect(() => {
+    const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    reduceMotionRef.current = !!mq?.matches;
 
-  function submitFirstFromP2() {
-    const fn = safeTrimMax(p2First, 40);
-    if (!fn) return;
-    setFirstName(fn);
-    goTo("p3");
-  }
+    const onChange = () => {
+      reduceMotionRef.current = !!mq?.matches;
+    };
+    mq?.addEventListener?.("change", onChange);
 
-  function submitLast() {
-    const ln = safeTrimMax(lastName, 60);
-    if (!ln) return;
-    setLastName(ln);
-    goTo("p4");
-  }
+    return () => mq?.removeEventListener?.("change", onChange);
+  }, []);
 
-  function submitEmail() {
-    const em = safeTrimMax(email, 120);
-    if (!isValidEmail(em)) return;
-    setEmail(em);
+  const clearTimers = () => {
+    timersRef.current.forEach((t) => window.clearTimeout(t));
+    timersRef.current = [];
+  };
 
-    if (!accessCode) setAccessCode(generateAccessCode());
-    goTo("p5");
-  }
+  // Reset per-page transient state
+  useEffect(() => {
+    clearTimers();
+    setCodeError("");
 
-  function submitCode() {
-    const expected = accessCode.trim().toUpperCase();
-    const entered = codeInput.trim().toUpperCase();
-    if (!entered) return;
-
-    if (expected && entered !== expected) return;
-
-    window.location.href = "https://balancecipher.com/info";
-  }
-
-  function onEnter(e: React.KeyboardEvent<HTMLInputElement>, action: () => void) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      action();
+    if (page !== 2) {
+      setSeqStep(0);
+      setAiMode(false);
     }
-  }
 
-  // Focus management for Pages 3–5
-  useEffect(() => {
-    if (view === "p3") setTimeout(() => lastRef.current?.focus(), 50);
-    if (view === "p4") setTimeout(() => emailRef.current?.focus(), 50);
-    if (view === "p5") setTimeout(() => codeRef.current?.focus(), 50);
-  }, [view]);
+    // Page 2 cinematic schedule
+    if (page === 2) {
+      setSeqStep(0);
+      setAiMode(false);
 
-  // Focus Page 2 input after the full “gift” sequence completes.
-  useEffect(() => {
-    if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 36500);
-    return () => clearTimeout(t);
-  }, [view]);
+      // Readability-first timing; slightly slower on mobile feel; minimal DOM churn
+      const base = reduceMotionRef.current ? 0 : 720;
+
+      const schedule = (ms: number, fn: () => void) => {
+        const id = window.setTimeout(fn, ms);
+        timersRef.current.push(id);
+      };
+
+      // Step plan: reveal in stable layers
+      // 0: title
+      // 1: cipher token
+      // 2: copilot token + AI reader emphasis
+      // 3: your AI power source token
+      // 4: you token
+      // 5: your potential token
+      // 6: equals + BALANCE (AI mode pulse)
+      // 7: input appears
+      schedule(base * 1, () => setSeqStep(1));
+      schedule(base * 2, () => setSeqStep(2));
+      schedule(base * 3, () => setSeqStep(3));
+      schedule(base * 4, () => setSeqStep(4));
+      schedule(base * 5, () => setSeqStep(5));
+      schedule(base * 6, () => setSeqStep(6));
+      schedule(base * 6, () => setAiMode(true));
+      schedule(base * 7, () => setSeqStep(7));
+    }
+
+    return () => clearTimers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
+  // --- Derived helpers ---
+  const canGoNextFromPage3 = useMemo(() => lastName.trim().length > 0, [lastName]);
+  const canGoNextFromPage2 = useMemo(() => firstName.trim().length > 0, [firstName]);
+  const canGoNextFromPage4 = useMemo(() => {
+    const v = email.trim();
+    return v.length > 5 && v.includes("@") && v.includes(".");
+  }, [email]);
+
+  const goToInfo = () => {
+    // Final redirect gate
+    window.location.href = "https://balancecipher.com/info";
+  };
+
+  const goNext = () => {
+    setPage((p) => clamp((p + 1) as number, 1, 5) as PageId);
+  };
+
+  const goBack = () => {
+    setPage((p) => clamp((p - 1) as number, 1, 5) as PageId);
+  };
+
+  const startDecoding = () => {
+    setPage(2);
+  };
+
+  const handleGenerateCode = () => {
+    const code = generateAccessCode(6);
+    setGeneratedCode(code);
+    setPage(5);
+  };
+
+  const handleVerifyCode = () => {
+    const expected = generatedCode.trim().toUpperCase();
+    const got = enteredCode.trim().toUpperCase();
+
+    if (!expected) {
+      setCodeError("No code was generated yet. Go back and generate a code first.");
+      return;
+    }
+    if (got !== expected) {
+      setCodeError("That code doesn’t match. Check it and try again.");
+      return;
+    }
+    setCodeError("");
+    goToInfo();
+  };
+
+  const brandImageSrc = "/brand/Cypher-Emblem.png";
 
   return (
-    <>
+    <div className="appRoot">
       <style>{`
-        :root{
-          --bg0:#050b14;
-          --bg1:#000;
-
-          --teal: rgba(40, 240, 255, 1);
-          --tealSoft: rgba(40, 240, 255, 0.18);
-
-          --brass:#d7b06b;
-          --brassGlow: rgba(215, 176, 107, 0.32);
-
-          --text: rgba(255,255,255,0.96);
-          --muted: rgba(255,255,255,0.72);
-
-          --uiFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        :root {
+          --bg0: #07131f;
+          --bg1: #06101a;
+          --teal: #2ee6d6;
+          --teal2: #15bfb0;
+          --brass: #c7a66a;
+          --text: rgba(255,255,255,0.92);
+          --muted: rgba(255,255,255,0.70);
+          --faint: rgba(255,255,255,0.55);
+          --card: rgba(255,255,255,0.06);
+          --card2: rgba(255,255,255,0.09);
+          --line: rgba(46,230,214,0.28);
+          --shadow: 0 20px 70px rgba(0,0,0,0.55);
+          --radius: 18px;
         }
 
-        *{ box-sizing:border-box; }
-        html, body { height:100%; }
-
-        body{
-          margin:0;
-          background:
-            radial-gradient(900px 600px at 50% 30%, rgba(40,240,255,0.10), transparent 60%),
-            radial-gradient(700px 500px at 50% 85%, rgba(40,240,255,0.06), transparent 60%),
-            linear-gradient(180deg, var(--bg0), var(--bg1));
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+          margin: 0;
+          background: radial-gradient(1200px 800px at 50% 12%, rgba(46,230,214,0.10), transparent 60%),
+                      radial-gradient(900px 700px at 50% 120%, rgba(21,191,176,0.08), transparent 62%),
+                      linear-gradient(180deg, var(--bg0), var(--bg1));
           color: var(--text);
-          font-family: var(--uiFont);
+          font-family: "Helvetica Neue", Helvetica, Arial, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
           font-weight: 300;
           overflow-x: hidden;
-          text-align:center;
-
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-          text-rendering: geometricPrecision;
         }
 
-        button, input, textarea, select {
+        /* Ensure inputs/buttons inherit font (mobile consistency canon) */
+        input, button, textarea, select {
           font: inherit;
-          -webkit-font-smoothing: inherit;
-          -moz-osx-font-smoothing: inherit;
-          text-rendering: inherit;
+          color: inherit;
         }
 
-        @keyframes corePulse{
-          0%, 100%{
-            box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
-            transform: scale(1.00);
-          }
-          50%{
-            box-shadow: 0 0 90px rgba(40,240,255,0.32), inset 0 0 34px rgba(40,240,255,0.20);
-            transform: scale(1.03);
-          }
+        .appRoot {
+          min-height: 100vh;
+          display: flex;
+          align-items: stretch;
+          justify-content: center;
+          padding: 18px 14px 26px;
         }
 
-        @keyframes slowDrift{
-          0%, 100%{ transform: translate(-2%, -1%) rotate(12deg); opacity: 0.72; }
-          50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
+        .frame {
+          width: 100%;
+          max-width: 980px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
         }
 
-        @keyframes balancePulse{
-          0%, 100%{
-            transform: scale(1.00);
-            opacity: 0.92;
-            text-shadow: 0 0 16px rgba(215,176,107,0.26);
-          }
-          50%{
-            transform: scale(1.06);
-            opacity: 1;
-            text-shadow: 0 0 24px rgba(215,176,107,0.46);
-          }
+        .topBar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 6px 6px 0;
         }
 
-        /* PAGE 1 */
-        .p1{
-          min-height:100vh;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          padding: 34px 18px 60px;
+        .crumb {
+          font-size: 12px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          color: var(--faint);
+          user-select: none;
         }
 
-        .p1Wrap{
-          width: min(820px, 100%);
-          display:flex;
-          flex-direction:column;
-          align-items:center;
+        .navBtns {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .btnGhost {
+          background: transparent;
+          border: 1px solid rgba(255,255,255,0.14);
+          border-radius: 999px;
+          padding: 10px 14px;
+          cursor: pointer;
+          transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+        }
+        .btnGhost:hover { border-color: rgba(46,230,214,0.38); background: rgba(46,230,214,0.06); }
+        .btnGhost:active { transform: scale(0.98); }
+
+        .card {
+          background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: var(--radius);
+          box-shadow: var(--shadow);
+          overflow: hidden;
+        }
+
+        .stage {
+          position: relative;
+          padding: 26px 18px 22px;
+          min-height: 72vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          gap: 18px;
+        }
+
+        .center {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
           gap: 16px;
         }
 
-        .core{
-          width: 275px;
-          height: 275px;
+        .emblemWrap {
+          width: 128px;
+          height: 128px;
           border-radius: 999px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          background: radial-gradient(circle, var(--tealSoft), transparent 68%);
-          box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
+          display: grid;
+          place-items: center;
           position: relative;
-          overflow: hidden;
-          animation: corePulse 3.8s ease-in-out infinite;
+          background: radial-gradient(circle at 50% 50%, rgba(46,230,214,0.16), rgba(0,0,0,0) 62%);
         }
 
-        .core::before{
-          content:"";
-          position:absolute;
-          inset:-40%;
-          background: radial-gradient(circle, rgba(40,240,255,0.16), transparent 55%);
-          transform: rotate(15deg);
-          filter: blur(2px);
+        .emblemGlow {
+          position: absolute;
+          inset: -14px;
+          border-radius: 999px;
+          background: radial-gradient(circle at 50% 50%, rgba(46,230,214,0.22), rgba(0,0,0,0) 60%);
+          filter: blur(8px);
           opacity: 0.9;
-          animation: slowDrift 9.5s ease-in-out infinite;
-          pointer-events:none;
+          pointer-events: none;
         }
 
-        .emblemLg{
-          width: 220px;
-          height: 220px;
+        .emblemImg {
+          width: 112px;
+          height: 112px;
           object-fit: contain;
-          filter: drop-shadow(0 0 20px rgba(40,240,255,0.60));
-          position: relative;
-          z-index: 1;
+          filter: drop-shadow(0 0 22px rgba(46,230,214,0.18));
+          user-select: none;
         }
 
-        .equation{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 6px;
+        @keyframes emblemPulse {
+          0%, 100% { transform: scale(1); opacity: 0.95; }
+          50% { transform: scale(1.04); opacity: 1; }
         }
 
-        .eqText{
-          font-size: 16px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.86);
-          font-weight: 700;
+        .emblemPulse {
+          animation: emblemPulse 2.6s ease-in-out infinite;
         }
 
-        .eqSym{
-          font-size: 18px;
-          color: rgba(255,255,255,0.62);
-          font-weight: 700;
-        }
-
-        .balance{
-          font-size: 24px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          font-weight: 700;
-          color: var(--brass);
-          padding: 2px 6px;
-          border-radius: 10px;
-          animation: balancePulse 3.6s ease-in-out infinite;
-        }
-
-        .cornerstone{
-          margin-top: 6px;
-          font-size: 15px;
-          color: rgba(255,255,255,0.88);
-          font-weight: 500;
-        }
-
-        .cornerstone strong{
-          font-weight: 700;
-          color: rgba(255,255,255,0.98);
-        }
-
-        .sub{
-          width: min(640px, 100%);
-          color: rgba(255,255,255,0.72);
-          font-size: 16px;
+        .tagline {
+          max-width: 720px;
+          color: var(--muted);
+          font-size: clamp(15px, 2.3vw, 18px);
           line-height: 1.55;
-          margin-top: 8px;
-          font-weight: 300;
         }
 
-        .btn{
-          padding: 16px 22px;
-          border-radius: 999px;
-          border: 1.5px solid rgba(40,240,255,0.75);
-          color: rgba(255,255,255,0.96);
-          background: linear-gradient(180deg, rgba(40,240,255,0.08), rgba(40,240,255,0.03));
-          box-shadow: 0 0 24px rgba(40,240,255,0.18), 0 12px 30px rgba(0,0,0,0.35);
-          cursor:pointer;
-          font-weight: 700;
-          font-size: 16px;
-          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-          max-width: min(560px, 100%);
-          text-align:center;
-        }
-
-        .btn:hover{
-          transform: translateY(-1px);
-          box-shadow: 0 0 34px rgba(40,240,255,0.28), 0 14px 34px rgba(0,0,0,0.42);
-          background: linear-gradient(180deg, rgba(40,240,255,0.12), rgba(40,240,255,0.04));
-        }
-
-        .hint{
-          margin-top: 10px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.58);
-          font-weight: 300;
-        }
-
-        /* PAGE 2 */
-        .p2{
-          min-height:100vh;
-          background:#000;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          padding: 24px 18px 112px;
-          position: relative;
-          overflow:hidden;
-        }
-
-        .p2Fade{
-          position:absolute;
-          inset:0;
-          background:#000;
-          opacity:1;
-          animation: fadeOut 0.7s ease forwards;
-          z-index: 20;
-          pointer-events:none;
-        }
-
-        @keyframes fadeOut{ to { opacity: 0; } }
-
-        .p2Wrap{
-          width: min(820px, 100%);
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 6px;
-          position: relative;
-          z-index: 3;
-        }
-
-        .stage{
-          width: min(780px, 100%);
-          min-height: 150px;
-          margin-top: -10px;
-          position: relative;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:flex-start;
-          gap: 12px;
-        }
-
-        @keyframes titleInOut{
-          0%   { opacity:0; transform: translateY(10px); }
-          18%  { opacity:1; transform: translateY(0); }
-          72%  { opacity:1; transform: translateY(0); }
-          100% { opacity:0; transform: translateY(-8px); }
-        }
-
-        @keyframes meaningInOut{
-          0%   { opacity:0; transform: translateY(10px); }
-          10%  { opacity:1; transform: translateY(0); }
-          92%  { opacity:1; transform: translateY(0); }
-          100% { opacity:0; transform: translateY(-8px); }
-        }
-
-        @keyframes sceneInStay{
-          0%   { opacity:0; transform: translateY(10px); }
-          100% { opacity:1; transform: translateY(0); }
-        }
-
-        /* Requested: titles less bold */
-        .title{
-          font-size: clamp(42px, 9.6vw, 60px);
-          font-weight: 500;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.96);
-          opacity:0;
-        }
-
-        .meaning{
-          font-size: clamp(24px, 6.2vw, 34px);
-          font-weight: 300;
-          color: rgba(255,255,255,0.90);
-          text-shadow: 0 0 22px rgba(40,240,255,0.10);
-          max-width: 780px;
-          line-height: 1.6;
-          opacity:0;
-          padding: 0 6px;
-        }
-
-        .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 1.4s; }
-        .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 4.7s; }
-
-        .scene2Title { animation: titleInOut 2.6s ease forwards; animation-delay: 11.8s; }
-        .scene2Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 15.1s; }
-
-        .scene3Title { animation: titleInOut 2.6s ease forwards; animation-delay: 22.2s; }
-        .scene3Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 25.5s; }
-
-        .finalWrap{
-          position:absolute;
-          left:0; right:0;
-          top: 0;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 14px;
-          opacity:0;
-          animation: sceneInStay 0.85s ease forwards;
-          animation-delay: 32.8s;
-          pointer-events:none;
-        }
-
-        /* TIGHTEN: use a smaller gap for the final row only */
-        .finalRow{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-        }
-
-        /* Extra-tight row spacing for bracket groups */
-        .tightRow{
-          gap: 8px;
-        }
-
-        .finalWord{
-          font-size: 22px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.92);
-          font-weight: 700;
-        }
-
-        .finalSym{
-          font-size: 22px;
-          color: rgba(255,255,255,0.78);
-          font-weight: 700;
-        }
-
-        .finalBalance{
-          font-size: 34px;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          font-weight: 700;
-          color: var(--brass);
-          text-shadow: 0 0 22px var(--brassGlow);
-          padding: 2px 10px;
-          border-radius: 10px;
-          animation: balancePulse 3.6s ease-in-out infinite;
-        }
-
-        .finalLine{
-          font-size: 18px;
-          color: rgba(40,240,255,0.70);
-          line-height: 1.45;
-          max-width: 780px;
-          font-weight: 300;
-        }
-
-        /* The compact parenthetical group:
-           "(" + descriptor + ")" should behave like ONE unit, not 3 spread-out items.
-        */
-        .parenGroup{
-          display:inline-flex;
-          align-items: baseline;
-          gap: 4px; /* << tightens parentheses */
-          white-space: nowrap; /* prevents splitting */
-        }
-
-        .paren{
-          font-size: 22px;
-          color: rgba(255,255,255,0.78);
-          font-weight: 700;
+        .headline {
+          font-size: clamp(26px, 5.2vw, 44px);
+          line-height: 1.12;
+          letter-spacing: -0.02em;
+          font-weight: 500; /* canon: titles 500 */
           margin: 0;
-          padding: 0;
         }
 
-        .parenText{
-          font-size: 20px;
+        .subhead {
+          margin: 0;
+          color: var(--muted);
+          font-size: clamp(14px, 2.2vw, 18px);
+          line-height: 1.6;
+          max-width: 760px;
+        }
+
+        .primaryBtn {
+          background: radial-gradient(120px 80px at 30% 30%, rgba(46,230,214,0.26), rgba(46,230,214,0.06)),
+                      linear-gradient(180deg, rgba(46,230,214,0.16), rgba(46,230,214,0.08));
+          border: 1px solid rgba(46,230,214,0.38);
+          color: var(--text);
+          border-radius: 999px;
+          padding: 14px 18px;
+          cursor: pointer;
+          transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
           font-weight: 500;
           letter-spacing: 0.02em;
-          color: rgba(40,240,255,0.78);
+        }
+        .primaryBtn:hover { border-color: rgba(46,230,214,0.55); background: rgba(46,230,214,0.16); }
+        .primaryBtn:active { transform: scale(0.985); }
+
+        .primaryBtn:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
         }
 
-        .dock{
-          position:absolute;
-          left:0; right:0;
-          bottom: 42px;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 12px;
-          opacity:0;
-          transform: translateY(20px);
-          animation: dockIn 0.55s ease forwards;
-          animation-delay: 35.0s;
-          z-index: 4;
+        .divider {
+          width: min(520px, 92%);
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(46,230,214,0.28), transparent);
+          margin: 10px 0 0;
         }
 
-        @keyframes dockIn{
-          to { opacity:1; transform: translateY(0); }
+        /* PAGE 2 cinematic */
+        .title {
+          font-weight: 500; /* canon */
+          font-size: clamp(22px, 4.2vw, 34px);
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.86);
+          margin: 0;
         }
 
-        .unlockText{
-          font-size: 18px;
-          color: rgba(255,255,255,0.78);
-          max-width: 780px;
-          line-height: 1.5;
-          padding: 0 8px;
+        .cinematicLine {
+          margin: 0;
+          font-size: clamp(18px, 4.8vw, 28px);
+          line-height: 1.35;
+          color: rgba(255,255,255,0.90);
+        }
+
+        .fadeIn {
+          opacity: 0;
+          transform: translateY(6px);
+          animation: fadeInUp 460ms ease forwards;
+        }
+
+        @keyframes fadeInUp {
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .equationRow {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 10px 0 6px;
+          margin-top: 4px;
+        }
+
+        .tightRow { gap: 8px; } /* canon tightening */
+
+        .term {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 6px;
+          padding: 10px 12px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.06);
+          border: 1px solid rgba(255,255,255,0.12);
+          backdrop-filter: blur(8px);
+          max-width: 100%;
+        }
+
+        .eqText {
+          font-weight: 700; /* canon: equation weight */
+          letter-spacing: 0.01em;
+          font-size: clamp(14px, 3.2vw, 16px);
+          color: rgba(255,255,255,0.88);
+          white-space: nowrap;
+        }
+
+        .parenGroup {
+          display: inline-flex;
+          gap: 4px;
+          white-space: nowrap;
+          color: rgba(255,255,255,0.70);
           font-weight: 300;
         }
 
-        .underlineOnly{
-          width: min(560px, 90vw);
+        .plus, .equals {
+          font-weight: 700;
+          color: rgba(46,230,214,0.70);
+          letter-spacing: 0.02em;
+          user-select: none;
+        }
+
+        .plus { font-size: clamp(16px, 4.2vw, 22px); }
+        .equals { font-size: clamp(16px, 4.2vw, 22px); }
+
+        .balanceWord{
+          font-weight: 700; /* canon */
+          font-size: clamp(46px, 9.4vw, 82px); /* slightly bigger */
+          letter-spacing: 0.02em;
+          color: rgba(255,255,255,0.94);
+          text-shadow: 0 0 18px rgba(46,230,214,0.18);
+          will-change: transform;
+          line-height: 1;
+        }
+
+        @keyframes balancePulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.12); }
+        }
+
+        @keyframes balancePulseAI {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.20); } /* larger peak */
+        }
+
+        .balancePulse {
+          animation: balancePulse 1.35s ease-in-out infinite;
+        }
+
+        .balancePulseAI {
+          animation: balancePulseAI 0.95s ease-in-out infinite; /* faster */
+        }
+
+        /* Underline input (Page 2, 3, 4) */
+        .inputRow {
+          width: min(520px, 92%);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 10px;
+          align-items: center;
+        }
+
+        .inputLabel {
+          font-size: 13px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.60);
+        }
+
+        .underlineInput {
+          width: 100%;
           background: transparent;
           border: none;
-          border-bottom: 2px solid rgba(40,240,255,0.46);
-          padding: 18px 10px 12px;
-          color: rgba(255,255,255,0.94);
-          font-size: 22px;
-          font-weight: 500;
-          text-align: center;
           outline: none;
-          caret-color: rgba(40,240,255,0.95);
-          transition: border-color 250ms ease, box-shadow 250ms ease;
-        }
-
-        .underlineOnly:focus{
-          border-bottom-color: rgba(40,240,255,0.92);
-          box-shadow: 0 14px 34px rgba(40,240,255,0.12);
-        }
-
-        /* Pages 3–5 */
-        .pX{
-          min-height:100vh;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          padding: 34px 18px 84px;
-          background:#000;
-          text-align:center;
-        }
-
-        .arcSmall{
-          width: 150px;
-          height: 150px;
-          border-radius: 999px;
-          border: 1.8px solid rgba(0,255,255,0.33);
-          margin: 0 auto 18px;
-          box-shadow: 0 0 22px rgba(0,255,255,0.20);
-          animation: corePulse 3.8s ease-in-out infinite;
-          position: relative;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          overflow:hidden;
-        }
-
-        .arcSmall::before{
-          content:"";
-          position:absolute;
-          inset:-60%;
-          background: radial-gradient(circle, rgba(0,255,255,0.14), transparent 55%);
-          transform: rotate(18deg);
-          opacity: 0.85;
-          animation: slowDrift 10s ease-in-out infinite;
-          pointer-events:none;
-        }
-
-        .line{
-          font-weight: 500;
-          font-size: clamp(24px, 5.6vw, 32px);
-          max-width: 560px;
-          line-height: 1.25;
-          margin: 0 auto 14px;
-          color: rgba(255,255,255,0.94);
-        }
-
-        .whisper{
-          margin-top: 10px;
-          font-size: 14px;
-          color: rgba(255,255,255,0.56);
-          max-width: 460px;
-          line-height: 1.45;
+          padding: 12px 2px 10px;
+          border-bottom: 2px solid rgba(46,230,214,0.34);
+          font-size: clamp(18px, 4.6vw, 22px);
           font-weight: 300;
+          text-align: center;
+          transition: border-color 160ms ease;
+        }
+        .underlineInput:focus { border-bottom-color: rgba(46,230,214,0.60); }
+
+        .helper {
+          max-width: 760px;
+          color: rgba(255,255,255,0.68);
+          font-size: clamp(13px, 2.2vw, 15px);
+          line-height: 1.6;
+          margin: 0;
         }
 
-        .tinyLink{
-          margin-top: 8px;
-          font-size: 12px;
-          color: rgba(0,255,255,0.55);
+        .codeBox {
+          width: min(520px, 92%);
+          border-radius: 14px;
+          padding: 14px 14px;
+          background: rgba(0,0,0,0.22);
+          border: 1px solid rgba(46,230,214,0.22);
+        }
+
+        .codeMono {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          font-size: 18px;
+          letter-spacing: 0.18em;
+          color: rgba(255,255,255,0.92);
+          font-weight: 600;
+          text-align: center;
+          user-select: all;
+        }
+
+        .error {
+          color: rgba(255, 166, 166, 0.96);
           font-weight: 500;
-          letter-spacing: 0.04em;
-          text-transform: lowercase;
+          margin: 0;
         }
 
-        @media (prefers-reduced-motion: reduce){
-          .p2Fade{ display:none; }
-          .scene1Title, .scene1Mean, .scene2Title, .scene2Mean, .scene3Title, .scene3Mean{
-            opacity: 0 !important;
-            animation: none !important;
-          }
-          .finalWrap{
-            opacity: 1 !important;
-            animation: none !important;
-            pointer-events: none !important;
-          }
-          .dock{
-            opacity: 1 !important;
-            animation: none !important;
-            transform: none !important;
-          }
-          .core, .core::before, .finalBalance, .arcSmall, .arcSmall::before{
-            animation: none !important;
-          }
-        }
-
-        @media (max-width: 420px){
-          .core{ width: 236px; height: 236px; }
-          .emblemLg{ width: 188px; height: 188px; }
-          .btn{ width: 100%; max-width: 340px; }
-          .arcSmall{ width: 136px; height: 136px; }
+        /* Motion safety */
+        @media (prefers-reduced-motion: reduce) {
+          .fadeIn { animation: none; opacity: 1; transform: none; }
+          .emblemPulse, .balancePulse, .balancePulseAI { animation: none; }
         }
       `}</style>
 
-      {/* PAGE 1 */}
-      {view === "landing" ? (
-        <main className="p1">
-          <div className="p1Wrap">
-            <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-              />
-            </div>
-
-            <div className="equation" aria-label="Cipher equation">
-              <span className="eqText">Cipher</span>
-              <span className="eqSym">+</span>
-              <span className="eqText">Co-Pilot</span>
-              <span className="eqSym">+</span>
-              <span className="eqText">You</span>
-              <span className="eqSym">=</span>
-              <span className="balance">BALANCE</span>
-            </div>
-
-            <div className="cornerstone">
-              <strong>Are you ready to start decoding?</strong>
-            </div>
-
-            <div className="sub">
-              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
-            </div>
-
-            <button className="btn" type="button" onClick={goToDecode}>
-              Start the private decode
-            </button>
-
-            <div className="hint">No pressure. No shame. Just clarity.</div>
+      <div className="frame">
+        <div className="topBar">
+          <div className="crumb">
+            {page === 1 && "PAGE 1 — LANDING"}
+            {page === 2 && "PAGE 2 — CIPHER + CO-PILOT"}
+            {page === 3 && "PAGE 3 — LAST NAME"}
+            {page === 4 && "PAGE 4 — EMAIL + CODE"}
+            {page === 5 && "PAGE 5 — FINAL GATE"}
           </div>
-        </main>
-      ) : null}
 
-      {/* PAGE 2 */}
-      {view === "p2" ? (
-        <main className="p2" aria-label="Private decode — Page 2">
-          <div className="p2Fade" />
+          <div className="navBtns">
+            {page !== 1 && (
+              <button className="btnGhost" onClick={goBack} type="button">
+                Back
+              </button>
+            )}
+          </div>
+        </div>
 
-          <div className="p2Wrap">
-            <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.92 }}
-              />
-            </div>
-
-            <div className="stage" aria-label="Cinematic sequence">
-              <div className="title scene1Title">Cipher</div>
-              <div className="meaning scene1Mean">
-                The first human intelligence device built to create and figure out unbreakable codes.
-              </div>
-
-              <div className="title scene2Title">Co-Pilot + AI</div>
-              <div className="meaning scene2Mean">AI — built to complete once-impossible tasks in seconds.</div>
-
-              <div className="title scene3Title">You</div>
-              <div className="meaning scene3Mean">
-                You — the most powerful of all three, designed and built around endless potential.
-              </div>
-
-              {/* Tightened bracket groups + tightened spacing */}
-              <div className="finalWrap" aria-label="Final equation">
-                <div className="finalRow tightRow">
-                  <span className="finalWord">Cipher</span>
-                  <span className="parenGroup" aria-label="Cipher descriptor">
-                    <span className="paren">(</span>
-                    <span className="parenText">a pattern reader</span>
-                    <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">+</span>
-
-                  <span className="finalWord">Co-Pilot</span>
-                  <span className="parenGroup" aria-label="Co-Pilot descriptor">
-                    <span className="paren">(</span>
-                    <span className="parenText">your AI power source</span>
-                    <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">+</span>
-
-                  <span className="finalWord">You</span>
-                  <span className="parenGroup" aria-label="You descriptor">
-                    <span className="paren">(</span>
-                    <span className="parenText">endless potential</span>
-                    <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">+</span>
-
-                  <span className="finalWord" style={{ color: "rgba(255,255,255,0.92)" }}>
-                    Your Potential
-                  </span>
-
-                  <span className="finalSym">=</span>
-
-                  <span className="finalBalance">BALANCE</span>
+        <div className="card">
+          <div className="stage">
+            {page === 1 && (
+              <div className="center">
+                <div className="emblemWrap">
+                  <div className="emblemGlow" />
+                  <img
+                    className="emblemImg emblemPulse"
+                    src={brandImageSrc}
+                    alt="BALANCE Cipher Emblem"
+                    onError={(e) => {
+                      // If image path differs, we fail gracefully instead of breaking layout.
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                  />
                 </div>
 
-                <div className="finalLine">This is your AI-powered guide.</div>
+                <h1 className="headline">Are you ready to start decoding?</h1>
+
+                <p className="tagline">
+                  The AI-powered simple cipher that propels you on a path of prosperity and Freedom.
+                </p>
+
+                <div className="divider" />
+
+                <button className="primaryBtn" onClick={startDecoding} type="button">
+                  Start decoding
+                </button>
               </div>
-            </div>
+            )}
+
+            {page === 2 && (
+              <div className="center">
+                {seqStep >= 0 && <p className="title fadeIn">The Cipher Equation</p>}
+
+                {seqStep >= 1 && (
+                  <p className="cinematicLine fadeIn">
+                    Cipher{" "}
+                    <span className="parenGroup">
+                      <span>(</span>
+                      <span>a pattern reader</span>
+                      <span>)</span>
+                    </span>
+                  </p>
+                )}
+
+                {seqStep >= 2 && (
+                  <p className="cinematicLine fadeIn">
+                    Co-Pilot{" "}
+                    <span className="parenGroup">
+                      <span>(</span>
+                      <span>AI reader</span>
+                      <span>)</span>
+                    </span>
+                  </p>
+                )}
+
+                {seqStep >= 3 && (
+                  <p className="cinematicLine fadeIn">Bracketing your AI power source</p>
+                )}
+
+                {/* Final equation row (NO duplicated + Your Potential) */}
+                {seqStep >= 2 && (
+                  <div className={`equationRow tightRow ${seqStep >= 2 ? "fadeIn" : ""}`}>
+                    {/* Cipher */}
+                    {seqStep >= 1 && (
+                      <span className="term">
+                        <span className="eqText">Cipher</span>
+                        <span className="parenGroup">
+                          <span>(</span>
+                          <span>a pattern reader</span>
+                          <span>)</span>
+                        </span>
+                      </span>
+                    )}
+
+                    {seqStep >= 2 && <span className="plus">+</span>}
+
+                    {/* Co-Pilot */}
+                    {seqStep >= 2 && (
+                      <span className="term">
+                        <span className="eqText">Co-Pilot</span>
+                        <span className="parenGroup">
+                          <span>(</span>
+                          <span>AI reader</span>
+                          <span>)</span>
+                        </span>
+                      </span>
+                    )}
+
+                    {seqStep >= 3 && <span className="plus">+</span>}
+
+                    {/* Your AI Power Source */}
+                    {seqStep >= 3 && (
+                      <span className="term">
+                        <span className="eqText">Your AI Power Source</span>
+                      </span>
+                    )}
+
+                    {seqStep >= 4 && <span className="plus">+</span>}
+
+                    {/* You */}
+                    {seqStep >= 4 && (
+                      <span className="term">
+                        <span className="eqText">You</span>
+                      </span>
+                    )}
+
+                    {seqStep >= 5 && <span className="plus">+</span>}
+
+                    {/* Your Potential (single instance only) */}
+                    {seqStep >= 5 && (
+                      <span className="term">
+                        <span className="eqText">Your Potential</span>
+                      </span>
+                    )}
+
+                    {seqStep >= 6 && <span className="equals">=</span>}
+
+                    {/* BALANCE */}
+                    {seqStep >= 6 && (
+                      <span
+                        className={[
+                          "balanceWord",
+                          reduceMotionRef.current ? "" : aiMode ? "balancePulseAI" : "balancePulse",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        BALANCE
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {seqStep >= 7 && (
+                  <div className="inputRow fadeIn">
+                    <div className="inputLabel">First name</div>
+                    <input
+                      className="underlineInput"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder=""
+                      autoFocus
+                      inputMode="text"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && canGoNextFromPage2) goNext();
+                      }}
+                    />
+                    <button
+                      className="primaryBtn"
+                      onClick={goNext}
+                      disabled={!canGoNextFromPage2}
+                      type="button"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {page === 3 && (
+              <div className="center">
+                <h2 className="headline">Last name</h2>
+                <p className="subhead">
+                  Keep it simple. This is just to personalize the handoff.
+                </p>
+
+                <div className="inputRow">
+                  <div className="inputLabel">Last name</div>
+                  <input
+                    className="underlineInput"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    autoFocus
+                    inputMode="text"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && canGoNextFromPage3) goNext();
+                    }}
+                  />
+                  <button
+                    className="primaryBtn"
+                    onClick={goNext}
+                    disabled={!canGoNextFromPage3}
+                    type="button"
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {page === 4 && (
+              <div className="center">
+                <h2 className="headline">Email</h2>
+                <p className="subhead">
+                  This generates your access code for the final gate.
+                </p>
+
+                <div className="inputRow">
+                  <div className="inputLabel">Email</div>
+                  <input
+                    className="underlineInput"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoFocus
+                    inputMode="email"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && canGoNextFromPage4) handleGenerateCode();
+                    }}
+                  />
+
+                  <button
+                    className="primaryBtn"
+                    onClick={handleGenerateCode}
+                    disabled={!canGoNextFromPage4}
+                    type="button"
+                  >
+                    Generate code
+                  </button>
+                </div>
+
+                <p className="helper">
+                  Note: In a production build this would typically email the code. For now, it is generated
+                  and shown on the next screen.
+                </p>
+              </div>
+            )}
+
+            {page === 5 && (
+              <div className="center">
+                <h2 className="headline">Final gate</h2>
+                <p className="subhead">
+                  Paste your code to continue.
+                </p>
+
+                <div className="codeBox">
+                  <div className="inputLabel">Your generated code</div>
+                  <div className="codeMono">{generatedCode ? generatedCode : "—"}</div>
+                </div>
+
+                <div className="inputRow">
+                  <div className="inputLabel">Paste code</div>
+                  <input
+                    className="underlineInput"
+                    value={enteredCode}
+                    onChange={(e) => {
+                      setEnteredCode(e.target.value.toUpperCase());
+                      setCodeError("");
+                    }}
+                    autoFocus
+                    inputMode="text"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleVerifyCode();
+                    }}
+                  />
+
+                  {codeError && <p className="error">{codeError}</p>}
+
+                  <button className="primaryBtn" onClick={handleVerifyCode} type="button">
+                    Unlock and continue
+                  </button>
+
+                  <button
+                    className="btnGhost"
+                    onClick={() => setPage(4)}
+                    type="button"
+                    style={{ marginTop: 8 }}
+                  >
+                    Go back and change email
+                  </button>
+                </div>
+
+                <p className="helper">
+                  If the code is correct, you will be redirected to <span style={{ color: "rgba(46,230,214,0.80)" }}>balancecipher.com/info</span>.
+                </p>
+              </div>
+            )}
           </div>
+        </div>
 
-          <div className="dock">
-            <div className="unlockText">
-              To unlock the next step, enter your first name to unlock the start of your journey.
-            </div>
-
-            <input
-              ref={p2FirstRef}
-              className="underlineOnly"
-              value={p2First}
-              onChange={(e) => setP2First(e.target.value)}
-              onKeyDown={(e) => onEnter(e, submitFirstFromP2)}
-              aria-label="First name"
-              autoComplete="given-name"
-              placeholder=""
-            />
-          </div>
-        </main>
-      ) : null}
-
-      {/* PAGE 3 */}
-      {view === "p3" ? (
-        <main className="pX" aria-label="Private decode — Page 3">
-          <div className="arcSmall" aria-label="Cipher core" />
-          <div className="line">Last name. Make it real.</div>
-
-          <input
-            ref={lastRef}
-            className="underlineOnly"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            onKeyDown={(e) => onEnter(e, submitLast)}
-            aria-label="Last name"
-            autoComplete="family-name"
-            placeholder=""
-          />
-
-          <div className="whisper">Enter confirms. No noise.</div>
-        </main>
-      ) : null}
-
-      {/* PAGE 4 */}
-      {view === "p4" ? (
-        <main className="pX" aria-label="Private decode — Page 4">
-          <div className="arcSmall" aria-label="Cipher core" />
-          <div className="line">Email — your key arrives here, once.</div>
-
-          <input
-            ref={emailRef}
-            className="underlineOnly"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => onEnter(e, submitEmail)}
-            aria-label="Email"
-            autoComplete="email"
-            inputMode="email"
-            placeholder=""
-          />
-
-          <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
-          <div className="tinyLink">balancecipher.com/info</div>
-        </main>
-      ) : null}
-
-      {/* PAGE 5 */}
-      {view === "p5" ? (
-        <main className="pX" aria-label="Private decode — Page 5">
-          <div className="arcSmall" aria-label="Final gate" />
-          <div className="line">You brought the key.</div>
-          <div className="whisper">Paste it below. One time only.</div>
-
-          <input
-            ref={codeRef}
-            className="underlineOnly"
-            value={codeInput}
-            onChange={(e) => setCodeInput(e.target.value)}
-            onKeyDown={(e) => onEnter(e, submitCode)}
-            aria-label="Private cipher code"
-            autoComplete="one-time-code"
-            placeholder=""
-          />
-
-          <div className="whisper">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
-          <div className="tinyLink">balancecipher.com/info</div>
-
-          <div className="whisper" style={{ marginTop: 14 }}>
-            Preview code (temporary):{" "}
-            <strong style={{ fontWeight: 700 }}>
-              {accessCode || "(generated after email entry)"}
-            </strong>
-          </div>
-        </main>
-      ) : null}
-    </>
+        {/* Minimal footer to stabilize layout height and reduce reflow */}
+        <div style={{ textAlign: "center", color: "rgba(255,255,255,0.40)", fontSize: 12, paddingBottom: 8 }}>
+          BALANCE Cipher • Single-file build
+        </div>
+      </div>
+    </div>
   );
 }

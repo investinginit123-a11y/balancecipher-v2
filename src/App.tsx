@@ -48,12 +48,7 @@ export default function App() {
     }
   }
 
-  function showReward(
-    letter: "B" | "A" | "L",
-    copy: string,
-    holdMs: number,
-    after?: () => void
-  ) {
+  function showReward(letter: "B" | "A" | "L", copy: string, holdMs: number, after?: () => void) {
     clearRewardTimer();
     setRewardLetter(letter);
     setRewardCopy(copy);
@@ -95,8 +90,8 @@ export default function App() {
     });
   }
 
-  // STEP 3 (one move):
-  // User gives last name -> receives A (Awakening) -> receives "Break Away" -> auto-advance to email.
+  // STEP 3:
+  // User gives last name -> receives A (Awakening Option 2) -> advance to email.
   function submitLast() {
     if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
@@ -106,12 +101,10 @@ export default function App() {
 
     showReward(
       "A",
-      "When was the last time you felt a shift inside you, and you knew you couldn’t go back?\nNot because life got easier. Because you finally saw it.",
+      "When was the last time you felt a shift inside you—and you knew you couldn’t go back?\nNot because life got easier. Because you finally saw it.",
       2300,
       () => {
-        showReward("A", "Your full name just unlocked Break Away.", 1250, () => {
-          goTo("p4");
-        });
+        goTo("p4");
       }
     );
   }
@@ -165,6 +158,11 @@ export default function App() {
     const t = setTimeout(() => p2FirstRef.current?.focus(), 36500);
     return () => clearTimeout(t);
   }, [view]);
+
+  const canSubmitP2 = !!safeTrimMax(p2First, 40);
+  const canSubmitLast = !!safeTrimMax(lastName, 60);
+  const canSubmitEmail = isValidEmail(email);
+  const canSubmitCode = !!codeInput.trim();
 
   return (
     <>
@@ -432,6 +430,17 @@ export default function App() {
           background: linear-gradient(180deg, rgba(40,240,255,0.12), rgba(40,240,255,0.04));
         }
 
+        .btn:disabled{
+          opacity: 0.55;
+          cursor: not-allowed;
+          transform: none !important;
+          box-shadow: 0 0 18px rgba(40,240,255,0.10), 0 10px 26px rgba(0,0,0,0.30);
+        }
+
+        .btnWide{
+          width: min(560px, 90vw);
+        }
+
         .hint{
           margin-top: 10px;
           font-size: 13px;
@@ -447,7 +456,7 @@ export default function App() {
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          padding: 24px 18px 112px;
+          padding: 24px 18px 132px;
           position: relative;
           overflow:hidden;
         }
@@ -685,21 +694,40 @@ export default function App() {
           text-align:center;
         }
 
-        .roadmapLine{
-          margin-top: 14px;
+        .bHeader{
+          margin-top: 18px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          gap: 4px;
+        }
+
+        .bLetter{
+          font-size: clamp(88px, 20vw, 170px);
+          line-height: 0.90;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: rgba(255,255,255,0.96);
+          text-shadow: 0 0 26px rgba(40,240,255,0.14);
+          margin: 0;
+          padding: 0;
+        }
+
+        .bSubline{
           font-size: 16px;
-          letter-spacing: 0.10em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           font-weight: 700;
           color: rgba(255,255,255,0.86);
+          margin-top: 2px;
         }
 
         .breakTitle{
           font-weight: 500;
-          font-size: clamp(24px, 5.6vw, 32px);
+          font-size: clamp(24px, 5.8vw, 34px);
           max-width: 760px;
           line-height: 1.25;
-          margin: 8px auto 10px;
+          margin: 10px auto 10px;
           color: rgba(255,255,255,0.94);
           text-shadow: 0 0 22px rgba(40,240,255,0.08);
         }
@@ -714,7 +742,7 @@ export default function App() {
           margin: 6px auto 14px;
           display:flex;
           flex-direction:column;
-          gap: 6px;
+          gap: 8px;
         }
 
         .breakItem{
@@ -734,7 +762,7 @@ export default function App() {
         }
 
         .breakCloser{
-          margin-top: 8px;
+          margin-top: 10px;
           font-size: clamp(16px, 4.2vw, 20px);
           color: rgba(40,240,255,0.70);
           font-weight: 500;
@@ -742,7 +770,16 @@ export default function App() {
           text-shadow: 0 0 20px rgba(40,240,255,0.10);
           opacity: 0;
           animation: breakItemIn 420ms ease forwards;
-          animation-delay: 980ms;
+          animation-delay: 920ms;
+        }
+
+        .ctaStack{
+          width: min(560px, 90vw);
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          gap: 10px;
+          margin-top: 14px;
         }
 
         .stepInstruction{
@@ -921,10 +958,8 @@ export default function App() {
           </div>
 
           <div className="dock">
-            <div className="unlockText">
-              To unlock the next step, simply put your first name here to start your journey.
-            </div>
-            <div className="unlockSub">Please enter to continue</div>
+            <div className="unlockText">To unlock the next step, put your first name here.</div>
+            <div className="unlockSub">Then tap Continue.</div>
 
             <input
               ref={p2FirstRef}
@@ -937,6 +972,16 @@ export default function App() {
               placeholder=""
               disabled={rewardOn}
             />
+
+            <button
+              className="btn btnWide"
+              type="button"
+              onClick={submitFirstFromP2}
+              disabled={rewardOn || !canSubmitP2}
+              aria-label="Continue to Break Free"
+            >
+              Continue
+            </button>
           </div>
         </main>
       ) : null}
@@ -953,48 +998,58 @@ export default function App() {
             />
           </div>
 
-          <div className="roadmapLine">B is the beginning of the roadmap.</div>
-          <div className="breakTitle">Imagine breaking free.</div>
-
-          <div className="breakList" aria-label="Break Free imagery">
-            <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
-              Breaking free from the <strong>chaos</strong>.
-            </div>
-            <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
-              Breaking free from the <strong>stress</strong>.
-            </div>
-            <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
-              Breaking free from not knowing what you did to get <strong>here</strong>.
-            </div>
-            <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
-              Breaking free from the <strong>doubt</strong>.
-            </div>
-            <div className="breakItem" style={{ ["--d" as any]: "600ms" }}>
-              Breaking free from the <strong>fear</strong>.
-            </div>
-            <div className="breakItem" style={{ ["--d" as any]: "720ms" }}>
-              Breaking free from the <strong>misunderstandings</strong>.
-            </div>
-            <div className="breakItem" style={{ ["--d" as any]: "840ms" }}>
-              Breaking free from where you are <strong>today</strong>.
-            </div>
-
-            <div className="breakCloser">Imagine what that would feel like.</div>
+          <div className="bHeader" aria-label="Break Free header">
+            <div className="bLetter">B</div>
+            <div className="bSubline">Break Free</div>
           </div>
 
-          <input
-            ref={lastRef}
-            className="underlineOnly"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            onKeyDown={(e) => onEnter(e, submitLast)}
-            aria-label="Last name"
-            autoComplete="family-name"
-            placeholder=""
-            disabled={rewardOn}
-          />
+          <div className="breakTitle">These are the first steps of Freedom.</div>
 
-          <div className="stepInstruction">Enter last name to take one more step.</div>
+          <div className="breakList" aria-label="Break Free bullets">
+            <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
+              Break free from the <strong>chaos</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
+              Break free from the <strong>stress</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
+              Break free from the <strong>fog</strong> that keeps you guessing.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
+              Break free from the <strong>doubt</strong> and the <strong>fear</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "600ms" }}>
+              Break free from repeating the same <strong>cycle</strong>.
+            </div>
+
+            <div className="breakCloser">Imagine how it would feel to finally break free.</div>
+          </div>
+
+          <div className="ctaStack" aria-label="Last name entry">
+            <input
+              ref={lastRef}
+              className="underlineOnly"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              onKeyDown={(e) => onEnter(e, submitLast)}
+              aria-label="Last name"
+              autoComplete="family-name"
+              placeholder=""
+              disabled={rewardOn}
+            />
+
+            <button
+              className="btn btnWide"
+              type="button"
+              onClick={submitLast}
+              disabled={rewardOn || !canSubmitLast}
+              aria-label="Continue to map delivery"
+            >
+              Continue
+            </button>
+          </div>
+
+          <div className="stepInstruction">These are the first steps of Freedom. Enter your last name.</div>
           <div className="stepConfirm">Confirmed. No noise.</div>
         </main>
       ) : null}
@@ -1016,20 +1071,32 @@ export default function App() {
             Where do you want the full map delivered?
           </div>
 
-          <input
-            ref={emailRef}
-            className="underlineOnly"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => onEnter(e, submitEmail)}
-            aria-label="Email"
-            autoComplete="email"
-            inputMode="email"
-            placeholder=""
-            disabled={rewardOn}
-          />
+          <div className="ctaStack" aria-label="Email entry">
+            <input
+              ref={emailRef}
+              className="underlineOnly"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => onEnter(e, submitEmail)}
+              aria-label="Email"
+              autoComplete="email"
+              inputMode="email"
+              placeholder=""
+              disabled={rewardOn}
+            />
 
-          <div className="stepInstruction">Please enter to continue.</div>
+            <button
+              className="btn btnWide"
+              type="button"
+              onClick={submitEmail}
+              disabled={rewardOn || !canSubmitEmail}
+              aria-label="Continue to final gate"
+            >
+              Continue
+            </button>
+          </div>
+
+          <div className="stepInstruction">Enter your email, then Continue.</div>
           <div className="stepConfirm">Confirmed. No noise.</div>
           <div className="tinyLink">balancecipher.com/info</div>
         </main>
@@ -1055,17 +1122,29 @@ export default function App() {
             Paste it below. One time only.
           </div>
 
-          <input
-            ref={codeRef}
-            className="underlineOnly"
-            value={codeInput}
-            onChange={(e) => setCodeInput(e.target.value)}
-            onKeyDown={(e) => onEnter(e, submitCode)}
-            aria-label="Private cipher code"
-            autoComplete="one-time-code"
-            placeholder=""
-            disabled={rewardOn}
-          />
+          <div className="ctaStack" aria-label="Code entry">
+            <input
+              ref={codeRef}
+              className="underlineOnly"
+              value={codeInput}
+              onChange={(e) => setCodeInput(e.target.value)}
+              onKeyDown={(e) => onEnter(e, submitCode)}
+              aria-label="Private cipher code"
+              autoComplete="one-time-code"
+              placeholder=""
+              disabled={rewardOn}
+            />
+
+            <button
+              className="btn btnWide"
+              type="button"
+              onClick={submitCode}
+              disabled={rewardOn || !canSubmitCode}
+              aria-label="Submit code and enter"
+            >
+              Enter
+            </button>
+          </div>
 
           <div className="stepConfirm">First 500 get Chapter One instantly. Everyone else waits 72 hours.</div>
           <div className="tinyLink">balancecipher.com/info</div>

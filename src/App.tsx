@@ -96,7 +96,7 @@ export default function App() {
   }
 
   // STEP 3 (one move):
-  // User gives last name -> receives A + Awakening line -> then Break Away sentence -> auto-advance to email.
+  // User gives last name -> receives A (Awakening) -> receives "Break Away" -> auto-advance to email.
   function submitLast() {
     if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
@@ -106,8 +106,8 @@ export default function App() {
 
     showReward(
       "A",
-      "True Awakening.\nNow you know where you want to go — and how you want to get there.",
-      1750,
+      "When was the last time you felt a shift inside you, and you knew you couldn’t go back?\nNot because life got easier. Because you finally saw it.",
+      2300,
       () => {
         showReward("A", "Your full name just unlocked Break Away.", 1250, () => {
           goTo("p4");
@@ -228,19 +228,6 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
-        @keyframes balancePulse{
-          0%, 100%{
-            transform: scale(1.00);
-            opacity: 0.92;
-            text-shadow: 0 0 16px rgba(215,176,107,0.26);
-          }
-          50%{
-            transform: scale(1.06);
-            opacity: 1;
-            text-shadow: 0 0 24px rgba(215,176,107,0.46);
-          }
-        }
-
         /* PAGE 2 AI-mode pulse: bigger + faster than standard */
         @keyframes balancePulseAI{
           0%, 100%{
@@ -290,10 +277,10 @@ export default function App() {
 
         .rewardCopy{
           margin-top: 12px;
-          max-width: min(760px, 92vw);
+          max-width: min(820px, 94vw);
           white-space: pre-line;
           font-size: clamp(18px, 4.6vw, 26px);
-          line-height: 1.4;
+          line-height: 1.45;
           color: rgba(255,255,255,0.90);
           font-weight: 300;
           letter-spacing: 0.01em;
@@ -367,6 +354,89 @@ export default function App() {
           height: 178px;
           opacity: 0.92;
           filter: drop-shadow(0 0 18px rgba(40,240,255,0.58));
+        }
+
+        .equation{
+          display:flex;
+          align-items: baseline;
+          justify-content:center;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 6px;
+        }
+
+        .eqText{
+          font-size: 16px;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.86);
+          font-weight: 700;
+        }
+
+        .eqSym{
+          font-size: 18px;
+          color: rgba(255,255,255,0.62);
+          font-weight: 700;
+        }
+
+        .balance{
+          font-size: 24px;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: var(--brass);
+          padding: 2px 6px;
+          border-radius: 10px;
+          animation: balancePulseAI 3.6s ease-in-out infinite;
+        }
+
+        .cornerstone{
+          margin-top: 6px;
+          font-size: 15px;
+          color: rgba(255,255,255,0.88);
+          font-weight: 500;
+        }
+
+        .cornerstone strong{
+          font-weight: 700;
+          color: rgba(255,255,255,0.98);
+        }
+
+        .sub{
+          width: min(640px, 100%);
+          color: rgba(255,255,255,0.72);
+          font-size: 16px;
+          line-height: 1.55;
+          margin-top: 8px;
+          font-weight: 300;
+        }
+
+        .btn{
+          padding: 16px 22px;
+          border-radius: 999px;
+          border: 1.5px solid rgba(40,240,255,0.75);
+          color: rgba(255,255,255,0.96);
+          background: linear-gradient(180deg, rgba(40,240,255,0.08), rgba(40,240,255,0.03));
+          box-shadow: 0 0 24px rgba(40,240,255,0.18), 0 12px 30px rgba(0,0,0,0.35);
+          cursor:pointer;
+          font-weight: 700;
+          font-size: 16px;
+          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+          max-width: min(560px, 100%);
+          text-align:center;
+        }
+
+        .btn:hover{
+          transform: translateY(-1px);
+          box-shadow: 0 0 34px rgba(40,240,255,0.28), 0 14px 34px rgba(0,0,0,0.42);
+          background: linear-gradient(180deg, rgba(40,240,255,0.12), rgba(40,240,255,0.04));
+        }
+
+        .hint{
+          margin-top: 10px;
+          font-size: 13px;
+          color: rgba(255,255,255,0.58);
+          font-weight: 300;
         }
 
         /* PAGE 2 */
@@ -719,7 +789,7 @@ export default function App() {
             animation: none !important;
             transform: none !important;
           }
-          .core, .core::before, .finalBalance, .balance{
+          .core, .core::before, .finalBalance{
             animation: none !important;
           }
           .rewardLetter{ animation: none !important; }
@@ -871,7 +941,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 — B / Break Free moment (impactful list) */}
+      {/* PAGE 3 — B / Break Free moment */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="core coreSm" aria-label="Cipher core">

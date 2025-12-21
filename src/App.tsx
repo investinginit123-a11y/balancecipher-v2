@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 
+console.log("[BALANCE DIAG] App.tsx module loaded");
+
 type View = "landing" | "p2" | "p3" | "p4" | "p5";
 type P5Stage = "email" | "code";
 
@@ -222,6 +224,38 @@ export default function App() {
   const canSubmitLast = !!safeTrimMax(lastName, 60);
   const canSubmitEmail = isValidEmail(email);
   const canSubmitCode = !!codeInput.trim();
+
+  // ============================================================
+  // DIAG MODE (TEMPORARY)
+  // If you can see this screen on Vercel, React is mounting.
+  // Also confirm Console shows: [BALANCE DIAG] App.tsx module loaded
+  // ============================================================
+  const DIAG_MODE = true; // temporary
+
+  if (DIAG_MODE) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          padding: 24,
+          background: "#fff",
+          color: "#111",
+          textAlign: "left",
+          fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif',
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: 28, fontWeight: 900 }}>BALANCE Health Check</h1>
+        <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.5 }}>
+          If you can see this, React is mounting and Vercel is serving/executing the JS bundle.
+        </p>
+        <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.5 }}>
+          Next proof: open DevTools Console and confirm you see:
+          <br />
+          <strong>[BALANCE DIAG] App.tsx module loaded</strong>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -967,7 +1001,13 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
+              <img
+                className="emblemLg"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.92 }}
+              />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
@@ -1108,7 +1148,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.9 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1155,7 +1201,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.88 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Learning header">

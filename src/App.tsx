@@ -109,7 +109,6 @@ export default function App() {
       "True Awakening.\nNow you know where you want to go — and how you want to get there.",
       1750,
       () => {
-        // Keep the original Break Away line as the “chapter title” payoff:
         showReward("A", "Your full name just unlocked Break Away.", 1250, () => {
           goTo("p4");
         });
@@ -370,89 +369,6 @@ export default function App() {
           filter: drop-shadow(0 0 18px rgba(40,240,255,0.58));
         }
 
-        .equation{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 6px;
-        }
-
-        .eqText{
-          font-size: 16px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.86);
-          font-weight: 700;
-        }
-
-        .eqSym{
-          font-size: 18px;
-          color: rgba(255,255,255,0.62);
-          font-weight: 700;
-        }
-
-        .balance{
-          font-size: 24px;
-          letter-spacing: 0.14em;
-          text-transform: uppercase;
-          font-weight: 700;
-          color: var(--brass);
-          padding: 2px 6px;
-          border-radius: 10px;
-          animation: balancePulse 3.6s ease-in-out infinite;
-        }
-
-        .cornerstone{
-          margin-top: 6px;
-          font-size: 15px;
-          color: rgba(255,255,255,0.88);
-          font-weight: 500;
-        }
-
-        .cornerstone strong{
-          font-weight: 700;
-          color: rgba(255,255,255,0.98);
-        }
-
-        .sub{
-          width: min(640px, 100%);
-          color: rgba(255,255,255,0.72);
-          font-size: 16px;
-          line-height: 1.55;
-          margin-top: 8px;
-          font-weight: 300;
-        }
-
-        .btn{
-          padding: 16px 22px;
-          border-radius: 999px;
-          border: 1.5px solid rgba(40,240,255,0.75);
-          color: rgba(255,255,255,0.96);
-          background: linear-gradient(180deg, rgba(40,240,255,0.08), rgba(40,240,255,0.03));
-          box-shadow: 0 0 24px rgba(40,240,255,0.18), 0 12px 30px rgba(0,0,0,0.35);
-          cursor:pointer;
-          font-weight: 700;
-          font-size: 16px;
-          transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-          max-width: min(560px, 100%);
-          text-align:center;
-        }
-
-        .btn:hover{
-          transform: translateY(-1px);
-          box-shadow: 0 0 34px rgba(40,240,255,0.28), 0 14px 34px rgba(0,0,0,0.42);
-          background: linear-gradient(180deg, rgba(40,240,255,0.12), rgba(40,240,255,0.04));
-        }
-
-        .hint{
-          margin-top: 10px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.58);
-          font-weight: 300;
-        }
-
         /* PAGE 2 */
         .p2{
           min-height:100vh;
@@ -699,7 +615,6 @@ export default function App() {
           text-align:center;
         }
 
-        /* Step 3 copy block */
         .roadmapLine{
           margin-top: 14px;
           font-size: 16px;
@@ -709,13 +624,55 @@ export default function App() {
           color: rgba(255,255,255,0.86);
         }
 
-        .stepPrompt{
+        .breakTitle{
           font-weight: 500;
           font-size: clamp(24px, 5.6vw, 32px);
-          max-width: 720px;
+          max-width: 760px;
           line-height: 1.25;
           margin: 8px auto 10px;
           color: rgba(255,255,255,0.94);
+          text-shadow: 0 0 22px rgba(40,240,255,0.08);
+        }
+
+        @keyframes breakItemIn {
+          0%   { opacity: 0; transform: translateY(10px); filter: blur(1px); }
+          100% { opacity: 1; transform: translateY(0); filter: blur(0px); }
+        }
+
+        .breakList{
+          width: min(720px, 92vw);
+          margin: 6px auto 14px;
+          display:flex;
+          flex-direction:column;
+          gap: 6px;
+        }
+
+        .breakItem{
+          opacity: 0;
+          animation: breakItemIn 420ms ease forwards;
+          animation-delay: var(--d, 0ms);
+          font-size: clamp(16px, 4.2vw, 20px);
+          line-height: 1.35;
+          color: rgba(255,255,255,0.82);
+          font-weight: 300;
+          letter-spacing: 0.01em;
+        }
+
+        .breakItem strong{
+          font-weight: 700;
+          color: rgba(255,255,255,0.92);
+        }
+
+        .breakCloser{
+          margin-top: 8px;
+          font-size: clamp(16px, 4.2vw, 20px);
+          color: rgba(40,240,255,0.70);
+          font-weight: 500;
+          letter-spacing: 0.01em;
+          text-shadow: 0 0 20px rgba(40,240,255,0.10);
+          opacity: 0;
+          animation: breakItemIn 420ms ease forwards;
+          animation-delay: 980ms;
         }
 
         .stepInstruction{
@@ -766,12 +723,12 @@ export default function App() {
             animation: none !important;
           }
           .rewardLetter{ animation: none !important; }
+          .breakItem, .breakCloser{ opacity: 1 !important; animation: none !important; }
         }
 
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
-          .btn{ width: 100%; max-width: 340px; }
           .unlockText{ font-size: 20px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
@@ -914,7 +871,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 — STEP 3 (Option B: roadmap line + Break Free feeling) */}
+      {/* PAGE 3 — B / Break Free moment (impactful list) */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="core coreSm" aria-label="Cipher core">
@@ -927,7 +884,33 @@ export default function App() {
           </div>
 
           <div className="roadmapLine">B is the beginning of the roadmap.</div>
-          <div className="stepPrompt">Imagine how good it would feel to finally break free.</div>
+          <div className="breakTitle">Imagine breaking free.</div>
+
+          <div className="breakList" aria-label="Break Free imagery">
+            <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
+              Breaking free from the <strong>chaos</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
+              Breaking free from the <strong>stress</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
+              Breaking free from not knowing what you did to get <strong>here</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
+              Breaking free from the <strong>doubt</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "600ms" }}>
+              Breaking free from the <strong>fear</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "720ms" }}>
+              Breaking free from the <strong>misunderstandings</strong>.
+            </div>
+            <div className="breakItem" style={{ ["--d" as any]: "840ms" }}>
+              Breaking free from where you are <strong>today</strong>.
+            </div>
+
+            <div className="breakCloser">Imagine what that would feel like.</div>
+          </div>
 
           <input
             ref={lastRef}
@@ -946,7 +929,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 4 — STEP 4 (email / L receivable on submit) */}
+      {/* PAGE 4 — Email */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="core coreSm" aria-label="Cipher core">
@@ -959,7 +942,9 @@ export default function App() {
             />
           </div>
 
-          <div className="stepPrompt">Where do you want the full map delivered?</div>
+          <div className="breakTitle" style={{ marginTop: 14 }}>
+            Where do you want the full map delivered?
+          </div>
 
           <input
             ref={emailRef}
@@ -993,7 +978,9 @@ export default function App() {
             />
           </div>
 
-          <div className="stepPrompt">You brought the key.</div>
+          <div className="breakTitle" style={{ marginTop: 14 }}>
+            You brought the key.
+          </div>
           <div className="stepConfirm" style={{ marginTop: 0 }}>
             Paste it below. One time only.
           </div>

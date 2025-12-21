@@ -129,7 +129,6 @@ export default function App() {
 
   function continueFromAwakening() {
     if (rewardOn) return;
-    // Page 5 is where we collect email + code gate
     setP5Stage("email");
     goTo("p5");
   }
@@ -146,8 +145,8 @@ export default function App() {
     const nextCode = accessCode || generateAccessCode();
     if (!accessCode) setAccessCode(nextCode);
 
-    // L receivable (kept short; the full meaning lives on the page)
-    showReward("L", "Learning unlocked.", 1050, () => {
+    // Prompt A framing: blueprint/map unlock (not "key" framing)
+    showReward("L", "Map delivery unlocked.", 1150, () => {
       setP5Stage("code");
       setTimeout(() => codeRef.current?.focus(), 80);
     });
@@ -882,12 +881,7 @@ export default function App() {
         <main className="p1">
           <div className="p1Wrap">
             <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-              />
+              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" />
             </div>
 
             <div className="equation" aria-label="Cipher equation">
@@ -1000,13 +994,7 @@ export default function App() {
               disabled={rewardOn}
             />
 
-            <button
-              className="btn btnWide"
-              type="button"
-              onClick={submitFirstFromP2}
-              disabled={rewardOn || !canSubmitP2}
-              aria-label="Continue to Break Free"
-            >
+            <button className="btn btnWide" type="button" onClick={submitFirstFromP2} disabled={rewardOn || !canSubmitP2}>
               Continue
             </button>
           </div>
@@ -1017,12 +1005,7 @@ export default function App() {
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="core coreSm" aria-label="Cipher core">
-            <img
-              className="emblemLg emblemSm"
-              src="/brand/cipher-emblem.png"
-              alt="BALANCE Cipher Core"
-              loading="eager"
-            />
+            <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" />
           </div>
 
           <div className="letterHeader" aria-label="Break Free header">
@@ -1065,13 +1048,7 @@ export default function App() {
               disabled={rewardOn}
             />
 
-            <button
-              className="btn btnWide"
-              type="button"
-              onClick={submitLast}
-              disabled={rewardOn || !canSubmitLast}
-              aria-label="Continue to Awakening"
-            >
+            <button className="btn btnWide" type="button" onClick={submitLast} disabled={rewardOn || !canSubmitLast}>
               Continue
             </button>
           </div>
@@ -1132,7 +1109,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 5 — L / Learning + Email + Code Gate */}
+      {/* PAGE 5 — L / Learning + Email + Bridge Code (PROMPT A FRAMING) */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="core coreSm" aria-label="Cipher core">
@@ -1152,7 +1129,6 @@ export default function App() {
 
           {p5Stage === "email" ? (
             <>
-              {/* Two locked anchor lines (built around them) */}
               <div className="breakTitle">
                 Learning is where the Cipher starts learning you—so your map can finally fit your life.
               </div>
@@ -1192,13 +1168,7 @@ export default function App() {
                   disabled={rewardOn}
                 />
 
-                <button
-                  className="btn btnWide"
-                  type="button"
-                  onClick={submitEmailFromP5}
-                  disabled={rewardOn || !canSubmitEmail}
-                  aria-label="Continue to code entry"
-                >
+                <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail}>
                   Continue
                 </button>
               </div>
@@ -1208,36 +1178,35 @@ export default function App() {
             </>
           ) : (
             <>
+              {/* PROMPT A TRANSITION: blueprint/map projection + bridge framing */}
               <div className="breakTitle" style={{ marginTop: 14 }}>
-                You brought the key.
+                Your map is opening.
               </div>
 
               <div className="stepConfirm" style={{ marginTop: 0 }}>
-                Paste it below to continue.
+                This code is the bridge between the decode and the app.
               </div>
 
-              <div className="ctaStack" aria-label="Code entry">
+              <div className="ctaStack" aria-label="Bridge code entry">
                 <input
                   ref={codeRef}
                   className="underlineOnly"
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
                   onKeyDown={(e) => onEnter(e, submitCode)}
-                  aria-label="Private cipher code"
+                  aria-label="Bridge code"
                   autoComplete="one-time-code"
                   placeholder=""
                   disabled={rewardOn}
                 />
 
-                <button
-                  className="btn btnWide"
-                  type="button"
-                  onClick={submitCode}
-                  disabled={rewardOn || !canSubmitCode}
-                  aria-label="Submit code and enter"
-                >
-                  Enter
+                <button className="btn btnWide" type="button" onClick={submitCode} disabled={rewardOn || !canSubmitCode}>
+                  Cross the bridge
                 </button>
+              </div>
+
+              <div className="stepConfirm" style={{ marginTop: 10 }}>
+                One clean step. No noise.
               </div>
 
               <div className="tinyLink">balancecipher.com/info</div>

@@ -35,6 +35,10 @@ export default function App() {
   const emailRef = useRef<HTMLInputElement | null>(null);
   const codeRef = useRef<HTMLInputElement | null>(null);
 
+  // Page 4: Learning gate (must happen before email)
+  const [learningAccepted, setLearningAccepted] = useState(false);
+  const [learningDeclined, setLearningDeclined] = useState(false);
+
   // Receivable overlay (B / A / L)
   const [rewardOn, setRewardOn] = useState(false);
   const [rewardLetter, setRewardLetter] = useState<"B" | "A" | "L" | null>(null);
@@ -73,6 +77,13 @@ export default function App() {
 
   function goToDecode() {
     setP2First("");
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setAccessCode("");
+    setCodeInput("");
+    setLearningAccepted(false);
+    setLearningDeclined(false);
     goTo("p2");
   }
 
@@ -91,7 +102,7 @@ export default function App() {
   }
 
   // STEP 3:
-  // User gives last name -> receives A (Awakening Option 2) -> advance to email.
+  // User gives last name -> receives A (Awakening Option 2) -> advance to Learning gate.
   function submitLast() {
     if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
@@ -104,15 +115,41 @@ export default function App() {
       "When was the last time you felt a shift inside you—and you knew you couldn’t go back?\nNot because life got easier. Because you finally saw it.",
       2300,
       () => {
+        setLearningAccepted(false);
+        setLearningDeclined(false);
         goTo("p4");
       }
     );
   }
 
-  // STEP 4 (email):
-  // User gives email -> receives L + awakened/learn prompt -> then code gate.
+  // Page 4: user must accept Learning before email appears.
+  function acceptLearning() {
+    if (rewardOn) return;
+    setLearningAccepted(true);
+    setLearningDeclined(false);
+
+    showReward(
+      "L",
+      "You just unlocked Learning.\nNow the Cipher can turn your signals into one clear next step.",
+      1550,
+      () => {
+        // Focus email shortly after the overlay drops
+        setTimeout(() => emailRef.current?.focus(), 80);
+      }
+    );
+  }
+
+  function declineLearning() {
+    if (rewardOn) return;
+    setLearningDeclined(true);
+    setLearningAccepted(false);
+  }
+
+  // STEP 4 (email) — only after Learning is accepted.
   function submitEmail() {
     if (rewardOn) return;
+    if (!learningAccepted) return;
+
     const em = safeTrimMax(email, 120);
     if (!isValidEmail(em)) return;
 
@@ -121,9 +158,10 @@ export default function App() {
     const nextCode = accessCode || generateAccessCode();
     if (!accessCode) setAccessCode(nextCode);
 
-    showReward("L", "Do you feel like you’ve been awakened?\nAre you ready to learn more?", 1550, () => {
+    // No L letter here (already earned). Keep it fast.
+    setTimeout(() => {
       goTo("p5");
-    });
+    }, 120);
   }
 
   function submitCode() {
@@ -147,10 +185,15 @@ export default function App() {
   // Focus management for Pages 3–5
   useEffect(() => {
     if (rewardOn) return;
+
     if (view === "p3") setTimeout(() => lastRef.current?.focus(), 60);
-    if (view === "p4") setTimeout(() => emailRef.current?.focus(), 60);
+
+    if (view === "p4") {
+      if (learningAccepted) setTimeout(() => emailRef.current?.focus(), 80);
+    }
+
     if (view === "p5") setTimeout(() => codeRef.current?.focus(), 60);
-  }, [view, rewardOn]);
+  }, [view, rewardOn, learningAccepted]);
 
   // Focus Page 2 input after the full “gift” sequence completes.
   useEffect(() => {
@@ -810,6 +853,22 @@ export default function App() {
           text-transform: lowercase;
         }
 
+        .divider{
+          width: min(620px, 92vw);
+          height: 1px;
+          background: rgba(255,255,255,0.10);
+          margin: 18px auto 8px;
+        }
+
+        .ghostNote{
+          width: min(720px, 92vw);
+          font-size: 13px;
+          color: rgba(255,255,255,0.58);
+          line-height: 1.45;
+          font-weight: 300;
+          margin-top: 6px;
+        }
+
         @media (prefers-reduced-motion: reduce){
           .p2Fade{ display:none; }
           .scene1Title, .scene1Mean, .scene2Title, .scene2Mean, .scene3Title, .scene3Mean{
@@ -921,7 +980,7 @@ export default function App() {
               </div>
 
               <div className="finalWrap" aria-label="Final equation">
-                <div className="finalRow tightRow">
+                <div className="finalRow" style={{ gap: 8 }}>
                   <span className="finalWord">Cipher</span>
                   <span className="parenGroup" aria-label="Cipher descriptor">
                     <span className="paren">(</span>
@@ -1043,7 +1102,7 @@ export default function App() {
               type="button"
               onClick={submitLast}
               disabled={rewardOn || !canSubmitLast}
-              aria-label="Continue to map delivery"
+              aria-label="Continue to learning"
             >
               Continue
             </button>
@@ -1054,7 +1113,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 4 — Email */}
+      {/* PAGE 4 — L / Learning gate, then email */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="core coreSm" aria-label="Cipher core">
@@ -1067,38 +1126,90 @@ export default function App() {
             />
           </div>
 
-          <div className="breakTitle" style={{ marginTop: 14 }}>
-            Where do you want the full map delivered?
-          </div>
+          {!learningAccepted ? (
+            <>
+              <div className="bHeader" aria-label="Learning header">
+                <div className="bLetter">L</div>
+                <div className="bSubline">Learning</div>
+              </div>
 
-          <div className="ctaStack" aria-label="Email entry">
-            <input
-              ref={emailRef}
-              className="underlineOnly"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onKeyDown={(e) => onEnter(e, submitEmail)}
-              aria-label="Email"
-              autoComplete="email"
-              inputMode="email"
-              placeholder=""
-              disabled={rewardOn}
-            />
+              <div className="breakTitle">This is where the Cipher starts learning you.</div>
 
-            <button
-              className="btn btnWide"
-              type="button"
-              onClick={submitEmail}
-              disabled={rewardOn || !canSubmitEmail}
-              aria-label="Continue to final gate"
-            >
-              Continue
-            </button>
-          </div>
+              <div className="breakList" aria-label="Learning bullets">
+                <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
+                  It learns what’s <strong>pressuring</strong> you.
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
+                  It learns what you <strong>avoid</strong> (and why).
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
+                  It learns what you’ve already <strong>tried</strong>.
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
+                  It learns what’s <strong>realistic this week</strong>.
+                </div>
+                <div className="breakItem" style={{ ["--d" as any]: "600ms" }}>
+                  It returns <strong>one clear next step</strong>.
+                </div>
 
-          <div className="stepInstruction">Enter your email, then Continue.</div>
-          <div className="stepConfirm">Confirmed. No noise.</div>
-          <div className="tinyLink">balancecipher.com/info</div>
+                <div className="breakCloser">If you’re willing to learn, it’s willing to work.</div>
+              </div>
+
+              <div className="stepInstruction">Are you willing to start learning?</div>
+              <div className="ctaStack" aria-label="Learning decision">
+                <button className="btn btnWide" type="button" onClick={acceptLearning} disabled={rewardOn}>
+                  Yes—start learning
+                </button>
+
+                <button className="btn btnWide" type="button" onClick={declineLearning} disabled={rewardOn}>
+                  Not yet
+                </button>
+              </div>
+
+              {learningDeclined ? (
+                <div className="ghostNote" aria-label="Not yet message">
+                  Confirmed. No pressure. When you’re ready, the learning step will still be here.
+                </div>
+              ) : (
+                <div className="stepConfirm">Confirmed. No noise.</div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="breakTitle" style={{ marginTop: 14 }}>
+                Where do you want the full map delivered?
+              </div>
+
+              <div className="ctaStack" aria-label="Email entry">
+                <input
+                  ref={emailRef}
+                  className="underlineOnly"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => onEnter(e, submitEmail)}
+                  aria-label="Email"
+                  autoComplete="email"
+                  inputMode="email"
+                  placeholder=""
+                  disabled={rewardOn}
+                />
+
+                <button
+                  className="btn btnWide"
+                  type="button"
+                  onClick={submitEmail}
+                  disabled={rewardOn || !canSubmitEmail}
+                  aria-label="Continue to final gate"
+                >
+                  Continue
+                </button>
+              </div>
+
+              <div className="stepInstruction">The Cipher learns your pattern so your next step can be simple.</div>
+              <div className="stepConfirm">Confirmed. No noise.</div>
+              <div className="tinyLink">balancecipher.com/info</div>
+            </>
+          )}
         </main>
       ) : null}
 

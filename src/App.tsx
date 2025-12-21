@@ -608,27 +608,6 @@ export default function App() {
           color: rgba(40,240,255,0.78);
         }
 
-        .bracketGroup{
-          display:inline-flex;
-          align-items: baseline;
-          gap: 4px;
-          white-space: nowrap;
-        }
-
-        .bracket{
-          font-size: 22px;
-          color: rgba(255,255,255,0.78);
-          font-weight: 700;
-        }
-
-        .bracketText{
-          font-size: 22px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          font-weight: 700;
-          color: rgba(255,255,255,0.92);
-        }
-
         .dock{
           position:absolute;
           left:0; right:0;
@@ -648,13 +627,23 @@ export default function App() {
           to { opacity:1; transform: translateY(0); }
         }
 
+        /* Updated unlock text: larger + bold */
         .unlockText{
-          font-size: 18px;
-          color: rgba(255,255,255,0.78);
+          font-size: 22px;
+          color: rgba(255,255,255,0.90);
           max-width: 780px;
-          line-height: 1.5;
+          line-height: 1.45;
           padding: 0 8px;
-          font-weight: 300;
+          font-weight: 700;
+          letter-spacing: 0.01em;
+        }
+
+        .unlockSub{
+          margin-top: 2px;
+          font-size: 14px;
+          color: rgba(255,255,255,0.62);
+          font-weight: 500;
+          letter-spacing: 0.04em;
         }
 
         .underlineOnly{
@@ -769,6 +758,7 @@ export default function App() {
           .emblemLg{ width: 188px; height: 188px; }
           .btn{ width: 100%; max-width: 340px; }
           .arcSmall{ width: 136px; height: 136px; }
+          .unlockText{ font-size: 20px; }
         }
       `}</style>
 
@@ -852,7 +842,7 @@ export default function App() {
                 You are the most powerful of all three, and designed and built for endless potential.
               </div>
 
-              {/* Tightened bracket groups + tightened spacing */}
+              {/* FIXED SEQUENCING (no extra "AI reader" layer) */}
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow tightRow">
                   <span className="finalWord">Cipher</span>
@@ -864,19 +854,11 @@ export default function App() {
 
                   <span className="finalSym">+</span>
 
-                  <span className="finalWord">Co-Pilot</span>
-                  <span className="parenGroup" aria-label="Co-Pilot descriptor">
+                  <span className="finalWord">AI Co-Pilot</span>
+                  <span className="parenGroup" aria-label="AI Co-Pilot descriptor">
                     <span className="paren">(</span>
-                    <span className="parenText">AI reader</span>
+                    <span className="parenText">your AI power source</span>
                     <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">+</span>
-
-                  <span className="bracketGroup" aria-label="AI power source term">
-                    <span className="bracket">[</span>
-                    <span className="bracketText">Your AI Power Source</span>
-                    <span className="bracket">]</span>
                   </span>
 
                   <span className="finalSym">+</span>
@@ -900,8 +882,9 @@ export default function App() {
 
           <div className="dock">
             <div className="unlockText">
-              To unlock the next step, enter your first name to unlock the start of your journey.
+              To unlock the next step, simply put your first name here to start your journey.
             </div>
+            <div className="unlockSub">Please enter to continue</div>
 
             <input
               ref={p2FirstRef}

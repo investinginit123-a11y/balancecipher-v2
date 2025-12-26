@@ -18,6 +18,53 @@ function generateAccessCode(): string {
   return out;
 }
 
+/**
+ * Stage 5 Conversion — Canon Lock (UPDATED PER USER)
+ * The domain handoff to the app happens ONLY on the final CTA on the last .com screen:
+ *   view === "info"  -> button labeled "Open the full map page"
+ *
+ * Destination: https://app.balancecipher.info
+ * Preserve allowlisted tracking params; pass access code as ?access=XXXXXXXX.
+ */
+const APP_ORIGIN = "https://app.balancecipher.info";
+
+const ALLOWED_QUERY_KEYS = new Set([
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "gclid",
+  "fbclid",
+  "msclkid",
+]);
+
+function buildAppRedirectUrl(access?: string) {
+  const current = new URL(window.location.href);
+  const dest = new URL(APP_ORIGIN);
+
+  for (const [key, value] of current.searchParams.entries()) {
+    if (ALLOWED_QUERY_KEYS.has(key) && value) {
+      dest.searchParams.set(key, value);
+    }
+  }
+
+  if (access && access.trim()) {
+    dest.searchParams.set("access", access.trim().toUpperCase());
+  }
+
+  return dest.toString();
+}
+
+function readStoredAccessCode(): string {
+  try {
+    const v = window.localStorage.getItem("balance_access_code") || "";
+    return v.trim().toUpperCase();
+  } catch {
+    return "";
+  }
+}
+
 export default function App() {
   const [view, setView] = useState<View>("landing");
 
@@ -187,6 +234,12 @@ export default function App() {
     });
   }
 
+  /**
+   * IMPORTANT (UPDATED PER USER):
+   * "Cross the bridge" does NOT leave the .com site.
+   * It only unlocks the internal last screen (view === "info"),
+   * where the FINAL CTA ("Open the full map page") performs the app handoff.
+   */
   function submitCode() {
     if (rewardOn) return;
 
@@ -194,11 +247,30 @@ export default function App() {
     const entered = codeInput.trim().toUpperCase();
     if (!entered) return;
 
-    // If we have an expected code, enforce it.
     if (expected && entered !== expected) return;
 
-    // IMPORTANT: do not hard-navigate away (that is what causes “page 6” deployment/routing errors).
+    // Store the access code for the final CTA to use reliably.
+    try {
+      window.localStorage.setItem("balance_access_code", expected || entered);
+    } catch {
+      // ignore
+    }
+
     goTo("info");
+  }
+
+  function openAppFromFinalCta() {
+    if (rewardOn) return;
+
+    // Prefer state, fallback to stored.
+    const code = (accessCode || "").trim().toUpperCase() || readStoredAccessCode();
+    const dest = buildAppRedirectUrl(code);
+
+    try {
+      window.location.assign(dest);
+    } catch {
+      window.location.href = dest;
+    }
   }
 
   function onEnter(e: React.KeyboardEvent<HTMLInputElement>, action: () => void) {
@@ -918,7 +990,6 @@ export default function App() {
         }
       `}</style>
 
-      {/* Fatal runtime overlay (only shows if app actually mounts and then crashes) */}
       {fatalError ? (
         <div className="fatalOverlay" aria-label="App error overlay">
           <div className="fatalCard">
@@ -931,7 +1002,6 @@ export default function App() {
         </div>
       ) : null}
 
-      {/* RECEIVABLE OVERLAY */}
       {rewardOn && rewardLetter ? (
         <div className="rewardOverlay" aria-label="Receivable reward overlay">
           <div className="rewardLetter">{rewardLetter}</div>
@@ -939,7 +1009,6 @@ export default function App() {
         </div>
       ) : null}
 
-      {/* PAGE 1 */}
       {view === "landing" ? (
         <main className="p1">
           <div className="p1Wrap">
@@ -974,7 +1043,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 2 */}
       {view === "p2" ? (
         <main className="p2" aria-label="Private decode — Page 2">
           <div className="p2Fade" />
@@ -1064,7 +1132,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 — B */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="contentLayer">
@@ -1123,7 +1190,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 4 — A */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
@@ -1176,7 +1242,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 5 — L */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
@@ -1233,12 +1298,7 @@ export default function App() {
                     disabled={rewardOn}
                   />
 
-                  <button
-                    className="btn btnWide"
-                    type="button"
-                    onClick={submitEmailFromP5}
-                    disabled={rewardOn || !canSubmitEmail}
-                  >
+                  <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail}>
                     Continue
                   </button>
                 </div>
@@ -1292,9 +1352,8 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 6 — INFO (internal “map unlocked” screen to avoid route/deploy errors) */}
       {view === "info" ? (
-        <main className="pX" aria-label="Private decode — Page 6">
+        <main className="pX" aria-label="Private decode — Final screen">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
               <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" />
@@ -1307,9 +1366,7 @@ export default function App() {
               <div className="bigSubline">Unlocked</div>
             </div>
 
-            <div className="breakTitle">
-              You made it through the private decode.
-            </div>
+            <div className="breakTitle">You made it through the private decode.</div>
 
             <div className="breakList" aria-label="Map unlocked bullets">
               <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
@@ -1323,16 +1380,17 @@ export default function App() {
               </div>
 
               <div className="breakCloser">
-                If you want the full info page, open it below. Your session stays stable either way.
+                Final step: use the button below to enter the app.
               </div>
             </div>
 
-            <div className="ctaStack" aria-label="Map actions">
-              <a className="btn btnWide" href="https://balancecipher.com/info" target="_blank" rel="noreferrer">
+            <div className="ctaStack" aria-label="Final actions">
+              {/* FINAL CTA — THIS IS THE ONLY PLACE WE HAND OFF TO .info */}
+              <button className="btn btnWide" type="button" onClick={openAppFromFinalCta} disabled={rewardOn}>
                 Open the full map page
-              </a>
+              </button>
 
-              <button className="btn btnWide" type="button" onClick={() => goTo("landing")}>
+              <button className="btn btnWide" type="button" onClick={() => goTo("landing")} disabled={rewardOn}>
                 Back to start
               </button>
             </div>
@@ -1341,6 +1399,13 @@ export default function App() {
               Session data (temporary):{" "}
               <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
                 {firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}
+              </strong>
+            </div>
+
+            <div className="stepConfirm" style={{ marginTop: 10 }}>
+              Access code (temporary):{" "}
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
+                {(accessCode || readStoredAccessCode() || "(not set)").toString()}
               </strong>
             </div>
           </div>

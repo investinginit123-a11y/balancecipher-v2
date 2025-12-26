@@ -18,49 +18,8 @@ function generateAccessCode(): string {
   return out;
 }
 
-/**
- * STAGE 5 CONVERSION — CANON LOCK
- * Final CTA (“Open the full map page”) performs the ONLY handoff to the app.
- * Destination MUST be: https://app.balancecipher.info
- */
-const APP_ORIGIN = "https://app.balancecipher.info";
-
-const ALLOWED_QUERY_KEYS = new Set([
-  "utm_source",
-  "utm_medium",
-  "utm_campaign",
-  "utm_term",
-  "utm_content",
-  "gclid",
-  "fbclid",
-  "msclkid",
-]);
-
-function buildAppRedirectUrl(access?: string) {
-  const current = new URL(window.location.href);
-  const dest = new URL(APP_ORIGIN);
-
-  // Carry forward only allowlisted tracking params
-  for (const [key, value] of current.searchParams.entries()) {
-    if (ALLOWED_QUERY_KEYS.has(key) && value) {
-      dest.searchParams.set(key, value);
-    }
-  }
-
-  // Pass access code if present
-  const cleaned = (access || "").trim().toUpperCase();
-  if (cleaned) dest.searchParams.set("access", cleaned);
-
-  return dest.toString();
-}
-
-function readStoredAccessCode(): string {
-  try {
-    return (window.localStorage.getItem("balance_access_code") || "").trim().toUpperCase();
-  } catch {
-    return "";
-  }
-}
+// STAGE 5 CONVERSION — single source of truth for the app destination
+const FINAL_APP_URL = "https://app.balancecipher.info/";
 
 export default function App() {
   const [view, setView] = useState<View>("landing");
@@ -148,6 +107,7 @@ export default function App() {
 
   function goTo(v: View) {
     setView(v);
+    // Keep it calm and deterministic (no “half scrolled” pages after transitions).
     try {
       window.scrollTo({ top: 0, behavior: "auto" });
     } catch {
@@ -230,7 +190,6 @@ export default function App() {
     });
   }
 
-  // "Cross the bridge" stays on .com and only moves to the internal final screen.
   function submitCode() {
     if (rewardOn) return;
 
@@ -238,28 +197,19 @@ export default function App() {
     const entered = codeInput.trim().toUpperCase();
     if (!entered) return;
 
+    // If we have an expected code, enforce it.
     if (expected && entered !== expected) return;
 
-    try {
-      window.localStorage.setItem("balance_access_code", expected || entered);
-    } catch {
-      // ignore
-    }
-
+    // IMPORTANT: do not hard-navigate away (that is what causes “page 6” deployment/routing errors).
     goTo("info");
   }
 
-  // FINAL CTA — ONLY place we leave .com
-  function openAppFromFinalCta() {
-    if (rewardOn) return;
-
-    const code = (accessCode || "").trim().toUpperCase() || readStoredAccessCode();
-    const dest = buildAppRedirectUrl(code);
-
+  // FINAL HANDOFF — this is the ONLY place we leave the .com funnel
+  function openFullMapApp() {
     try {
-      window.location.assign(dest);
+      window.location.assign(FINAL_APP_URL);
     } catch {
-      window.location.href = dest;
+      window.location.href = FINAL_APP_URL;
     }
   }
 
@@ -980,6 +930,7 @@ export default function App() {
         }
       `}</style>
 
+      {/* Fatal runtime overlay (only shows if app actually mounts and then crashes) */}
       {fatalError ? (
         <div className="fatalOverlay" aria-label="App error overlay">
           <div className="fatalCard">
@@ -992,6 +943,7 @@ export default function App() {
         </div>
       ) : null}
 
+      {/* RECEIVABLE OVERLAY */}
       {rewardOn && rewardLetter ? (
         <div className="rewardOverlay" aria-label="Receivable reward overlay">
           <div className="rewardLetter">{rewardLetter}</div>
@@ -999,6 +951,7 @@ export default function App() {
         </div>
       ) : null}
 
+      {/* PAGE 1 */}
       {view === "landing" ? (
         <main className="p1">
           <div className="p1Wrap">
@@ -1020,7 +973,9 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
+            <div className="sub">
+              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
+            </div>
 
             <button className="btn" type="button" onClick={goToDecode}>
               Start the private decode
@@ -1038,18 +993,28 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
+              <img
+                className="emblemLg"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.92 }}
+              />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
               <div className="title scene1Title">Cipher</div>
-              <div className="meaning scene1Mean">The first human intelligent device designed to crack the unbreakable codes.</div>
+              <div className="meaning scene1Mean">
+                The first human intelligent device designed to crack the unbreakable codes.
+              </div>
 
               <div className="title scene2Title">Co-Pilot + AI</div>
               <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
 
               <div className="title scene3Title">You</div>
-              <div className="meaning scene3Mean">You are the most powerful of all three, and designed and built for endless potential.</div>
+              <div className="meaning scene3Mean">
+                You are the most powerful of all three, and designed and built for endless potential.
+              </div>
 
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow" style={{ gap: 8 }}>
@@ -1175,7 +1140,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.9 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1222,7 +1193,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.88 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Learning header">
@@ -1268,12 +1245,18 @@ export default function App() {
                     disabled={rewardOn}
                   />
 
-                  <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail}>
+                  <button
+                    className="btn btnWide"
+                    type="button"
+                    onClick={submitEmailFromP5}
+                    disabled={rewardOn || !canSubmitEmail}
+                  >
                     Continue
                   </button>
                 </div>
 
                 <div className="stepConfirm">Confirmed. No noise.</div>
+                <div className="tinyLink">app.balancecipher.info</div>
               </>
             ) : (
               <>
@@ -1307,6 +1290,8 @@ export default function App() {
                   One clean step. No noise.
                 </div>
 
+                <div className="tinyLink">app.balancecipher.info</div>
+
                 <div className="stepConfirm" style={{ marginTop: 14 }}>
                   Preview code (temporary):{" "}
                   <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
@@ -1319,7 +1304,7 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* FINAL SCREEN — last CTA performs the app handoff */}
+      {/* PAGE 6 — INFO (final internal screen; CTA leaves .com) */}
       {view === "info" ? (
         <main className="pX" aria-label="Private decode — Final screen">
           <div className="contentLayer">
@@ -1347,23 +1332,30 @@ export default function App() {
                 You stay in control. <strong>No noise</strong>.
               </div>
 
-              <div className="breakCloser">Final step: use the button below to enter the app.</div>
+              <div className="breakCloser">
+                Final step: open the app.
+              </div>
             </div>
 
-            <div className="ctaStack" aria-label="Final actions">
-              <button className="btn btnWide" type="button" onClick={openAppFromFinalCta} disabled={rewardOn}>
+            <div className="ctaStack" aria-label="Map actions">
+              <button className="btn btnWide" type="button" onClick={openFullMapApp}>
                 Open the full map page
               </button>
 
-              <button className="btn btnWide" type="button" onClick={() => goTo("landing")} disabled={rewardOn}>
+              <button className="btn btnWide" type="button" onClick={() => goTo("landing")}>
                 Back to start
               </button>
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
-              Next destination (debug):{" "}
+              Destination:{" "}
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
+            </div>
+
+            <div className="stepConfirm" style={{ marginTop: 10 }}>
+              Session data (temporary):{" "}
               <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
-                {typeof window !== "undefined" ? buildAppRedirectUrl(accessCode || readStoredAccessCode()) : APP_ORIGIN}
+                {firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}
               </strong>
             </div>
           </div>

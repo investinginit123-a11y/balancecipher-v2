@@ -1002,6 +1002,7 @@ export default function App() {
                 document.head.appendChild(style);
               }
             }}
+            aria-label="Skip animations"
             style={{
               position: 'fixed',
               top: '20px',

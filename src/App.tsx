@@ -993,9 +993,14 @@ export default function App() {
           
           <button 
             onClick={() => {
-              const style = document.createElement('style');
-              style.innerHTML = `* { animation-duration: 0.05s !important; animation-delay: 0s !important; }`;
-              document.head.appendChild(style);
+              // Check if skip style already exists
+              const existingStyle = document.getElementById('skip-animations-style');
+              if (!existingStyle) {
+                const style = document.createElement('style');
+                style.id = 'skip-animations-style';
+                style.innerHTML = `.p2 * { animation-duration: 0.05s !important; animation-delay: 0s !important; }`;
+                document.head.appendChild(style);
+              }
             }}
             style={{
               position: 'fixed',

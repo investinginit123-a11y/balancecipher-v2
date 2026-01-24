@@ -172,6 +172,73 @@ export default function App() {
     goTo("p5");
   }
 
+  /**
+   * CRM INTEGRATION
+   * 
+   * Sends user data to Replit CRM (crm.bastiansauto.com) when they complete
+   * the email step of the private decode flow.
+   * 
+   * - API key should be set via VITE_NP_API_KEY environment variable
+   * - Deduplication handled via requestId on CRM side
+   * - Non-blocking: if CRM fails, user flow continues normally
+   * - Data logged to Applications Vault in CRM
+   */
+  async function sendToCRM(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    accessCode: string;
+  }) {
+    const apiKey = import.meta.env.VITE_NP_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('CRM API key not configured - skipping CRM sync');
+      return { success: false, reason: 'no-api-key' };
+    }
+
+    try {
+      const requestId = `bc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const payload = {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: '', // Empty for now, not collected in current flow
+        source: 'balancecipher-v2',
+        sourceCta: 'private-decode-complete',
+        requestId,
+        tracking: {
+          accessCode: data.accessCode,
+          completedAt: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+        },
+      };
+
+      const response = await fetch('https://crm.bastiansauto.com/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': apiKey,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('CRM API error:', response.status, errorText);
+        return { success: false, reason: 'api-error', status: response.status };
+      }
+
+      const result = await response.json();
+      console.log('Successfully sent to CRM:', result);
+      return { success: true, data: result };
+      
+    } catch (error) {
+      console.error('Failed to send to CRM:', error);
+      return { success: false, reason: 'network-error', error };
+    }
+  }
+
   // PAGE 5 (email first, then code)
   function submitEmailFromP5() {
     if (rewardOn) return;
@@ -183,6 +250,17 @@ export default function App() {
 
     const nextCode = accessCode || generateAccessCode();
     if (!accessCode) setAccessCode(nextCode);
+
+    // ✨ NEW: Send to CRM (non-blocking)
+    sendToCRM({
+      firstName,
+      lastName,
+      email: em,
+      accessCode: nextCode,
+    }).catch((err) => {
+      // Silent fail - don't block user experience
+      console.error('CRM sync failed but continuing:', err);
+    });
 
     showReward("L", "Map delivery unlocked.", 1150, () => {
       setP5Stage("code");

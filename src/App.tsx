@@ -197,7 +197,7 @@ export default function App() {
     }
 
     try {
-      const requestId = `bc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const requestId = `bc-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
       
       const payload = {
         firstName: data.firstName,
@@ -257,9 +257,6 @@ export default function App() {
       lastName,
       email: em,
       accessCode: nextCode,
-    }).catch((err) => {
-      // Silent fail - don't block user experience
-      console.error('CRM sync failed but continuing:', err);
     });
 
     showReward("L", "Map delivery unlocked.", 1150, () => {

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 
 type View = "landing" | "p2" | "p3" | "p4" | "p5" | "info";
 type P5Stage = "email" | "code";
+type SendState = "idle" | "sending" | "sent" | "error";
 
 function safeTrimMax(v: string, maxLen: number) {
   return v.trim().slice(0, maxLen);
@@ -21,6 +22,26 @@ function generateAccessCode(): string {
 // STAGE 5 CONVERSION — single source of truth for the app destination
 const FINAL_APP_URL = "https://app.balancecipher.info/";
 
+type CrmPayload = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  accessCode: string;
+  source: string;
+  event: string;
+  createdAt: string;
+  userAgent?: string;
+  pageUrl?: string;
+};
+
+function safeJsonStringify(x: unknown) {
+  try {
+    return JSON.stringify(x);
+  } catch {
+    return "{}";
+  }
+}
+
 export default function App() {
   const [view, setView] = useState<View>("landing");
 
@@ -39,6 +60,10 @@ export default function App() {
 
   // Page 5 staging
   const [p5Stage, setP5Stage] = useState<P5Stage>("email");
+
+  // CRM send status (so we never “pretend” it sent)
+  const [sendState, setSendState] = useState<SendState>("idle");
+  const [sendMsg, setSendMsg] = useState<string>("");
 
   const p2FirstRef = useRef<HTMLInputElement | null>(null);
   const lastRef = useRef<HTMLInputElement | null>(null);
@@ -92,7 +117,7 @@ export default function App() {
     };
 
     const onRejection = (e: PromiseRejectionEvent) => {
-      const reason = typeof e.reason === "string" ? e.reason : JSON.stringify(e.reason, null, 2);
+      const reason = typeof e.reason === "string" ? e.reason : safeJsonStringify(e.reason);
       setFatalError(`Unhandled promise rejection:\n${reason}`);
     };
 
@@ -123,6 +148,8 @@ export default function App() {
     setAccessCode("");
     setCodeInput("");
     setP5Stage("email");
+    setSendState("idle");
+    setSendMsg("");
     clearRewardTimer();
     setRewardOn(false);
     setRewardLetter(null);
@@ -133,6 +160,56 @@ export default function App() {
   function goToDecode() {
     resetFlow();
     goTo("p2");
+  }
+
+  // =========================
+  // CRM POST (single function)
+  // =========================
+  async function postToCrm(payload: CrmPayload) {
+    // Vite exposes only VITE_* vars in the browser build.
+    const apiKey =
+      (import.meta as any)?.env?.VITE_NP_API_KEY ||
+      (import.meta as any)?.env?.VITE_API_KEY ||
+      "";
+
+    const ingestUrl =
+      (import.meta as any)?.env?.VITE_NP_CRM_INGEST_URL ||
+      (import.meta as any)?.env?.VITE_CRM_INGEST_URL ||
+      "";
+
+    if (!ingestUrl) {
+      throw new Error(
+        "Missing VITE_NP_CRM_INGEST_URL. Add it in Vercel → Settings → Environment Variables, then redeploy."
+      );
+    }
+
+    // We send multiple common header keys so your CRM can accept whichever it expects.
+    const res = await fetch(ingestUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(apiKey
+          ? {
+              "x-api-key": apiKey,
+              "X-NP-API-KEY": apiKey,
+              Authorization: `Bearer ${apiKey}`,
+            }
+          : {}),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`CRM POST failed: ${res.status} ${res.statusText}${text ? ` — ${text}` : ""}`);
+    }
+
+    // If CRM returns JSON, we read it (but we don’t require it).
+    try {
+      return await res.json();
+    } catch {
+      return { ok: true };
+    }
   }
 
   // STEP 2 -> STEP 3 transition
@@ -169,25 +246,55 @@ export default function App() {
   function continueFromAwakening() {
     if (rewardOn) return;
     setP5Stage("email");
+    setSendState("idle");
+    setSendMsg("");
     goTo("p5");
   }
 
   // PAGE 5 (email first, then code)
-  function submitEmailFromP5() {
+  async function submitEmailFromP5() {
     if (rewardOn) return;
+    if (sendState === "sending") return;
 
     const em = safeTrimMax(email, 120);
     if (!isValidEmail(em)) return;
 
     setEmail(em);
 
+    // Generate code now (this is the code we will POST to CRM)
     const nextCode = accessCode || generateAccessCode();
     if (!accessCode) setAccessCode(nextCode);
 
-    showReward("L", "Map delivery unlocked.", 1150, () => {
-      setP5Stage("code");
-      setTimeout(() => codeRef.current?.focus(), 80);
-    });
+    // HARD RULE: do not proceed unless CRM POST actually fires
+    setSendState("sending");
+    setSendMsg("Sending your map delivery request...");
+
+    const payload: CrmPayload = {
+      firstName: safeTrimMax(firstName, 40),
+      lastName: safeTrimMax(lastName, 60),
+      email: em,
+      accessCode: nextCode,
+      source: "balancecipher-v2",
+      event: "decode_email_submit",
+      createdAt: new Date().toISOString(),
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
+      pageUrl: typeof window !== "undefined" ? window.location.href : undefined,
+    };
+
+    try {
+      await postToCrm(payload);
+
+      setSendState("sent");
+      setSendMsg("Request sent. Check your email for the code (email automation will be next).");
+
+      showReward("L", "Map delivery unlocked.", 1150, () => {
+        setP5Stage("code");
+        setTimeout(() => codeRef.current?.focus(), 80);
+      });
+    } catch (err: any) {
+      setSendState("error");
+      setSendMsg(err?.message || "Failed to send. Open DevTools → Network to see the request.");
+    }
   }
 
   function submitCode() {
@@ -921,6 +1028,29 @@ export default function App() {
           box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
+        /* Send status */
+        .sendStatus{
+          margin-top: 10px;
+          font-size: 13px;
+          max-width: 560px;
+          line-height: 1.4;
+          padding: 8px 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(40,240,255,0.22);
+          background: rgba(40,240,255,0.05);
+          color: rgba(255,255,255,0.75);
+        }
+        .sendStatusError{
+          border-color: rgba(255, 80, 80, 0.35);
+          background: rgba(255, 80, 80, 0.08);
+          color: rgba(255,255,255,0.82);
+        }
+        .sendStatusGood{
+          border-color: rgba(40,240,255,0.38);
+          background: rgba(40,240,255,0.06);
+          color: rgba(255,255,255,0.86);
+        }
+
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
@@ -1236,23 +1366,41 @@ export default function App() {
                     ref={emailRef}
                     className="underlineOnly"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (sendState !== "idle") {
+                        setSendState("idle");
+                        setSendMsg("");
+                      }
+                    }}
                     onKeyDown={(e) => onEnter(e, submitEmailFromP5)}
                     aria-label="Email"
                     autoComplete="email"
                     inputMode="email"
                     placeholder=""
-                    disabled={rewardOn}
+                    disabled={rewardOn || sendState === "sending"}
                   />
 
                   <button
                     className="btn btnWide"
                     type="button"
                     onClick={submitEmailFromP5}
-                    disabled={rewardOn || !canSubmitEmail}
+                    disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
                   >
-                    Continue
+                    {sendState === "sending" ? "Sending..." : "Continue"}
                   </button>
+
+                  {sendMsg ? (
+                    <div
+                      className={[
+                        "sendStatus",
+                        sendState === "error" ? "sendStatusError" : "",
+                        sendState === "sent" ? "sendStatusGood" : "",
+                      ].join(" ")}
+                    >
+                      {sendMsg}
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="stepConfirm">Confirmed. No noise.</div>
@@ -1332,9 +1480,7 @@ export default function App() {
                 You stay in control. <strong>No noise</strong>.
               </div>
 
-              <div className="breakCloser">
-                Final step: open the app.
-              </div>
+              <div className="breakCloser">Final step: open the app.</div>
             </div>
 
             <div className="ctaStack" aria-label="Map actions">

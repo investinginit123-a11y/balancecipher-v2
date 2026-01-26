@@ -691,7 +691,7 @@ export default function App() {
           inset:0;
           background:#000;
           opacity:1;
-          animation: fadeOut 0.7s ease forwards;
+          animation: fadeOut 0.3s ease forwards;
           z-index: 20;
           pointer-events:none;
         }
@@ -722,15 +722,15 @@ export default function App() {
 
         @keyframes titleInOut{
           0%   { opacity:0; transform: translateY(10px); }
-          18%  { opacity:1; transform: translateY(0); }
-          72%  { opacity:1; transform: translateY(0); }
+          25%  { opacity:1; transform: translateY(0); }
+          75%  { opacity:1; transform: translateY(0); }
           100% { opacity:0; transform: translateY(-8px); }
         }
 
         @keyframes meaningInOut{
           0%   { opacity:0; transform: translateY(10px); }
-          10%  { opacity:1; transform: translateY(0); }
-          92%  { opacity:1; transform: translateY(0); }
+          15%  { opacity:1; transform: translateY(0); }
+          85%  { opacity:1; transform: translateY(0); }
           100% { opacity:0; transform: translateY(-8px); }
         }
 
@@ -759,14 +759,14 @@ export default function App() {
           padding: 0 6px;
         }
 
-        .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 1.4s; }
-        .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 4.7s; }
+        .scene1Title { animation: titleInOut 0.8s ease forwards; animation-delay: 0.3s; }
+        .scene1Mean  { animation: meaningInOut 2.0s ease forwards; animation-delay: 1.2s; }
 
-        .scene2Title { animation: titleInOut 2.6s ease forwards; animation-delay: 11.8s; }
-        .scene2Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 15.1s; }
+        .scene2Title { animation: titleInOut 0.8s ease forwards; animation-delay: 3.5s; }
+        .scene2Mean  { animation: meaningInOut 2.0s ease forwards; animation-delay: 4.4s; }
 
-        .scene3Title { animation: titleInOut 2.6s ease forwards; animation-delay: 22.2s; }
-        .scene3Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 25.5s; }
+        .scene3Title { animation: titleInOut 0.8s ease forwards; animation-delay: 6.7s; }
+        .scene3Mean  { animation: meaningInOut 2.0s ease forwards; animation-delay: 7.6s; }
 
         .finalWrap{
           position:absolute;
@@ -778,7 +778,7 @@ export default function App() {
           gap: 14px;
           opacity:0;
           animation: sceneInStay 0.85s ease forwards;
-          animation-delay: 32.8s;
+          animation-delay: 10.0s;
           pointer-events:none;
         }
 
@@ -857,7 +857,7 @@ export default function App() {
           opacity:0;
           transform: translateY(20px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 35.0s;
+          animation-delay: 11.0s;
           z-index: 4;
         }
 
@@ -1120,6 +1120,36 @@ export default function App() {
       {view === "p2" ? (
         <main className="p2" aria-label="Private decode — Page 2">
           <div className="p2Fade" />
+          
+          <button 
+            onClick={() => {
+              // Check if skip style already exists
+              const existingStyle = document.getElementById('skip-animations-style');
+              if (!existingStyle) {
+                const style = document.createElement('style');
+                style.id = 'skip-animations-style';
+                style.innerHTML = `.p2 * { animation-duration: 0.05s !important; animation-delay: 0s !important; }`;
+                document.head.appendChild(style);
+              }
+            }}
+            aria-label="Skip animations"
+            style={{
+              position: 'fixed',
+              top: '20px',
+              right: '20px',
+              padding: '10px 16px',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '8px',
+              color: '#fff',
+              cursor: 'pointer',
+              zIndex: 9999,
+              fontSize: '14px',
+              fontWeight: 600
+            }}
+          >
+            Skip ⏭️
+          </button>
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">

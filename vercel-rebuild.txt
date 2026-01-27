@@ -1,0 +1,1 @@
+Force rebuild at 2026-01-27 to pick up VITE_NP_CRM_INGEST_URL environment variable

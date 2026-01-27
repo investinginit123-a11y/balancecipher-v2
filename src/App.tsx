@@ -584,7 +584,7 @@ export default function App() {
           inset:0;
           background:#000;
           opacity:1;
-          animation: fadeOut 0.3s ease forwards;
+          animation: fadeOut 0.5s ease forwards;
           z-index: 20;
           pointer-events:none;
         }
@@ -615,15 +615,15 @@ export default function App() {
 
         @keyframes titleInOut{
           0%   { opacity:0; transform: translateY(10px); }
-          25%  { opacity:1; transform: translateY(0); }
-          75%  { opacity:1; transform: translateY(0); }
+          20%  { opacity:1; transform: translateY(0); }
+          80%  { opacity:1; transform: translateY(0); }
           100% { opacity:0; transform: translateY(-8px); }
         }
 
         @keyframes meaningInOut{
           0%   { opacity:0; transform: translateY(10px); }
-          15%  { opacity:1; transform: translateY(0); }
-          85%  { opacity:1; transform: translateY(0); }
+          12%  { opacity:1; transform: translateY(0); }
+          88%  { opacity:1; transform: translateY(0); }
           100% { opacity:0; transform: translateY(-8px); }
         }
 
@@ -652,14 +652,14 @@ export default function App() {
           padding: 0 6px;
         }
 
-        .scene1Title { animation: titleInOut 0.8s ease forwards; animation-delay: 0.3s; }
-        .scene1Mean  { animation: meaningInOut 2.0s ease forwards; animation-delay: 1.2s; }
+        .scene1Title { animation: titleInOut 1.3s ease forwards; animation-delay: 0.6s; }
+        .scene1Mean  { animation: meaningInOut 3.2s ease forwards; animation-delay: 2.0s; }
 
-        .scene2Title { animation: titleInOut 0.8s ease forwards; animation-delay: 3.5s; }
-        .scene2Mean  { animation: meaningInOut 2.0s ease forwards; animation-delay: 4.4s; }
+        .scene2Title { animation: titleInOut 1.3s ease forwards; animation-delay: 5.7s; }
+        .scene2Mean  { animation: meaningInOut 3.2s ease forwards; animation-delay: 7.2s; }
 
-        .scene3Title { animation: titleInOut 0.8s ease forwards; animation-delay: 6.7s; }
-        .scene3Mean  { animation: meaningInOut 2.0s ease forwards; animation-delay: 7.6s; }
+        .scene3Title { animation: titleInOut 1.3s ease forwards; animation-delay: 10.9s; }
+        .scene3Mean  { animation: meaningInOut 3.2s ease forwards; animation-delay: 12.4s; }
 
         .finalWrap{
           position:absolute;
@@ -671,7 +671,7 @@ export default function App() {
           gap: 14px;
           opacity:0;
           animation: sceneInStay 0.85s ease forwards;
-          animation-delay: 10.0s;
+          animation-delay: 16.2s;
           pointer-events:none;
         }
 
@@ -750,7 +750,7 @@ export default function App() {
           opacity:0;
           transform: translateY(20px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 11.0s;
+          animation-delay: 17.8s;
           z-index: 4;
         }
 

@@ -176,8 +176,23 @@ export default function App() {
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`CRM POST failed: ${res.status} ${res.statusText}${text ? ` — ${text}` : ""}`);
+      let errorMsg = `CRM POST failed: ${res.status} ${res.statusText}`;
+      
+      try {
+        const errorData = await res.json();
+        // Check if this is a configuration error
+        if (errorData.isConfigError) {
+          errorMsg = errorData.message || errorData.error || errorMsg;
+        } else {
+          errorMsg += errorData.error ? ` — ${errorData.error}` : "";
+        }
+      } catch {
+        // If JSON parsing fails, try text
+        const text = await res.text().catch(() => "");
+        if (text) errorMsg += ` — ${text}`;
+      }
+      
+      throw new Error(errorMsg);
     }
 
     // If CRM returns JSON, we read it (but we don't require it).

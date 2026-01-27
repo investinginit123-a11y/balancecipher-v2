@@ -166,45 +166,36 @@ export default function App() {
   // CRM POST (single function)
   // =========================
   async function postToCrm(payload: CrmPayload) {
-    // Vite exposes only VITE_* vars in the browser build.
-    const apiKey =
-      (import.meta as any)?.env?.VITE_NP_API_KEY ||
-      (import.meta as any)?.env?.VITE_API_KEY ||
-      "";
-
-    const ingestUrl =
-      (import.meta as any)?.env?.VITE_NP_CRM_INGEST_URL ||
-      (import.meta as any)?.env?.VITE_CRM_INGEST_URL ||
-      "";
-
-    if (!ingestUrl) {
-      throw new Error(
-        "Missing VITE_NP_CRM_INGEST_URL. Add it in Vercel → Settings → Environment Variables, then redeploy."
-      );
-    }
-
-    // We send multiple common header keys so your CRM can accept whichever it expects.
-    const res = await fetch(ingestUrl, {
+    // Use the Vercel serverless API proxy which has proper access to environment variables
+    const res = await fetch("/api/applications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(apiKey
-          ? {
-              "x-api-key": apiKey,
-              "X-NP-API-KEY": apiKey,
-              Authorization: `Bearer ${apiKey}`,
-            }
-          : {}),
       },
       body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`CRM POST failed: ${res.status} ${res.statusText}${text ? ` — ${text}` : ""}`);
+      let errorMsg = `CRM POST failed: ${res.status} ${res.statusText}`;
+      
+      try {
+        const errorData = await res.json();
+        // Check if this is a configuration error
+        if (errorData.isConfigError) {
+          errorMsg = errorData.message || errorData.error || errorMsg;
+        } else {
+          errorMsg += errorData.error ? ` — ${errorData.error}` : "";
+        }
+      } catch {
+        // If JSON parsing fails, try text
+        const text = await res.text().catch(() => "");
+        if (text) errorMsg += ` — ${text}`;
+      }
+      
+      throw new Error(errorMsg);
     }
 
-    // If CRM returns JSON, we read it (but we don’t require it).
+    // If CRM returns JSON, we read it (but we don't require it).
     try {
       return await res.json();
     } catch {

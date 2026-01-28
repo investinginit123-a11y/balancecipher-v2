@@ -43,8 +43,8 @@ function genRequestId(): string {
 // STAGE 5 CONVERSION — single source of truth for the app destination
 const FINAL_APP_URL = "https://app.balancecipher.info/";
 
-// CRM relay route (App Router)
-const RELAY_ROUTE = "/api/submit-application";
+// CRM relay route (Vercel Function)
+const RELAY_ROUTE = "/api/applications";
 
 // Canon source for this funnel
 const CRM_SOURCE = "balance-cypher-v2";
@@ -203,12 +203,7 @@ export default function App() {
     goTo("p2");
   }
 
-  function buildCanonPayload(params: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    accessCode: string;
-  }): CrmCanonPayload {
+  function buildCanonPayload(params: { firstName: string; lastName: string; email: string; accessCode: string }): CrmCanonPayload {
     const requestId = genRequestId();
     const startedAt = new Date().toISOString();
 
@@ -1214,7 +1209,13 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
+              <img
+                className="emblemLg"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.92 }}
+              />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
@@ -1351,7 +1352,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.9 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1450,7 +1457,12 @@ export default function App() {
                     disabled={rewardOn || sendState === "sending"}
                   />
 
-                  <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail || sendState === "sending"}>
+                  <button
+                    className="btn btnWide"
+                    type="button"
+                    onClick={submitEmailFromP5}
+                    disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
+                  >
                     {sendState === "sending" ? "Sending..." : "Continue"}
                   </button>
 
@@ -1550,12 +1562,15 @@ export default function App() {
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
-              Destination: <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
+              Destination:{" "}
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
               Session data (temporary):{" "}
-              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}</strong>
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
+                {firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}
+              </strong>
             </div>
           </div>
         </main>

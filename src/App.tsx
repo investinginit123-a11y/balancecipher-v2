@@ -19,21 +19,6 @@ function generateAccessCode(): string {
   return out;
 }
 
-// STAGE 5 CONVERSION — single source of truth for the app destination
-const FINAL_APP_URL = "https://app.balancecipher.info/";
-
-type CrmPayload = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  accessCode: string;
-  source: string;
-  event: string;
-  createdAt: string;
-  userAgent?: string;
-  pageUrl?: string;
-};
-
 function safeJsonStringify(x: unknown) {
   try {
     return JSON.stringify(x);
@@ -41,6 +26,62 @@ function safeJsonStringify(x: unknown) {
     return "{}";
   }
 }
+
+function genRequestId(): string {
+  try {
+    // modern browsers
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const c: any = crypto;
+    if (c?.randomUUID) return c.randomUUID();
+  } catch {
+    // ignore
+  }
+  // fallback
+  return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+// STAGE 5 CONVERSION — single source of truth for the app destination
+const FINAL_APP_URL = "https://app.balancecipher.info/";
+
+// CRM relay route (App Router)
+const RELAY_ROUTE = "/api/submit-application";
+
+// Canon source for this funnel
+const CRM_SOURCE = "balance-cypher-v2";
+
+// Canon payload shape expected by CRM
+type CrmCanonPayload = {
+  source: string;
+  requestId: string;
+  startedAt: string;
+  tracking: Record<string, unknown>;
+  applicant: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    consent: boolean;
+    vehicleType: string;
+    incomeAbove1800: string;
+    monthlyIncome: string;
+    yearsReceivingIncome: number;
+    monthsReceivingIncome: number;
+    dobMonth: number;
+    dobDay: number;
+    dobYear: number;
+    companyName: string;
+    jobTitle: string;
+    housingPayment: string;
+    street1: string;
+    street2: string;
+    city: string;
+    state: string;
+    zip: string;
+    yearsAtAddress: number;
+    monthsAtAddress: number;
+    ssn: string;
+  };
+};
 
 export default function App() {
   const [view, setView] = useState<View>("landing");
@@ -162,12 +203,69 @@ export default function App() {
     goTo("p2");
   }
 
+  function buildCanonPayload(params: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    accessCode: string;
+  }): CrmCanonPayload {
+    const requestId = genRequestId();
+    const startedAt = new Date().toISOString();
+
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : undefined;
+    const pageUrl = typeof window !== "undefined" ? window.location.href : undefined;
+    const referrer = typeof document !== "undefined" ? document.referrer : undefined;
+
+    return {
+      source: CRM_SOURCE,
+      requestId,
+      startedAt,
+      tracking: {
+        event: "decode_email_submit",
+        accessCode: params.accessCode, // not a CRM "applicant" field; keep it in tracking
+        userAgent: ua,
+        pageUrl,
+        referrer,
+      },
+      applicant: {
+        // Known captured fields
+        firstName: safeTrimMax(params.firstName, 40),
+        lastName: safeTrimMax(params.lastName, 60),
+        email: safeTrimMax(params.email, 120),
+
+        // Required-by-shape fields we don't capture yet (defaults)
+        phone: "",
+        consent: true,
+        vehicleType: "",
+        incomeAbove1800: "",
+        monthlyIncome: "",
+        yearsReceivingIncome: 0,
+        monthsReceivingIncome: 0,
+        dobMonth: 0,
+        dobDay: 0,
+        dobYear: 0,
+        companyName: "",
+        jobTitle: "",
+        housingPayment: "",
+        street1: "",
+        street2: "",
+        city: "",
+        state: "",
+        zip: "",
+        yearsAtAddress: 0,
+        monthsAtAddress: 0,
+        ssn: "",
+      },
+    };
+  }
+
   // =========================
   // CRM POST (single function)
   // =========================
-  async function postToCrm(payload: CrmPayload) {
-    // Use the Vercel serverless API proxy which has proper access to environment variables
-    const res = await fetch("/api/applications", {
+  async function postToCrm(payload: CrmCanonPayload) {
+    const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+
+    const res = await fetch(RELAY_ROUTE, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -175,31 +273,39 @@ export default function App() {
       body: JSON.stringify(payload),
     });
 
+    const ms = Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - t0);
+
     if (!res.ok) {
-      let errorMsg = `CRM POST failed: ${res.status} ${res.statusText}`;
-      
+      let errorMsg = `CRM relay failed: ${res.status} ${res.statusText}`;
+
       try {
         const errorData = await res.json();
-        // Check if this is a configuration error
-        if (errorData.isConfigError) {
-          errorMsg = errorData.message || errorData.error || errorMsg;
-        } else {
-          errorMsg += errorData.error ? ` — ${errorData.error}` : "";
-        }
+        // If relay returns a clearer message, use it.
+        const relayMsg =
+          errorData?.message ||
+          errorData?.error ||
+          errorData?.detail ||
+          (typeof errorData === "string" ? errorData : "");
+
+        if (relayMsg) errorMsg = relayMsg;
+
+        // if relay echoes requestId, add it
+        if (errorData?.requestId) errorMsg += ` (requestId: ${errorData.requestId})`;
       } catch {
-        // If JSON parsing fails, try text
         const text = await res.text().catch(() => "");
         if (text) errorMsg += ` — ${text}`;
       }
-      
+
+      errorMsg += ` — ${ms}ms`;
       throw new Error(errorMsg);
     }
 
-    // If CRM returns JSON, we read it (but we don't require it).
+    // Prefer JSON response (relay should return requestId/status/timing)
     try {
-      return await res.json();
+      const out = await res.json();
+      return { ok: true, ms, ...out };
     } catch {
-      return { ok: true };
+      return { ok: true, ms };
     }
   }
 
@@ -260,23 +366,19 @@ export default function App() {
     setSendState("sending");
     setSendMsg("Sending your map delivery request...");
 
-    const payload: CrmPayload = {
-      firstName: safeTrimMax(firstName, 40),
-      lastName: safeTrimMax(lastName, 60),
+    const payload = buildCanonPayload({
+      firstName,
+      lastName,
       email: em,
       accessCode: nextCode,
-      source: "balancecipher-v2",
-      event: "decode_email_submit",
-      createdAt: new Date().toISOString(),
-      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
-      pageUrl: typeof window !== "undefined" ? window.location.href : undefined,
-    };
+    });
 
     try {
-      await postToCrm(payload);
+      const result = await postToCrm(payload);
 
+      const rid = result?.requestId ? ` (requestId: ${result.requestId})` : "";
       setSendState("sent");
-      setSendMsg("Request sent. Check your email for the code (email automation will be next).");
+      setSendMsg(`Request sent.${rid}`);
 
       showReward("L", "Map delivery unlocked.", 1150, () => {
         setP5Stage("code");
@@ -1094,9 +1196,7 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">
-              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
-            </div>
+            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
 
             <button className="btn" type="button" onClick={goToDecode}>
               Start the private decode
@@ -1114,28 +1214,18 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.92 }}
-              />
+              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
               <div className="title scene1Title">Cipher</div>
-              <div className="meaning scene1Mean">
-                The first human intelligent device designed to crack the unbreakable codes.
-              </div>
+              <div className="meaning scene1Mean">The first human intelligent device designed to crack the unbreakable codes.</div>
 
               <div className="title scene2Title">Co-Pilot + AI</div>
               <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
 
               <div className="title scene3Title">You</div>
-              <div className="meaning scene3Mean">
-                You are the most powerful of all three, and designed and built for endless potential.
-              </div>
+              <div className="meaning scene3Mean">You are the most powerful of all three, and designed and built for endless potential.</div>
 
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow" style={{ gap: 8 }}>
@@ -1261,13 +1351,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.9 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1314,13 +1398,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.88 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
             </div>
 
             <div className="letterHeader" aria-label="Learning header">
@@ -1372,23 +1450,12 @@ export default function App() {
                     disabled={rewardOn || sendState === "sending"}
                   />
 
-                  <button
-                    className="btn btnWide"
-                    type="button"
-                    onClick={submitEmailFromP5}
-                    disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
-                  >
+                  <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail || sendState === "sending"}>
                     {sendState === "sending" ? "Sending..." : "Continue"}
                   </button>
 
                   {sendMsg ? (
-                    <div
-                      className={[
-                        "sendStatus",
-                        sendState === "error" ? "sendStatusError" : "",
-                        sendState === "sent" ? "sendStatusGood" : "",
-                      ].join(" ")}
-                    >
+                    <div className={["sendStatus", sendState === "error" ? "sendStatusError" : "", sendState === "sent" ? "sendStatusGood" : ""].join(" ")}>
                       {sendMsg}
                     </div>
                   ) : null}
@@ -1433,9 +1500,7 @@ export default function App() {
 
                 <div className="stepConfirm" style={{ marginTop: 14 }}>
                   Preview code (temporary):{" "}
-                  <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
-                    {accessCode || "(generated after email entry)"}
-                  </strong>
+                  <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{accessCode || "(generated after email entry)"}</strong>
                 </div>
               </>
             )}
@@ -1485,15 +1550,12 @@ export default function App() {
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
-              Destination:{" "}
-              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
+              Destination: <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
               Session data (temporary):{" "}
-              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
-                {firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}
-              </strong>
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}</strong>
             </div>
           </div>
         </main>

@@ -21,37 +21,41 @@ function maskSsnInAnyShape(value: any): any {
   return value;
 }
 
+function withCors(res: NextResponse) {
+  // Safe defaults. Same-origin calls don’t need this, but it prevents weirdness if you ever POST cross-origin.
+  res.headers.set("Access-Control-Allow-Origin", "*");
+  res.headers.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
+  return res;
+}
+
 export async function OPTIONS() {
-  // Preflight-safe
-  return new NextResponse(null, { status: 204 });
+  return withCors(new NextResponse(null, { status: 204 }));
 }
 
 export async function POST(req: Request) {
   const t0 = Date.now();
 
+  // Canon env vars for this template:
   const baseUrl = process.env.REPLIT_CRM_BASE_URL; // e.g. https://crm.bastiansauto.com
   const apiKey = process.env.REPLIT_NP_API_KEY;
   const debugOn = (process.env.CRM_RELAY_DEBUG || "").toLowerCase() === "true";
 
   if (!baseUrl) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Missing REPLIT_CRM_BASE_URL",
-        isConfigError: true,
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { ok: false, error: "Missing REPLIT_CRM_BASE_URL", isConfigError: true },
+        { status: 500 }
+      )
     );
   }
 
   if (!apiKey) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Missing REPLIT_NP_API_KEY",
-        isConfigError: true,
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { ok: false, error: "Missing REPLIT_NP_API_KEY", isConfigError: true },
+        { status: 500 }
+      )
     );
   }
 
@@ -72,7 +76,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
         "X-API-Key": apiKey,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body ?? {}),
     });
 
     const ms = Date.now() - t0;
@@ -86,10 +90,11 @@ export async function POST(req: Request) {
       upstreamJson = null;
     }
 
+    // Prefer requestId from incoming payload first (then tracking, then upstream response)
     const requestId =
-      body?.requestId ||
-      body?.tracking?.requestId ||
-      upstreamJson?.requestId ||
+      body?.requestId ??
+      body?.tracking?.requestId ??
+      upstreamJson?.requestId ??
       null;
 
     const responsePayload: any = {
@@ -107,16 +112,13 @@ export async function POST(req: Request) {
       };
     }
 
-    return NextResponse.json(responsePayload, { status: upstream.status });
+    return withCors(NextResponse.json(responsePayload, { status: upstream.status }));
   } catch (err: any) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Relay failed",
-        detail: err?.message || String(err),
-      },
-      { status: 500 }
+    return withCors(
+      NextResponse.json(
+        { ok: false, error: "Relay failed", detail: err?.message || String(err) },
+        { status: 500 }
+      )
     );
   }
 }
-

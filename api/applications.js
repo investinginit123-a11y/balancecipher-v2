@@ -3,7 +3,6 @@ export const config = {
 };
 
 function maskSsnInAnyShape(value) {
-  // Masks SSN anywhere it appears as `ssn` field (string)
   if (value && typeof value === "object") {
     if (Array.isArray(value)) return value.map(maskSsnInAnyShape);
 
@@ -21,26 +20,31 @@ function maskSsnInAnyShape(value) {
   return value;
 }
 
-function safeJsonStringify(x) {
-  try {
-    return JSON.stringify(x);
-  } catch {
-    return "{}";
-  }
+function sendJson(res, status, payload) {
+  res.statusCode = status;
+  res.setHeader("Content-Type", "application/json");
+  res.end(JSON.stringify(payload));
+}
+
+function withCors(res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
+  return res;
 }
 
 export default async function handler(req, res) {
   const t0 = Date.now();
+  withCors(res);
 
-  // Allow OPTIONS preflight
   if (req.method === "OPTIONS") {
-    res.status(204).end();
+    res.statusCode = 204;
+    res.end();
     return;
   }
 
   if (req.method !== "POST") {
-    res.status(405).json({ ok: false, error: "Method Not Allowed" });
-    return;
+    return sendJson(res, 405, { ok: false, error: "Method not allowed" });
   }
 
   const baseUrl = process.env.REPLIT_CRM_BASE_URL; // e.g. https://crm.bastiansauto.com
@@ -48,28 +52,26 @@ export default async function handler(req, res) {
   const debugOn = String(process.env.CRM_RELAY_DEBUG || "").toLowerCase() === "true";
 
   if (!baseUrl) {
-    res.status(500).json({
+    return sendJson(res, 500, {
       ok: false,
       error: "Missing REPLIT_CRM_BASE_URL",
       isConfigError: true,
     });
-    return;
   }
 
   if (!apiKey) {
-    res.status(500).json({
+    return sendJson(res, 500, {
       ok: false,
       error: "Missing REPLIT_NP_API_KEY",
       isConfigError: true,
     });
-    return;
   }
 
   let body = {};
   try {
-    body = req.body && typeof req.body === "object" ? req.body : {};
+    body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
   } catch {
-    body = {};
+    body = req.body || {};
   }
 
   const crmUrl = `${String(baseUrl).replace(/\/$/, "")}/api/applications`;
@@ -81,7 +83,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
         "X-API-Key": apiKey,
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(body ?? {}),
     });
 
     const ms = Date.now() - t0;
@@ -95,9 +97,9 @@ export default async function handler(req, res) {
     }
 
     const requestId =
-      body?.requestId ||
-      body?.tracking?.requestId ||
-      upstreamJson?.requestId ||
+      body?.requestId ??
+      body?.tracking?.requestId ??
+      upstreamJson?.requestId ??
       null;
 
     const responsePayload = {
@@ -115,13 +117,12 @@ export default async function handler(req, res) {
       };
     }
 
-    res.status(upstream.status).json(responsePayload);
+    return sendJson(res, upstream.status, responsePayload);
   } catch (err) {
-    res.status(500).json({
+    return sendJson(res, 500, {
       ok: false,
       error: "Relay failed",
-      detail: err?.message || String(err) || safeJsonStringify(err),
+      detail: err?.message || String(err),
     });
   }
 }
-

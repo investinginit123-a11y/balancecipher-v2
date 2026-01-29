@@ -1,117 +1,72 @@
-export const config = { runtime: "nodejs" };
-
-function maskSsnInAnyShape(value) {
-  if (value && typeof value === "object") {
-    if (Array.isArray(value)) return value.map(maskSsnInAnyShape);
-    const out = {};
-    for (const [k, v] of Object.entries(value)) {
-      if (k.toLowerCase() === "ssn" && typeof v === "string") {
-        const last4 = v.replace(/\D/g, "").slice(-4);
-        out[k] = last4 ? `***-**-${last4}` : "***-**-****";
-      } else {
-        out[k] = maskSsnInAnyShape(v);
-      }
-    }
-    return out;
-  }
-  return value;
-}
-
-function sendJson(res, status, payload) {
-  res.statusCode = status;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify(payload));
-}
-
-function withCors(res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-API-Key");
-  return res;
-}
-
 export default async function handler(req, res) {
-  const t0 = Date.now();
-  withCors(res);
-
-  if (req.method === "OPTIONS") {
-    res.statusCode = 204;
-    return res.end();
-  }
-
   if (req.method !== "POST") {
-    return sendJson(res, 405, { ok: false, error: "Method not allowed" });
+    return res.status(405).json({ ok: false, error: "Method not allowed" });
   }
 
-  const baseUrl = process.env.REPLIT_CRM_BASE_URL; // e.g. https://crm.bastiansauto.com
-  const apiKey = process.env.REPLIT_NP_API_KEY;    // your X-API-Key
-  const debugOn = String(process.env.CRM_RELAY_DEBUG || "").toLowerCase() === "true";
+  const baseUrl = process.env.REPLIT_CRM_BASE_URL;
+  const apiKey = process.env.REPLIT_NP_API_KEY;
+  const debugOn = process.env.CRM_RELAY_DEBUG === "true";
 
-  if (!baseUrl) {
-    return sendJson(res, 500, { ok: false, error: "Missing REPLIT_CRM_BASE_URL", isConfigError: true });
-  }
-  if (!apiKey) {
-    return sendJson(res, 500, { ok: false, error: "Missing REPLIT_NP_API_KEY", isConfigError: true });
+  const safeDebug = debugOn
+    ? {
+        hasBaseUrl: !!baseUrl,
+        hasApiKey: !!apiKey,
+        apiKeyLen: apiKey ? String(apiKey).length : 0,
+        apiKeyLast4: apiKey ? String(apiKey).slice(-4) : "",
+        apiKeyPrefix8: apiKey ? String(apiKey).slice(0, 8) : "",
+      }
+    : undefined;
+
+  if (!baseUrl || !apiKey) {
+    return res.status(500).json({
+      ok: false,
+      error: "Missing REPLIT_CRM_BASE_URL or REPLIT_NP_API_KEY",
+      ...(safeDebug ? { debug: safeDebug } : {}),
+    });
   }
 
-  let body = {};
   try {
-    // Vercel Node function body can be object already or a JSON string depending on runtime
-    body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body ?? {});
-  } catch {
-    body = {};
-  }
+    const upstreamUrl = `${baseUrl.replace(/\/$/, "")}/api/applications`;
 
-  const crmUrl = `${String(baseUrl).replace(/\/$/, "")}/api/applications`;
-
-  try {
-    const upstream = await fetch(crmUrl, {
+    const upstream = await fetch(upstreamUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        // IMPORTANT: send ONLY ONE API key header (no duplicate casing)
         "X-API-Key": apiKey,
       },
-      body: JSON.stringify(body ?? {}),
+      body: JSON.stringify(req.body),
     });
 
-    const ms = Date.now() - t0;
     const text = await upstream.text();
-
-    let upstreamJson = null;
+    let parsed;
     try {
-      upstreamJson = text ? JSON.parse(text) : null;
+      parsed = JSON.parse(text);
     } catch {
-      upstreamJson = null;
+      parsed = { raw: text };
     }
 
-    const requestId =
-      body?.requestId ??
-      body?.tracking?.requestId ??
-      upstreamJson?.requestId ??
-      null;
-
-    const responsePayload = {
-      ok: upstream.ok,
-      requestId,
-      upstreamStatus: upstream.status,
-      ms,
-    };
-
-    if (debugOn) {
-      responsePayload.debug = {
-        forwardedTo: crmUrl,
-        receivedBody: maskSsnInAnyShape(body),
-        upstreamBody: upstreamJson ?? text ?? null,
-      };
+    if (!upstream.ok) {
+      return res.status(502).json({
+        ok: false,
+        message: "Upstream CRM returned non-OK response",
+        upstreamStatus: upstream.status,
+        upstreamBody: parsed,
+        upstreamUrl,
+        ...(safeDebug ? { debug: safeDebug } : {}),
+      });
     }
 
-    return sendJson(res, upstream.status, responsePayload);
-  } catch (err) {
-    return sendJson(res, 500, {
+    return res.status(200).json({
+      ok: true,
+      upstream: parsed,
+      ...(safeDebug ? { debug: safeDebug } : {}),
+    });
+  } catch (e) {
+    return res.status(500).json({
       ok: false,
-      error: "Relay failed",
-      detail: err?.message || String(err),
+      error: e?.message || "Unexpected error",
+      ...(safeDebug ? { debug: safeDebug } : {}),
     });
   }
 }
-

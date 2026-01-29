@@ -278,7 +278,6 @@ export default function App() {
           errorData?.error ||
           errorData?.detail ||
           (typeof errorData === "string" ? errorData : "");
-
         if (relayMsg) errorMsg = relayMsg;
         if (errorData?.requestId) errorMsg += ` (requestId: ${errorData.requestId})`;
       } catch {
@@ -362,7 +361,6 @@ export default function App() {
 
     try {
       const result = await postToCrm(payload);
-
       const rid = result?.requestId ? ` (requestId: ${result.requestId})` : "";
       setSendState("sent");
       setSendMsg(`Request sent.${rid}`);
@@ -389,6 +387,7 @@ export default function App() {
     goTo("info");
   }
 
+  // FINAL HANDOFF — this is the ONLY place we leave the .com funnel
   function openFullMapApp() {
     try {
       window.location.assign(FINAL_APP_URL);
@@ -416,10 +415,10 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // Focus Page 2 input after cinematic sequence completes (compressed to ~18.5s)
+  // FAST Page 2 focus: ~6–7s, not 30+ seconds
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 18500);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 7600);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -438,12 +437,18 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
-          --brass:#d7b06b;
-          --brassGlow: rgba(215, 176, 107, 0.32);
+          /* UPGRADE: richer, dramatic gold (not faded yellow) */
+          --gold1: #FFD56A;
+          --gold2: #F6B700;
+          --gold3: #D6A100;
+          --goldGlow: rgba(255, 204, 75, 0.42);
 
           --text: rgba(255,255,255,0.96);
 
           --uiFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+          /* A distinct display face for the BALANCE word */
+          --balanceFont: ui-serif, Georgia, "Times New Roman", Times, serif;
         }
 
         *{ box-sizing:border-box; }
@@ -489,13 +494,17 @@ export default function App() {
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
-            opacity: 0.92;
-            text-shadow: 0 0 18px rgba(215,176,107,0.30);
+            opacity: 0.95;
+            text-shadow:
+              0 0 18px rgba(255,204,75,0.34),
+              0 0 44px rgba(255,204,75,0.16);
           }
           50%{
             transform: scale(1.12);
             opacity: 1;
-            text-shadow: 0 0 30px rgba(215,176,107,0.58);
+            text-shadow:
+              0 0 28px rgba(255,204,75,0.62),
+              0 0 64px rgba(255,204,75,0.28);
           }
         }
 
@@ -682,15 +691,35 @@ export default function App() {
           font-weight: 700;
         }
 
+        /* UPGRADE: BALANCE word looks premium + dramatic gold */
         .balance{
-          font-size: 24px;
-          letter-spacing: 0.14em;
+          font-family: var(--balanceFont);
+          font-size: 26px;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
-          font-weight: 700;
-          color: var(--brass);
-          padding: 2px 6px;
-          border-radius: 10px;
-          animation: balancePulseAI 3.6s ease-in-out infinite;
+          font-weight: 800;
+          padding: 4px 10px;
+          border-radius: 12px;
+
+          color: transparent;
+          background: linear-gradient(180deg, var(--gold1), var(--gold2) 55%, var(--gold3));
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          text-shadow: 0 0 18px var(--goldGlow);
+          animation: balancePulseAI 3.2s ease-in-out infinite;
+          position: relative;
+        }
+
+        /* subtle gold “sheen” plate behind the text */
+        .balance::before{
+          content:"";
+          position:absolute;
+          inset: -6px -10px;
+          border-radius: 14px;
+          background: radial-gradient(180px 70px at 50% 40%, rgba(255,214,106,0.14), rgba(246,183,0,0.05) 60%, transparent 72%);
+          box-shadow: 0 0 26px rgba(255,204,75,0.10);
+          z-index: -1;
         }
 
         .cornerstone{
@@ -836,15 +865,15 @@ export default function App() {
           padding: 0 6px;
         }
 
-        /* COMPRESSED TIMINGS (target ~18–19s total before input is ready) */
-        .scene1Title { animation: titleInOut 1.6s ease forwards; animation-delay: 0.8s; }
-        .scene1Mean  { animation: meaningInOut 3.0s ease forwards; animation-delay: 2.2s; }
+        /* FAST MODE: compressed sequence (~6–7s total) */
+        .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 0.3s; }
+        .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 0.9s; }
 
-        .scene2Title { animation: titleInOut 1.6s ease forwards; animation-delay: 6.0s; }
-        .scene2Mean  { animation: meaningInOut 3.0s ease forwards; animation-delay: 7.4s; }
+        .scene2Title { animation: titleInOut 2.6s ease forwards; animation-delay: 2.4s; }
+        .scene2Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 3.0s; }
 
-        .scene3Title { animation: titleInOut 1.6s ease forwards; animation-delay: 11.2s; }
-        .scene3Mean  { animation: meaningInOut 3.0s ease forwards; animation-delay: 12.6s; }
+        .scene3Title { animation: titleInOut 2.6s ease forwards; animation-delay: 4.5s; }
+        .scene3Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 5.1s; }
 
         .finalWrap{
           position:absolute;
@@ -855,8 +884,8 @@ export default function App() {
           align-items:center;
           gap: 14px;
           opacity:0;
-          animation: sceneInStay 0.75s ease forwards;
-          animation-delay: 16.0s;
+          animation: sceneInStay 0.85s ease forwards;
+          animation-delay: 6.4s;
           pointer-events:none;
         }
 
@@ -882,16 +911,23 @@ export default function App() {
           font-weight: 700;
         }
 
+        /* UPGRADE: Final BALANCE word uses same premium gold + font */
         .finalBalance{
-          font-size: 38px;
-          letter-spacing: 0.16em;
+          font-family: var(--balanceFont);
+          font-size: 40px;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          font-weight: 700;
-          color: var(--brass);
-          text-shadow: 0 0 22px var(--brassGlow);
+          font-weight: 900;
+
+          color: transparent;
+          background: linear-gradient(180deg, var(--gold1), var(--gold2) 55%, var(--gold3));
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          text-shadow: 0 0 26px var(--goldGlow);
           padding: 2px 10px;
           border-radius: 10px;
-          animation: balancePulseAI 2.35s ease-in-out infinite;
+          animation: balancePulseAI 2.6s ease-in-out infinite;
         }
 
         .finalLine{
@@ -935,7 +971,7 @@ export default function App() {
           opacity:0;
           transform: translateY(20px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 17.5s;
+          animation-delay: 6.8s;
           z-index: 4;
         }
 
@@ -1199,7 +1235,13 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
+              <img
+                className="emblemLg"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.92 }}
+              />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
@@ -1336,7 +1378,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.9 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1383,7 +1431,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.88 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Learning header">
@@ -1435,7 +1489,12 @@ export default function App() {
                     disabled={rewardOn || sendState === "sending"}
                   />
 
-                  <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail || sendState === "sending"}>
+                  <button
+                    className="btn btnWide"
+                    type="button"
+                    onClick={submitEmailFromP5}
+                    disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
+                  >
                     {sendState === "sending" ? "Sending..." : "Continue"}
                   </button>
 
@@ -1540,7 +1599,9 @@ export default function App() {
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
               Session data (temporary):{" "}
-              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}</strong>
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
+                {firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}
+              </strong>
             </div>
           </div>
         </main>

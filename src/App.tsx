@@ -43,8 +43,8 @@ function genRequestId(): string {
 // STAGE 5 CONVERSION — single source of truth for the app destination
 const FINAL_APP_URL = "https://app.balancecipher.info/";
 
-// CRM relay route (Vercel Function)
-const RELAY_ROUTE = "/api/applications";
+// CRM relay route (App Router)
+const RELAY_ROUTE = "/api/submit-application";
 
 // Canon source for this funnel
 const CRM_SOURCE = "balance-cypher-v2";
@@ -262,9 +262,7 @@ export default function App() {
 
     const res = await fetch(RELAY_ROUTE, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
@@ -275,7 +273,6 @@ export default function App() {
 
       try {
         const errorData = await res.json();
-        // If relay returns a clearer message, use it.
         const relayMsg =
           errorData?.message ||
           errorData?.error ||
@@ -283,8 +280,6 @@ export default function App() {
           (typeof errorData === "string" ? errorData : "");
 
         if (relayMsg) errorMsg = relayMsg;
-
-        // if relay echoes requestId, add it
         if (errorData?.requestId) errorMsg += ` (requestId: ${errorData.requestId})`;
       } catch {
         const text = await res.text().catch(() => "");
@@ -295,7 +290,6 @@ export default function App() {
       throw new Error(errorMsg);
     }
 
-    // Prefer JSON response (relay should return requestId/status/timing)
     try {
       const out = await res.json();
       return { ok: true, ms, ...out };
@@ -353,11 +347,9 @@ export default function App() {
 
     setEmail(em);
 
-    // Generate code now (this is the code we will POST to CRM)
     const nextCode = accessCode || generateAccessCode();
     if (!accessCode) setAccessCode(nextCode);
 
-    // HARD RULE: do not proceed unless CRM POST actually fires
     setSendState("sending");
     setSendMsg("Sending your map delivery request...");
 
@@ -392,14 +384,11 @@ export default function App() {
     const entered = codeInput.trim().toUpperCase();
     if (!entered) return;
 
-    // If we have an expected code, enforce it.
     if (expected && entered !== expected) return;
 
-    // IMPORTANT: do not hard-navigate away (that is what causes “page 6” deployment/routing errors).
     goTo("info");
   }
 
-  // FINAL HANDOFF — this is the ONLY place we leave the .com funnel
   function openFullMapApp() {
     try {
       window.location.assign(FINAL_APP_URL);
@@ -427,10 +416,10 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // Focus Page 2 input after cinematic sequence completes
+  // Focus Page 2 input after cinematic sequence completes (compressed to ~18.5s)
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 36500);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 18500);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -847,14 +836,15 @@ export default function App() {
           padding: 0 6px;
         }
 
-        .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 1.4s; }
-        .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 4.7s; }
+        /* COMPRESSED TIMINGS (target ~18–19s total before input is ready) */
+        .scene1Title { animation: titleInOut 1.6s ease forwards; animation-delay: 0.8s; }
+        .scene1Mean  { animation: meaningInOut 3.0s ease forwards; animation-delay: 2.2s; }
 
-        .scene2Title { animation: titleInOut 2.6s ease forwards; animation-delay: 11.8s; }
-        .scene2Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 15.1s; }
+        .scene2Title { animation: titleInOut 1.6s ease forwards; animation-delay: 6.0s; }
+        .scene2Mean  { animation: meaningInOut 3.0s ease forwards; animation-delay: 7.4s; }
 
-        .scene3Title { animation: titleInOut 2.6s ease forwards; animation-delay: 22.2s; }
-        .scene3Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 25.5s; }
+        .scene3Title { animation: titleInOut 1.6s ease forwards; animation-delay: 11.2s; }
+        .scene3Mean  { animation: meaningInOut 3.0s ease forwards; animation-delay: 12.6s; }
 
         .finalWrap{
           position:absolute;
@@ -865,8 +855,8 @@ export default function App() {
           align-items:center;
           gap: 14px;
           opacity:0;
-          animation: sceneInStay 0.85s ease forwards;
-          animation-delay: 32.8s;
+          animation: sceneInStay 0.75s ease forwards;
+          animation-delay: 16.0s;
           pointer-events:none;
         }
 
@@ -945,7 +935,7 @@ export default function App() {
           opacity:0;
           transform: translateY(20px);
           animation: dockIn 0.55s ease forwards;
-          animation-delay: 35.0s;
+          animation-delay: 17.5s;
           z-index: 4;
         }
 
@@ -1209,13 +1199,7 @@ export default function App() {
 
           <div className="p2Wrap">
             <div className="core" aria-label="Cipher core">
-              <img
-                className="emblemLg"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.92 }}
-              />
+              <img className="emblemLg" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.92 }} />
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
@@ -1352,13 +1336,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.9 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1457,12 +1435,7 @@ export default function App() {
                     disabled={rewardOn || sendState === "sending"}
                   />
 
-                  <button
-                    className="btn btnWide"
-                    type="button"
-                    onClick={submitEmailFromP5}
-                    disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
-                  >
+                  <button className="btn btnWide" type="button" onClick={submitEmailFromP5} disabled={rewardOn || !canSubmitEmail || sendState === "sending"}>
                     {sendState === "sending" ? "Sending..." : "Continue"}
                   </button>
 
@@ -1562,15 +1535,12 @@ export default function App() {
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
-              Destination:{" "}
-              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
+              Destination: <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
               Session data (temporary):{" "}
-              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
-                {firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}
-              </strong>
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{firstName ? `${firstName} ${lastName}`.trim() : "(name not captured)"}</strong>
             </div>
           </div>
         </main>

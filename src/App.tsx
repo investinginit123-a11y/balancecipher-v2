@@ -29,27 +29,24 @@ function safeJsonStringify(x: unknown) {
 
 function genRequestId(): string {
   try {
-    // modern browsers
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c: any = crypto;
     if (c?.randomUUID) return c.randomUUID();
   } catch {
     // ignore
   }
-  // fallback
   return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
 // STAGE 5 CONVERSION — single source of truth for the app destination
 const FINAL_APP_URL = "https://app.balancecipher.info/";
 
-// CRM relay route (App Router)
-const RELAY_ROUTE = "/api/submit-application";
+// ✅ CRM relay route (Vercel Serverless Function at /api/applications.js)
+const RELAY_ROUTE = "/api/applications";
 
 // Canon source for this funnel
-const CRM_SOURCE = "balance-cypher-v2";
+const CRM_SOURCE = "balance-cypher-v2-clean";
 
-// Canon payload shape expected by CRM
 type CrmCanonPayload = {
   source: string;
   requestId: string;
@@ -85,24 +82,17 @@ type CrmCanonPayload = {
 
 export default function App() {
   const [view, setView] = useState<View>("landing");
-
-  // If anything blows up at runtime, show it on-screen (no more “white mystery”).
   const [fatalError, setFatalError] = useState<string | null>(null);
 
-  // Capture data
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [codeInput, setCodeInput] = useState("");
 
-  // Page 2 input (kept separate)
   const [p2First, setP2First] = useState("");
-
-  // Page 5 staging
   const [p5Stage, setP5Stage] = useState<P5Stage>("email");
 
-  // CRM send status (so we never “pretend” it sent)
   const [sendState, setSendState] = useState<SendState>("idle");
   const [sendMsg, setSendMsg] = useState<string>("");
 
@@ -171,9 +161,29 @@ export default function App() {
     };
   }, []);
 
+  // Tripwire: if ANY code path tries to hit submit-application, show it immediately.
+  useEffect(() => {
+    try {
+      const origFetch = window.fetch.bind(window);
+      window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+        if (url.includes("submit-application")) {
+          setFatalError(
+            `Tripwire: a request attempted "/api/submit-application"\n\nURL:\n${url}\n\nThis build is not using the correct relay route.\nSearch your project for "submit-application" and replace with "/api/applications".`
+          );
+        }
+        return origFetch(input as any, init as any);
+      };
+      return () => {
+        window.fetch = origFetch as any;
+      };
+    } catch {
+      // ignore
+    }
+  }, []);
+
   function goTo(v: View) {
     setView(v);
-    // Keep it calm and deterministic (no “half scrolled” pages after transitions).
     try {
       window.scrollTo({ top: 0, behavior: "auto" });
     } catch {
@@ -217,18 +227,16 @@ export default function App() {
       startedAt,
       tracking: {
         event: "decode_email_submit",
-        accessCode: params.accessCode, // not a CRM "applicant" field; keep it in tracking
+        accessCode: params.accessCode,
         userAgent: ua,
         pageUrl,
         referrer,
       },
       applicant: {
-        // Known captured fields
         firstName: safeTrimMax(params.firstName, 40),
         lastName: safeTrimMax(params.lastName, 60),
         email: safeTrimMax(params.email, 120),
 
-        // Required-by-shape fields we don't capture yet (defaults)
         phone: "",
         consent: true,
         vehicleType: "",
@@ -254,9 +262,6 @@ export default function App() {
     };
   }
 
-  // =========================
-  // CRM POST (single function)
-  // =========================
   async function postToCrm(payload: CrmCanonPayload) {
     const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
 
@@ -270,7 +275,6 @@ export default function App() {
 
     if (!res.ok) {
       let errorMsg = `CRM relay failed: ${res.status} ${res.statusText}`;
-
       try {
         const errorData = await res.json();
         const relayMsg =
@@ -284,7 +288,6 @@ export default function App() {
         const text = await res.text().catch(() => "");
         if (text) errorMsg += ` — ${text}`;
       }
-
       errorMsg += ` — ${ms}ms`;
       throw new Error(errorMsg);
     }
@@ -297,20 +300,15 @@ export default function App() {
     }
   }
 
-  // STEP 2 -> STEP 3 transition
   function submitFirstFromP2() {
     if (rewardOn) return;
     const fn = safeTrimMax(p2First, 40);
     if (!fn) return;
 
     setFirstName(fn);
-
-    showReward("B", "", 950, () => {
-      goTo("p3");
-    });
+    showReward("B", "", 950, () => goTo("p3"));
   }
 
-  // STEP 3
   function submitLast() {
     if (rewardOn) return;
     const ln = safeTrimMax(lastName, 60);
@@ -322,9 +320,7 @@ export default function App() {
       "A",
       "When was the last time you felt a shift inside you—and you knew you couldn’t go back?\nNot because life got easier. Because you finally saw it.",
       2300,
-      () => {
-        goTo("p4");
-      }
+      () => goTo("p4")
     );
   }
 
@@ -336,7 +332,6 @@ export default function App() {
     goTo("p5");
   }
 
-  // PAGE 5 (email first, then code)
   async function submitEmailFromP5() {
     if (rewardOn) return;
     if (sendState === "sending") return;
@@ -387,7 +382,6 @@ export default function App() {
     goTo("info");
   }
 
-  // FINAL HANDOFF — this is the ONLY place we leave the .com funnel
   function openFullMapApp() {
     try {
       window.location.assign(FINAL_APP_URL);
@@ -415,10 +409,11 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // FAST Page 2 focus: ~6–7s, not 30+ seconds
+  // ✅ SPEED FIX: Step 2 cinematic reduced to ~18–19 seconds total
+  // Old was ~36.5s before focusing input; now ~18.8s.
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 7600);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 18800);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -437,18 +432,14 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
-          /* UPGRADE: richer, dramatic gold (not faded yellow) */
-          --gold1: #FFD56A;
-          --gold2: #F6B700;
-          --gold3: #D6A100;
-          --goldGlow: rgba(255, 204, 75, 0.42);
+          /* ✅ Richer gold (less “70s faded yellow”) */
+          --brass:#f5c86a;
+          --brass2:#d7a84a;
+          --brassGlow: rgba(245, 200, 106, 0.48);
 
           --text: rgba(255,255,255,0.96);
 
           --uiFont: "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-          /* A distinct display face for the BALANCE word */
-          --balanceFont: ui-serif, Georgia, "Times New Roman", Times, serif;
         }
 
         *{ box-sizing:border-box; }
@@ -491,20 +482,17 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
+        /* ✅ Punchier BALANCE pulse + gold depth */
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
-            opacity: 0.95;
-            text-shadow:
-              0 0 18px rgba(255,204,75,0.34),
-              0 0 44px rgba(255,204,75,0.16);
+            opacity: 0.94;
+            filter: drop-shadow(0 0 14px rgba(245,200,106,0.32));
           }
           50%{
-            transform: scale(1.12);
+            transform: scale(1.14);
             opacity: 1;
-            text-shadow:
-              0 0 28px rgba(255,204,75,0.62),
-              0 0 64px rgba(255,204,75,0.28);
+            filter: drop-shadow(0 0 26px rgba(245,200,106,0.62));
           }
         }
 
@@ -691,35 +679,20 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* UPGRADE: BALANCE word looks premium + dramatic gold */
+        /* ✅ Rich gold gradient + stronger glow */
         .balance{
-          font-family: var(--balanceFont);
-          font-size: 26px;
-          letter-spacing: 0.12em;
+          font-size: 24px;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
           font-weight: 800;
-          padding: 4px 10px;
-          border-radius: 12px;
-
-          color: transparent;
-          background: linear-gradient(180deg, var(--gold1), var(--gold2) 55%, var(--gold3));
+          padding: 2px 6px;
+          border-radius: 10px;
+          animation: balancePulseAI 3.2s ease-in-out infinite;
+          background: linear-gradient(180deg, var(--brass), var(--brass2));
           -webkit-background-clip: text;
           background-clip: text;
-
-          text-shadow: 0 0 18px var(--goldGlow);
-          animation: balancePulseAI 3.2s ease-in-out infinite;
-          position: relative;
-        }
-
-        /* subtle gold “sheen” plate behind the text */
-        .balance::before{
-          content:"";
-          position:absolute;
-          inset: -6px -10px;
-          border-radius: 14px;
-          background: radial-gradient(180px 70px at 50% 40%, rgba(255,214,106,0.14), rgba(246,183,0,0.05) 60%, transparent 72%);
-          box-shadow: 0 0 26px rgba(255,204,75,0.10);
-          z-index: -1;
+          color: transparent;
+          text-shadow: 0 0 24px var(--brassGlow);
         }
 
         .cornerstone{
@@ -826,10 +799,11 @@ export default function App() {
           gap: 12px;
         }
 
+        /* ✅ Faster cinematic timing */
         @keyframes titleInOut{
           0%   { opacity:0; transform: translateY(10px); }
-          18%  { opacity:1; transform: translateY(0); }
-          72%  { opacity:1; transform: translateY(0); }
+          16%  { opacity:1; transform: translateY(0); }
+          76%  { opacity:1; transform: translateY(0); }
           100% { opacity:0; transform: translateY(-8px); }
         }
 
@@ -865,15 +839,15 @@ export default function App() {
           padding: 0 6px;
         }
 
-        /* FAST MODE: compressed sequence (~6–7s total) */
-        .scene1Title { animation: titleInOut 2.6s ease forwards; animation-delay: 0.3s; }
-        .scene1Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 0.9s; }
+        /* ✅ New compact schedule (~18–19s total) */
+        .scene1Title { animation: titleInOut 2.1s ease forwards; animation-delay: 0.8s; }
+        .scene1Mean  { animation: meaningInOut 4.3s ease forwards; animation-delay: 2.8s; }
 
-        .scene2Title { animation: titleInOut 2.6s ease forwards; animation-delay: 2.4s; }
-        .scene2Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 3.0s; }
+        .scene2Title { animation: titleInOut 2.1s ease forwards; animation-delay: 6.9s; }
+        .scene2Mean  { animation: meaningInOut 4.0s ease forwards; animation-delay: 8.8s; }
 
-        .scene3Title { animation: titleInOut 2.6s ease forwards; animation-delay: 4.5s; }
-        .scene3Mean  { animation: meaningInOut 6.2s ease forwards; animation-delay: 5.1s; }
+        .scene3Title { animation: titleInOut 2.1s ease forwards; animation-delay: 12.6s; }
+        .scene3Mean  { animation: meaningInOut 4.0s ease forwards; animation-delay: 14.5s; }
 
         .finalWrap{
           position:absolute;
@@ -884,8 +858,8 @@ export default function App() {
           align-items:center;
           gap: 14px;
           opacity:0;
-          animation: sceneInStay 0.85s ease forwards;
-          animation-delay: 6.4s;
+          animation: sceneInStay 0.75s ease forwards;
+          animation-delay: 16.9s;
           pointer-events:none;
         }
 
@@ -911,23 +885,19 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* UPGRADE: Final BALANCE word uses same premium gold + font */
         .finalBalance{
-          font-family: var(--balanceFont);
-          font-size: 40px;
-          letter-spacing: 0.14em;
+          font-size: 38px;
+          letter-spacing: 0.16em;
           text-transform: uppercase;
           font-weight: 900;
-
-          color: transparent;
-          background: linear-gradient(180deg, var(--gold1), var(--gold2) 55%, var(--gold3));
+          background: linear-gradient(180deg, var(--brass), var(--brass2));
           -webkit-background-clip: text;
           background-clip: text;
-
-          text-shadow: 0 0 26px var(--goldGlow);
+          color: transparent;
+          text-shadow: 0 0 26px var(--brassGlow);
           padding: 2px 10px;
           border-radius: 10px;
-          animation: balancePulseAI 2.6s ease-in-out infinite;
+          animation: balancePulseAI 2.2s ease-in-out infinite;
         }
 
         .finalLine{
@@ -970,8 +940,8 @@ export default function App() {
           gap: 12px;
           opacity:0;
           transform: translateY(20px);
-          animation: dockIn 0.55s ease forwards;
-          animation-delay: 6.8s;
+          animation: dockIn 0.50s ease forwards;
+          animation-delay: 18.0s;
           z-index: 4;
         }
 
@@ -1174,7 +1144,6 @@ export default function App() {
         }
       `}</style>
 
-      {/* Fatal runtime overlay (only shows if app actually mounts and then crashes) */}
       {fatalError ? (
         <div className="fatalOverlay" aria-label="App error overlay">
           <div className="fatalCard">
@@ -1187,7 +1156,6 @@ export default function App() {
         </div>
       ) : null}
 
-      {/* RECEIVABLE OVERLAY */}
       {rewardOn && rewardLetter ? (
         <div className="rewardOverlay" aria-label="Receivable reward overlay">
           <div className="rewardLetter">{rewardLetter}</div>
@@ -1195,7 +1163,6 @@ export default function App() {
         </div>
       ) : null}
 
-      {/* PAGE 1 */}
       {view === "landing" ? (
         <main className="p1">
           <div className="p1Wrap">
@@ -1217,7 +1184,9 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
+            <div className="sub">
+              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
+            </div>
 
             <button className="btn" type="button" onClick={goToDecode}>
               Start the private decode
@@ -1228,7 +1197,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 2 */}
       {view === "p2" ? (
         <main className="p2" aria-label="Private decode — Page 2">
           <div className="p2Fade" />
@@ -1246,13 +1214,17 @@ export default function App() {
 
             <div className="stage" aria-label="Cinematic sequence">
               <div className="title scene1Title">Cipher</div>
-              <div className="meaning scene1Mean">The first human intelligent device designed to crack the unbreakable codes.</div>
+              <div className="meaning scene1Mean">
+                The first human intelligent device designed to crack the unbreakable codes.
+              </div>
 
               <div className="title scene2Title">Co-Pilot + AI</div>
               <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
 
               <div className="title scene3Title">You</div>
-              <div className="meaning scene3Mean">You are the most powerful of all three, and designed and built for endless potential.</div>
+              <div className="meaning scene3Mean">
+                You are the most powerful of all three, and designed and built for endless potential.
+              </div>
 
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow" style={{ gap: 8 }}>
@@ -1314,7 +1286,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 3 — B */}
       {view === "p3" ? (
         <main className="pX" aria-label="Private decode — Page 3">
           <div className="contentLayer">
@@ -1373,7 +1344,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 4 — A */}
       {view === "p4" ? (
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
@@ -1426,7 +1396,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 5 — L */}
       {view === "p5" ? (
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
@@ -1447,7 +1416,9 @@ export default function App() {
 
             {p5Stage === "email" ? (
               <>
-                <div className="breakTitle">Learning is where the Cipher starts learning you—so your map can finally fit your life.</div>
+                <div className="breakTitle">
+                  Learning is where the Cipher starts learning you—so your map can finally fit your life.
+                </div>
 
                 <div className="breakList" aria-label="Learning support bullets">
                   <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
@@ -1499,7 +1470,13 @@ export default function App() {
                   </button>
 
                   {sendMsg ? (
-                    <div className={["sendStatus", sendState === "error" ? "sendStatusError" : "", sendState === "sent" ? "sendStatusGood" : ""].join(" ")}>
+                    <div
+                      className={[
+                        "sendStatus",
+                        sendState === "error" ? "sendStatusError" : "",
+                        sendState === "sent" ? "sendStatusGood" : "",
+                      ].join(" ")}
+                    >
                       {sendMsg}
                     </div>
                   ) : null}
@@ -1544,7 +1521,9 @@ export default function App() {
 
                 <div className="stepConfirm" style={{ marginTop: 14 }}>
                   Preview code (temporary):{" "}
-                  <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{accessCode || "(generated after email entry)"}</strong>
+                  <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
+                    {accessCode || "(generated after email entry)"}
+                  </strong>
                 </div>
               </>
             )}
@@ -1552,7 +1531,6 @@ export default function App() {
         </main>
       ) : null}
 
-      {/* PAGE 6 — INFO (final internal screen; CTA leaves .com) */}
       {view === "info" ? (
         <main className="pX" aria-label="Private decode — Final screen">
           <div className="contentLayer">

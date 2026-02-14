@@ -85,7 +85,7 @@ export default function App() {
   const [fatalError, setFatalError] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [lastName, setLastName] = useState(""); // NOTE: last name capture removed from Page 3 (optional for now)
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [codeInput, setCodeInput] = useState("");
@@ -97,9 +97,11 @@ export default function App() {
   const [sendMsg, setSendMsg] = useState<string>("");
 
   const p2FirstRef = useRef<HTMLInputElement | null>(null);
-  const lastRef = useRef<HTMLInputElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
   const codeRef = useRef<HTMLInputElement | null>(null);
+
+  // A-stage helper (copy feedback)
+  const [copyMsg, setCopyMsg] = useState<string>("");
 
   // Receivable overlay (B / A / L)
   const [rewardOn, setRewardOn] = useState(false);
@@ -201,6 +203,7 @@ export default function App() {
     setP5Stage("email");
     setSendState("idle");
     setSendMsg("");
+    setCopyMsg("");
     clearRewardTimer();
     setRewardOn(false);
     setRewardLetter(null);
@@ -234,7 +237,8 @@ export default function App() {
       },
       applicant: {
         firstName: safeTrimMax(params.firstName, 40),
-        lastName: safeTrimMax(params.lastName, 60),
+        // NOTE: last name currently optional until we move capture later (per scope)
+        lastName: safeTrimMax(params.lastName || "", 60),
         email: safeTrimMax(params.email, 120),
 
         phone: "",
@@ -306,26 +310,21 @@ export default function App() {
     if (!fn) return;
 
     setFirstName(fn);
-    showReward("B", "", 950, () => goTo("p3"));
+    // Keep the B reward hit, then proceed into the B page (Page 3)
+    showReward("B", "", 900, () => goTo("p3"));
   }
 
   function continueFromBreakFree() {
     if (rewardOn) return;
-
-    showReward(
-      "A",
-      "When was the last time you felt a shift inside you—and you knew you couldn’t go back?\nNot because life got easier. Because you finally saw it.",
-      2300,
-      () => goTo("p4")
-    );
+    goTo("p4");
   }
 
-  function submitLastFromP4() {
+  function continueFromAwakening() {
     if (rewardOn) return;
-    const ln = safeTrimMax(lastName, 60);
-    if (!ln) return;
-
-    setLastName(ln);
+    setP5Stage("email");
+    setSendState("idle");
+    setSendMsg("");
+    setCopyMsg("");
     goTo("p5");
   }
 
@@ -357,7 +356,7 @@ export default function App() {
       setSendState("sent");
       setSendMsg(`Request sent.${rid}`);
 
-      showReward("L", "Map delivery unlocked.", 1150, () => {
+      showReward("L", "Map delivery unlocked.", 980, () => {
         setP5Stage("code");
         setTimeout(() => codeRef.current?.focus(), 80);
       });
@@ -379,6 +378,19 @@ export default function App() {
     goTo("info");
   }
 
+  async function copyTempCode() {
+    const v = (accessCode || "").trim();
+    if (!v) return;
+    try {
+      await navigator.clipboard.writeText(v);
+      setCopyMsg("Copied.");
+      setTimeout(() => setCopyMsg(""), 1200);
+    } catch {
+      setCopyMsg("Copy failed.");
+      setTimeout(() => setCopyMsg(""), 1200);
+    }
+  }
+
   function openFullMapApp() {
     try {
       window.location.assign(FINAL_APP_URL);
@@ -398,24 +410,21 @@ export default function App() {
   useEffect(() => {
     if (rewardOn) return;
 
-    // ✅ Last name capture moved to p4
-    if (view === "p4") setTimeout(() => lastRef.current?.focus(), 70);
-
     if (view === "p5") {
       if (p5Stage === "email") setTimeout(() => emailRef.current?.focus(), 80);
       if (p5Stage === "code") setTimeout(() => codeRef.current?.focus(), 80);
     }
   }, [view, rewardOn, p5Stage]);
 
-  // ✅ SPEED FIX: Page 2 reduced to ~14s total time-to-action
+  // ✅ SPEED FIX: Page 2 cinematic down to ~15 seconds total
+  // Dock reveals around 14s, autofocus at 15s.
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 14000);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 15000);
     return () => clearTimeout(t);
   }, [view]);
 
   const canSubmitP2 = !!safeTrimMax(p2First, 40);
-  const canSubmitLast = !!safeTrimMax(lastName, 60);
   const canSubmitEmail = isValidEmail(email);
   const canSubmitCode = !!codeInput.trim();
 
@@ -767,7 +776,7 @@ export default function App() {
           inset:0;
           background:#000;
           opacity:1;
-          animation: fadeOut 0.7s ease forwards;
+          animation: fadeOut 0.65s ease forwards;
           z-index: 20;
           pointer-events:none;
         }
@@ -786,55 +795,27 @@ export default function App() {
 
         .stage{
           width: min(780px, 100%);
-          min-height: 175px;
+          height: 170px; /* ✅ fixed height so mobile never "chases" text */
           margin-top: -10px;
           position: relative;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:flex-start;
-          gap: 12px;
-        }
-
-        /* ✅ Stop "text chasing": scenes overlay in one fixed slot */
-        .sceneSlot{
-          position: relative;
-          width: min(780px, 100%);
-          height: 170px;
           display:flex;
           align-items:center;
           justify-content:center;
           overflow: hidden;
         }
 
-        .scene{
-          position:absolute;
-          inset:0;
+        /* ✅ Scene layers are absolute — no stacking, no push-down */
+        .sceneLayer{
+          position: absolute;
+          inset: 0;
           display:flex;
           flex-direction:column;
           align-items:center;
           justify-content:center;
-          padding: 0 10px;
-        }
-
-        /* ✅ Faster cinematic timing */
-        @keyframes titleInOut{
-          0%   { opacity:0; transform: translateY(10px); }
-          16%  { opacity:1; transform: translateY(0); }
-          76%  { opacity:1; transform: translateY(0); }
-          100% { opacity:0; transform: translateY(-8px); }
-        }
-
-        @keyframes meaningInOut{
-          0%   { opacity:0; transform: translateY(10px); }
-          10%  { opacity:1; transform: translateY(0); }
-          92%  { opacity:1; transform: translateY(0); }
-          100% { opacity:0; transform: translateY(-8px); }
-        }
-
-        @keyframes sceneInStay{
-          0%   { opacity:0; transform: translateY(10px); }
-          100% { opacity:1; transform: translateY(0); }
+          gap: 10px;
+          opacity: 0;
+          transform: translateY(10px);
+          pointer-events:none;
         }
 
         .title{
@@ -843,42 +824,48 @@ export default function App() {
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
-          opacity:0;
+          margin: 0;
         }
 
         .meaning{
-          margin-top: 10px;
-          font-size: clamp(24px, 6.2vw, 34px);
+          font-size: clamp(22px, 5.8vw, 34px);
           font-weight: 300;
           color: rgba(255,255,255,0.90);
           text-shadow: 0 0 22px rgba(40,240,255,0.10);
           max-width: 780px;
-          line-height: 1.6;
-          opacity:0;
+          line-height: 1.55;
           padding: 0 6px;
+          margin: 0;
         }
 
-        /* ✅ New compact schedule (~14s total time-to-action) */
-        .scene1Title { animation: titleInOut 1.7s ease forwards; animation-delay: 0.6s; }
-        .scene1Mean  { animation: meaningInOut 3.5s ease forwards; animation-delay: 2.05s; }
+        @keyframes layerInOut{
+          0%   { opacity: 0; transform: translateY(10px); }
+          14%  { opacity: 1; transform: translateY(0); }
+          86%  { opacity: 1; transform: translateY(0); }
+          100% { opacity: 0; transform: translateY(-8px); }
+        }
 
-        .scene2Title { animation: titleInOut 1.7s ease forwards; animation-delay: 5.05s; }
-        .scene2Mean  { animation: meaningInOut 3.3s ease forwards; animation-delay: 6.45s; }
+        @keyframes layerInStay{
+          0%   { opacity: 0; transform: translateY(10px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
 
-        .scene3Title { animation: titleInOut 1.7s ease forwards; animation-delay: 9.20s; }
-        .scene3Mean  { animation: meaningInOut 2.8s ease forwards; animation-delay: 10.60s; }
+        /* ✅ ~15s schedule total */
+        .s1 { animation: layerInOut 4.2s ease forwards; animation-delay: 0.6s; }
+        .s2 { animation: layerInOut 3.9s ease forwards; animation-delay: 4.9s; }
+        .s3 { animation: layerInOut 3.6s ease forwards; animation-delay: 8.9s; }
 
         .finalWrap{
           position:absolute;
-          left:0; right:0;
-          top: 0;
+          inset: 0;
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 14px;
+          justify-content:center;
+          gap: 12px;
           opacity:0;
-          animation: sceneInStay 0.70s ease forwards;
-          animation-delay: 12.40s;
+          animation: layerInStay 0.65s ease forwards;
+          animation-delay: 12.8s;
           pointer-events:none;
         }
 
@@ -952,29 +939,28 @@ export default function App() {
         .dock{
           position:absolute;
           left:0; right:0;
-          bottom: 34px;
+          bottom: 40px;
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 12px;
+          gap: 10px;
           opacity:0;
           transform: translateY(18px);
-          animation: dockIn 0.45s ease forwards;
-          animation-delay: 13.10s;
+          animation: dockIn 0.50s ease forwards;
+          animation-delay: 14.0s; /* ✅ dock shows near 14s */
           z-index: 4;
+          padding: 0 10px;
         }
 
         @keyframes dockIn{
           to { opacity:1; transform: translateY(0); }
         }
 
-        /* ✅ Bigger + clearer on mobile */
         .unlockText{
-          font-size: clamp(20px, 5.2vw, 24px);
-          color: rgba(255,255,255,0.92);
-          width: min(760px, 94vw);
-          line-height: 1.32;
-          padding: 0 10px;
+          font-size: clamp(22px, 5.2vw, 28px);
+          color: rgba(255,255,255,0.94);
+          max-width: 780px;
+          line-height: 1.25;
           font-weight: 800;
           letter-spacing: 0.01em;
         }
@@ -982,9 +968,9 @@ export default function App() {
         .unlockSub{
           margin-top: 0px;
           font-size: 14px;
-          color: rgba(255,255,255,0.64);
-          font-weight: 600;
-          letter-spacing: 0.04em;
+          color: rgba(255,255,255,0.66);
+          font-weight: 500;
+          letter-spacing: 0.02em;
         }
 
         /* Pages 3–6 */
@@ -1087,20 +1073,28 @@ export default function App() {
         .stepInstruction{
           margin-top: 10px;
           font-size: 16px;
-          color: rgba(255,255,255,0.78);
+          color: rgba(255,255,255,0.80);
           max-width: 620px;
           line-height: 1.45;
-          font-weight: 700;
+          font-weight: 800;
           letter-spacing: 0.01em;
         }
 
         .stepConfirm{
           margin-top: 6px;
           font-size: 14px;
-          color: rgba(255,255,255,0.56);
+          color: rgba(255,255,255,0.58);
           max-width: 520px;
           line-height: 1.45;
           font-weight: 300;
+        }
+
+        .microReassure{
+          margin-top: 6px;
+          font-size: 13px;
+          color: rgba(255,255,255,0.60);
+          font-weight: 500;
+          letter-spacing: 0.01em;
         }
 
         .tinyLink{
@@ -1110,18 +1104,6 @@ export default function App() {
           font-weight: 500;
           letter-spacing: 0.04em;
           text-transform: lowercase;
-        }
-
-        .fieldLabel{
-          width: min(560px, 90vw);
-          text-align: left;
-          font-size: 12px;
-          letter-spacing: 0.10em;
-          text-transform: uppercase;
-          font-weight: 700;
-          color: rgba(255,255,255,0.66);
-          margin: 4px 0 -2px;
-          padding: 0 6px;
         }
 
         .underlineOnly{
@@ -1167,12 +1149,74 @@ export default function App() {
           color: rgba(255,255,255,0.86);
         }
 
+        /* A / Action code prominence */
+        .codeCard{
+          width: min(560px, 92vw);
+          border-radius: 18px;
+          border: 1px solid rgba(40,240,255,0.30);
+          background: rgba(40,240,255,0.05);
+          box-shadow: 0 0 30px rgba(40,240,255,0.10);
+          padding: 14px 14px 12px;
+          margin-top: 10px;
+        }
+
+        .codeLabel{
+          font-size: 13px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.70);
+          font-weight: 800;
+        }
+
+        .codeRow{
+          margin-top: 10px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .codeValue{
+          font-size: 22px;
+          letter-spacing: 0.18em;
+          font-weight: 900;
+          color: rgba(255,255,255,0.96);
+          padding: 10px 12px;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,0.10);
+          background: rgba(0,0,0,0.28);
+          min-width: 220px;
+          text-align:center;
+        }
+
+        .miniBtn{
+          border-radius: 999px;
+          border: 1px solid rgba(40,240,255,0.55);
+          background: rgba(40,240,255,0.06);
+          color: rgba(255,255,255,0.92);
+          padding: 10px 14px;
+          cursor:pointer;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+        }
+
+        .copyMsg{
+          margin-top: 8px;
+          font-size: 12px;
+          color: rgba(40,240,255,0.75);
+          font-weight: 700;
+          letter-spacing: 0.04em;
+        }
+
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
+          .unlockText{ font-size: 22px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
-          .sceneSlot{ height: 160px; }
+          .stage{ height: 160px; }
+          .meaning{ font-size: clamp(20px, 5.6vw, 30px); }
         }
       `}</style>
 
@@ -1216,7 +1260,9 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
+            <div className="sub">
+              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
+            </div>
 
             <button className="btn" type="button" onClick={goToDecode}>
               Start the private decode
@@ -1243,63 +1289,61 @@ export default function App() {
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
-              <div className="sceneSlot" aria-label="Scene slot">
-                <div className="scene" aria-label="Scene 1">
-                  <div className="title scene1Title">Cipher</div>
-                  <div className="meaning scene1Mean">The first human intelligent device designed to crack the unbreakable codes.</div>
+              <div className="sceneLayer s1" aria-label="Scene 1">
+                <div className="title">Cipher</div>
+                <div className="meaning">The first human intelligent device designed to crack the unbreakable codes.</div>
+              </div>
+
+              <div className="sceneLayer s2" aria-label="Scene 2">
+                <div className="title">Co-Pilot + AI</div>
+                <div className="meaning">AI. Built to complete once-impossible tasks in mere seconds.</div>
+              </div>
+
+              <div className="sceneLayer s3" aria-label="Scene 3">
+                <div className="title">You</div>
+                <div className="meaning">You are the most powerful of all three—built for endless potential.</div>
+              </div>
+
+              <div className="finalWrap" aria-label="Final equation">
+                <div className="finalRow" style={{ gap: 8 }}>
+                  <span className="finalWord">Cipher</span>
+                  <span className="parenGroup" aria-label="Cipher descriptor">
+                    <span className="paren">(</span>
+                    <span className="parenText">a pattern reader</span>
+                    <span className="paren">)</span>
+                  </span>
+
+                  <span className="finalSym">+</span>
+
+                  <span className="finalWord">AI Co-Pilot</span>
+                  <span className="parenGroup" aria-label="AI Co-Pilot descriptor">
+                    <span className="paren">(</span>
+                    <span className="parenText">your AI power source</span>
+                    <span className="paren">)</span>
+                  </span>
+
+                  <span className="finalSym">+</span>
+
+                  <span className="finalWord">You</span>
+                  <span className="parenGroup" aria-label="You descriptor">
+                    <span className="paren">(</span>
+                    <span className="parenText">endless potential</span>
+                    <span className="paren">)</span>
+                  </span>
+
+                  <span className="finalSym">=</span>
+
+                  <span className="finalBalance">BALANCE</span>
                 </div>
 
-                <div className="scene" aria-label="Scene 2">
-                  <div className="title scene2Title">Co-Pilot + AI</div>
-                  <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
-                </div>
-
-                <div className="scene" aria-label="Scene 3">
-                  <div className="title scene3Title">You</div>
-                  <div className="meaning scene3Mean">You are the most powerful of all three, and designed and built for endless potential.</div>
-                </div>
-
-                <div className="finalWrap" aria-label="Final equation">
-                  <div className="finalRow" style={{ gap: 8 }}>
-                    <span className="finalWord">Cipher</span>
-                    <span className="parenGroup" aria-label="Cipher descriptor">
-                      <span className="paren">(</span>
-                      <span className="parenText">a pattern reader</span>
-                      <span className="paren">)</span>
-                    </span>
-
-                    <span className="finalSym">+</span>
-
-                    <span className="finalWord">AI Co-Pilot</span>
-                    <span className="parenGroup" aria-label="AI Co-Pilot descriptor">
-                      <span className="paren">(</span>
-                      <span className="parenText">your AI power source</span>
-                      <span className="paren">)</span>
-                    </span>
-
-                    <span className="finalSym">+</span>
-
-                    <span className="finalWord">You</span>
-                    <span className="parenGroup" aria-label="You descriptor">
-                      <span className="paren">(</span>
-                      <span className="parenText">endless potential</span>
-                      <span className="paren">)</span>
-                    </span>
-
-                    <span className="finalSym">=</span>
-
-                    <span className="finalBalance">BALANCE</span>
-                  </div>
-
-                  <div className="finalLine">This is your AI-powered guide.</div>
-                </div>
+                <div className="finalLine">This is your AI-powered guide.</div>
               </div>
             </div>
           </div>
 
           <div className="dock">
-            <div className="unlockText">Unlock the next step — enter your first name.</div>
-            <div className="unlockSub">Then tap Continue.</div>
+            <div className="unlockText">What should I call you?</div>
+            <div className="unlockSub">First name is perfect. Then tap Continue.</div>
 
             <input
               ref={p2FirstRef}
@@ -1354,14 +1398,13 @@ export default function App() {
               <div className="breakCloser">Imagine how it would feel to finally break free.</div>
             </div>
 
-            {/* ✅ Last name capture removed from this page */}
+            {/* ✅ Per scope: remove last name capture here — CTA only */}
             <div className="ctaStack" aria-label="Continue from Break Free">
               <button className="btn btnWide" type="button" onClick={continueFromBreakFree} disabled={rewardOn}>
                 Continue
               </button>
             </div>
 
-            <div className="stepInstruction">One clean step. Keep going.</div>
             <div className="stepConfirm">Confirmed. No noise.</div>
           </div>
         </main>
@@ -1407,27 +1450,13 @@ export default function App() {
               <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
             </div>
 
-            {/* ✅ Last name capture moved here (clean + minimal) */}
-            <div className="ctaStack" aria-label="Last name entry">
-              <div className="fieldLabel">Last name</div>
-              <input
-                ref={lastRef}
-                className="underlineOnly"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                onKeyDown={(e) => onEnter(e, submitLastFromP4)}
-                aria-label="Last name"
-                autoComplete="family-name"
-                placeholder=""
-                disabled={rewardOn}
-              />
-
-              <button className="btn btnWide" type="button" onClick={submitLastFromP4} disabled={rewardOn || !canSubmitLast}>
+            <div className="ctaStack" aria-label="Continue from Awakening">
+              <button className="btn btnWide" type="button" onClick={continueFromAwakening} disabled={rewardOn}>
                 Continue
               </button>
             </div>
 
-            <div className="stepInstruction">Enter your last name, then continue.</div>
+            <div className="stepInstruction">Awakening is the moment the fog lifts—and you understand. Keep going.</div>
             <div className="stepConfirm">Confirmed. No noise.</div>
           </div>
         </main>
@@ -1446,14 +1475,14 @@ export default function App() {
               />
             </div>
 
-            <div className="letterHeader" aria-label="Learning header">
-              <div className="bigLetter">L</div>
-              <div className="bigSubline">Learning</div>
+            {/* ✅ Per scope: L email stage, then A action stage */}
+            <div className="letterHeader" aria-label="Stage header">
+              <div className="bigLetter">{p5Stage === "email" ? "L" : "A"}</div>
+              <div className="bigSubline">{p5Stage === "email" ? "Learning" : "Action"}</div>
             </div>
 
             {p5Stage === "email" ? (
               <>
-                {/* ✅ Inviting, clearer layout */}
                 <div className="breakTitle">Learning is where the Cipher starts learning you—so your map can finally fit your life.</div>
 
                 <div className="breakList" aria-label="Learning support bullets">
@@ -1461,27 +1490,24 @@ export default function App() {
                     It learns your <strong>pattern</strong>—what pulls you back, and what moves you forward.
                   </div>
                   <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
-                    It filters the <strong>noise</strong>—so clarity can win.
+                    It learns what to ignore, so the <strong>noise</strong> stops winning.
                   </div>
                   <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
-                    It turns confusion into <strong>one clear next step</strong>.
+                    It turns confusion into <strong>clear next steps</strong>.
                   </div>
-
-                  <div className="breakCloser">So your Co-Pilot can deliver your map in a way that fits you.</div>
+                  <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
+                    So the Co-Pilot can deliver the map in a way that fits <strong>you</strong>.
+                  </div>
+                  <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
                 </div>
 
                 <div className="ctaStack" aria-label="Email entry">
+                  {/* ✅ Clearer, more inviting ask */}
                   <div className="stepInstruction" style={{ marginTop: 0 }}>
-                    <strong style={{ fontWeight: 800, color: "rgba(255,255,255,0.92)" }}>Ready for your map?</strong>
-                    <br />
-                    Drop your email and I’ll send it to you.
+                    Where should we send your map?
                   </div>
+                  <div className="microReassure">No spam. No noise. Just your next step.</div>
 
-                  <div className="stepConfirm" style={{ marginTop: 0 }}>
-                    No spam. No pressure. Just your next step.
-                  </div>
-
-                  <div className="fieldLabel">Email address</div>
                   <input
                     ref={emailRef}
                     className="underlineOnly"
@@ -1497,7 +1523,7 @@ export default function App() {
                     aria-label="Email"
                     autoComplete="email"
                     inputMode="email"
-                    placeholder="you@example.com"
+                    placeholder=""
                     disabled={rewardOn || sendState === "sending"}
                   />
 
@@ -1507,7 +1533,7 @@ export default function App() {
                     onClick={submitEmailFromP5}
                     disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
                   >
-                    {sendState === "sending" ? "Sending..." : "Send my map"}
+                    {sendState === "sending" ? "Sending..." : "Continue"}
                   </button>
 
                   {sendMsg ? (
@@ -1528,16 +1554,31 @@ export default function App() {
               </>
             ) : (
               <>
+                {/* ✅ Action screen — code is prominent + clear instructions */}
                 <div className="breakTitle" style={{ marginTop: 14 }}>
-                  Your map is opening.
+                  Action unlocked.
                 </div>
 
                 <div className="stepConfirm" style={{ marginTop: 0 }}>
-                  This code is the bridge between the decode and the app.
+                  Paste your temporary code below to cross into the app.
+                </div>
+
+                <div className="codeCard" aria-label="Temporary code">
+                  <div className="codeLabel">Temporary code</div>
+                  <div className="codeRow">
+                    <div className="codeValue">{accessCode || "--------"}</div>
+                    <button className="miniBtn" type="button" onClick={copyTempCode} disabled={!accessCode}>
+                      Copy
+                    </button>
+                  </div>
+                  {copyMsg ? <div className="copyMsg">{copyMsg}</div> : null}
                 </div>
 
                 <div className="ctaStack" aria-label="Bridge code entry">
-                  <div className="fieldLabel">Bridge code</div>
+                  <div className="stepInstruction" style={{ marginTop: 2 }}>
+                    Enter it here:
+                  </div>
+
                   <input
                     ref={codeRef}
                     className="underlineOnly"
@@ -1560,13 +1601,6 @@ export default function App() {
                 </div>
 
                 <div className="tinyLink">app.balancecipher.info</div>
-
-                <div className="stepConfirm" style={{ marginTop: 14 }}>
-                  Preview code (temporary):{" "}
-                  <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>
-                    {accessCode || "(generated after email entry)"}
-                  </strong>
-                </div>
               </>
             )}
           </div>

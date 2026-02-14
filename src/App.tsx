@@ -85,7 +85,7 @@ export default function App() {
   const [fatalError, setFatalError] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState(""); // NOTE: last name capture removed from Page 3 (optional for now)
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [codeInput, setCodeInput] = useState("");
@@ -97,6 +97,7 @@ export default function App() {
   const [sendMsg, setSendMsg] = useState<string>("");
 
   const p2FirstRef = useRef<HTMLInputElement | null>(null);
+  const lastNameRef = useRef<HTMLInputElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
   const codeRef = useRef<HTMLInputElement | null>(null);
 
@@ -237,8 +238,7 @@ export default function App() {
       },
       applicant: {
         firstName: safeTrimMax(params.firstName, 40),
-        // NOTE: last name currently optional until we move capture later (per scope)
-        lastName: safeTrimMax(params.lastName || "", 60),
+        lastName: safeTrimMax(params.lastName, 60),
         email: safeTrimMax(params.email, 120),
 
         phone: "",
@@ -310,7 +310,6 @@ export default function App() {
     if (!fn) return;
 
     setFirstName(fn);
-    // Keep the B reward hit, then proceed into the B page (Page 3)
     showReward("B", "", 900, () => goTo("p3"));
   }
 
@@ -321,6 +320,11 @@ export default function App() {
 
   function continueFromAwakening() {
     if (rewardOn) return;
+
+    const ln = safeTrimMax(lastName, 60);
+    if (!ln) return;
+
+    setLastName(ln);
     setP5Stage("email");
     setSendState("idle");
     setSendMsg("");
@@ -410,6 +414,10 @@ export default function App() {
   useEffect(() => {
     if (rewardOn) return;
 
+    if (view === "p4") {
+      setTimeout(() => lastNameRef.current?.focus(), 80);
+    }
+
     if (view === "p5") {
       if (p5Stage === "email") setTimeout(() => emailRef.current?.focus(), 80);
       if (p5Stage === "code") setTimeout(() => codeRef.current?.focus(), 80);
@@ -417,7 +425,6 @@ export default function App() {
   }, [view, rewardOn, p5Stage]);
 
   // ✅ SPEED FIX: Page 2 cinematic down to ~15 seconds total
-  // Dock reveals around 14s, autofocus at 15s.
   useEffect(() => {
     if (view !== "p2") return;
     const t = setTimeout(() => p2FirstRef.current?.focus(), 15000);
@@ -425,6 +432,7 @@ export default function App() {
   }, [view]);
 
   const canSubmitP2 = !!safeTrimMax(p2First, 40);
+  const canContinueP4 = !!safeTrimMax(lastName, 60);
   const canSubmitEmail = isValidEmail(email);
   const canSubmitCode = !!codeInput.trim();
 
@@ -438,7 +446,6 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
-          /* ✅ Richer gold (less “70s faded yellow”) */
           --brass:#f5c86a;
           --brass2:#d7a84a;
           --brassGlow: rgba(245, 200, 106, 0.48);
@@ -488,7 +495,6 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
-        /* ✅ Punchier BALANCE pulse + gold depth */
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
@@ -502,7 +508,6 @@ export default function App() {
           }
         }
 
-        /* Fatal error overlay */
         .fatalOverlay{
           position: fixed;
           inset: 0;
@@ -545,7 +550,6 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* Receivable overlay (B / A / L) */
         .rewardOverlay{
           position: fixed;
           inset: 0;
@@ -589,7 +593,6 @@ export default function App() {
           padding: 0 10px;
         }
 
-        /* Shared layout */
         .p1, .p2, .pX{
           min-height:100vh;
           display:flex;
@@ -685,7 +688,6 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* ✅ Rich gold gradient + stronger glow */
         .balance{
           font-size: 24px;
           letter-spacing: 0.14em;
@@ -766,7 +768,6 @@ export default function App() {
           font-weight: 300;
         }
 
-        /* PAGE 2 */
         .p2{
           padding: 24px 18px 132px;
         }
@@ -795,7 +796,7 @@ export default function App() {
 
         .stage{
           width: min(780px, 100%);
-          height: 170px; /* ✅ fixed height so mobile never "chases" text */
+          height: 170px;
           margin-top: -10px;
           position: relative;
           display:flex;
@@ -804,7 +805,6 @@ export default function App() {
           overflow: hidden;
         }
 
-        /* ✅ Scene layers are absolute — no stacking, no push-down */
         .sceneLayer{
           position: absolute;
           inset: 0;
@@ -850,7 +850,6 @@ export default function App() {
           100% { opacity: 1; transform: translateY(0); }
         }
 
-        /* ✅ ~15s schedule total */
         .s1 { animation: layerInOut 4.2s ease forwards; animation-delay: 0.6s; }
         .s2 { animation: layerInOut 3.9s ease forwards; animation-delay: 4.9s; }
         .s3 { animation: layerInOut 3.6s ease forwards; animation-delay: 8.9s; }
@@ -947,7 +946,7 @@ export default function App() {
           opacity:0;
           transform: translateY(18px);
           animation: dockIn 0.50s ease forwards;
-          animation-delay: 14.0s; /* ✅ dock shows near 14s */
+          animation-delay: 14.0s;
           z-index: 4;
           padding: 0 10px;
         }
@@ -973,7 +972,6 @@ export default function App() {
           letter-spacing: 0.02em;
         }
 
-        /* Pages 3–6 */
         .contentLayer{
           position: relative;
           z-index: 2;
@@ -1126,7 +1124,6 @@ export default function App() {
           box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
-        /* Send status */
         .sendStatus{
           margin-top: 10px;
           font-size: 13px;
@@ -1149,7 +1146,6 @@ export default function App() {
           color: rgba(255,255,255,0.86);
         }
 
-        /* A / Action code prominence */
         .codeCard{
           width: min(560px, 92vw);
           border-radius: 18px;
@@ -1398,7 +1394,6 @@ export default function App() {
               <div className="breakCloser">Imagine how it would feel to finally break free.</div>
             </div>
 
-            {/* ✅ Per scope: remove last name capture here — CTA only */}
             <div className="ctaStack" aria-label="Continue from Break Free">
               <button className="btn btnWide" type="button" onClick={continueFromBreakFree} disabled={rewardOn}>
                 Continue
@@ -1450,8 +1445,26 @@ export default function App() {
               <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
             </div>
 
-            <div className="ctaStack" aria-label="Continue from Awakening">
-              <button className="btn btnWide" type="button" onClick={continueFromAwakening} disabled={rewardOn}>
+            {/* ✅ FIX: capture last name here (required), before continuing */}
+            <div className="ctaStack" aria-label="Last name capture + continue">
+              <div className="stepInstruction" style={{ marginTop: 0 }}>
+                Before we continue—what’s your last name?
+              </div>
+              <div className="microReassure">This keeps your map tied to you. No noise.</div>
+
+              <input
+                ref={lastNameRef}
+                className="underlineOnly"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                onKeyDown={(e) => onEnter(e, continueFromAwakening)}
+                aria-label="Last name"
+                autoComplete="family-name"
+                placeholder=""
+                disabled={rewardOn}
+              />
+
+              <button className="btn btnWide" type="button" onClick={continueFromAwakening} disabled={rewardOn || !canContinueP4}>
                 Continue
               </button>
             </div>
@@ -1475,7 +1488,6 @@ export default function App() {
               />
             </div>
 
-            {/* ✅ Per scope: L email stage, then A action stage */}
             <div className="letterHeader" aria-label="Stage header">
               <div className="bigLetter">{p5Stage === "email" ? "L" : "A"}</div>
               <div className="bigSubline">{p5Stage === "email" ? "Learning" : "Action"}</div>
@@ -1502,7 +1514,6 @@ export default function App() {
                 </div>
 
                 <div className="ctaStack" aria-label="Email entry">
-                  {/* ✅ Clearer, more inviting ask */}
                   <div className="stepInstruction" style={{ marginTop: 0 }}>
                     Where should we send your map?
                   </div>
@@ -1554,7 +1565,6 @@ export default function App() {
               </>
             ) : (
               <>
-                {/* ✅ Action screen — code is prominent + clear instructions */}
                 <div className="breakTitle" style={{ marginTop: 14 }}>
                   Action unlocked.
                 </div>

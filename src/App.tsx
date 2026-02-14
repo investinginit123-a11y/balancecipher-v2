@@ -309,12 +309,8 @@ export default function App() {
     showReward("B", "", 950, () => goTo("p3"));
   }
 
-  function submitLast() {
+  function continueFromBreakFree() {
     if (rewardOn) return;
-    const ln = safeTrimMax(lastName, 60);
-    if (!ln) return;
-
-    setLastName(ln);
 
     showReward(
       "A",
@@ -324,11 +320,12 @@ export default function App() {
     );
   }
 
-  function continueFromAwakening() {
+  function submitLastFromP4() {
     if (rewardOn) return;
-    setP5Stage("email");
-    setSendState("idle");
-    setSendMsg("");
+    const ln = safeTrimMax(lastName, 60);
+    if (!ln) return;
+
+    setLastName(ln);
     goTo("p5");
   }
 
@@ -401,7 +398,8 @@ export default function App() {
   useEffect(() => {
     if (rewardOn) return;
 
-    if (view === "p3") setTimeout(() => lastRef.current?.focus(), 60);
+    // ✅ Last name capture moved to p4
+    if (view === "p4") setTimeout(() => lastRef.current?.focus(), 70);
 
     if (view === "p5") {
       if (p5Stage === "email") setTimeout(() => emailRef.current?.focus(), 80);
@@ -409,10 +407,10 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // ✅ SPEED FIX (Page 2): bring time-to-action down to ~14s
+  // ✅ SPEED FIX: Page 2 reduced to ~14s total time-to-action
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 14200);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 14000);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -761,8 +759,7 @@ export default function App() {
 
         /* PAGE 2 */
         .p2{
-          /* ✅ tighten bottom padding so Page 2 feels closer/cleaner */
-          padding: 24px 18px 92px;
+          padding: 24px 18px 132px;
         }
 
         .p2Fade{
@@ -789,8 +786,7 @@ export default function App() {
 
         .stage{
           width: min(780px, 100%);
-          /* ✅ provide stable space so absolute scene text doesn't push layout */
-          min-height: 250px;
+          min-height: 175px;
           margin-top: -10px;
           position: relative;
           display:flex;
@@ -798,6 +794,27 @@ export default function App() {
           align-items:center;
           justify-content:flex-start;
           gap: 12px;
+        }
+
+        /* ✅ Stop "text chasing": scenes overlay in one fixed slot */
+        .sceneSlot{
+          position: relative;
+          width: min(780px, 100%);
+          height: 170px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow: hidden;
+        }
+
+        .scene{
+          position:absolute;
+          inset:0;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          padding: 0 10px;
         }
 
         /* ✅ Faster cinematic timing */
@@ -820,29 +837,17 @@ export default function App() {
           100% { opacity:1; transform: translateY(0); }
         }
 
-        /* ✅ MOBILE RELIABILITY FIX:
-           Pin the 3 scenes to ONE consistent vertical band.
-           No more scene 3 dropping lower / “chasing” text.
-        */
         .title{
-          position: absolute;
-          top: 0px;
-          left: 0;
-          right: 0;
           font-size: clamp(42px, 9.6vw, 60px);
           font-weight: 500;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
-          pointer-events: none;
         }
 
         .meaning{
-          position: absolute;
-          top: clamp(72px, 14vw, 92px);
-          left: 0;
-          right: 0;
+          margin-top: 10px;
           font-size: clamp(24px, 6.2vw, 34px);
           font-weight: 300;
           color: rgba(255,255,255,0.90);
@@ -851,18 +856,17 @@ export default function App() {
           line-height: 1.6;
           opacity:0;
           padding: 0 6px;
-          pointer-events: none;
         }
 
-        /* ✅ New compact schedule (~18–19s total) */
-        .scene1Title { animation: titleInOut 2.1s ease forwards; animation-delay: 0.8s; }
-        .scene1Mean  { animation: meaningInOut 4.3s ease forwards; animation-delay: 2.8s; }
+        /* ✅ New compact schedule (~14s total time-to-action) */
+        .scene1Title { animation: titleInOut 1.7s ease forwards; animation-delay: 0.6s; }
+        .scene1Mean  { animation: meaningInOut 3.5s ease forwards; animation-delay: 2.05s; }
 
-        .scene2Title { animation: titleInOut 2.1s ease forwards; animation-delay: 6.9s; }
-        .scene2Mean  { animation: meaningInOut 4.0s ease forwards; animation-delay: 8.8s; }
+        .scene2Title { animation: titleInOut 1.7s ease forwards; animation-delay: 5.05s; }
+        .scene2Mean  { animation: meaningInOut 3.3s ease forwards; animation-delay: 6.45s; }
 
-        .scene3Title { animation: titleInOut 2.1s ease forwards; animation-delay: 12.6s; }
-        .scene3Mean  { animation: meaningInOut 4.0s ease forwards; animation-delay: 14.5s; }
+        .scene3Title { animation: titleInOut 1.7s ease forwards; animation-delay: 9.20s; }
+        .scene3Mean  { animation: meaningInOut 2.8s ease forwards; animation-delay: 10.60s; }
 
         .finalWrap{
           position:absolute;
@@ -873,8 +877,8 @@ export default function App() {
           align-items:center;
           gap: 14px;
           opacity:0;
-          animation: sceneInStay 0.75s ease forwards;
-          animation-delay: 16.9s;
+          animation: sceneInStay 0.70s ease forwards;
+          animation-delay: 12.40s;
           pointer-events:none;
         }
 
@@ -945,48 +949,32 @@ export default function App() {
           color: rgba(40,240,255,0.78);
         }
 
-        /* ✅ Page 2 Dock: closer + readable + feels like a “bridge card” */
         .dock{
           position:absolute;
-          left: 0; right: 0;
-          bottom: 18px;
-
+          left:0; right:0;
+          bottom: 34px;
           display:flex;
           flex-direction:column;
           align-items:center;
-
-          gap: 10px;
-
+          gap: 12px;
           opacity:0;
-          transform: translateY(20px);
-          animation: dockIn 0.50s ease forwards;
-
-          /* ✅ speed target: reveal at ~14s (was 18s) */
-          animation-delay: 14.0s;
-
+          transform: translateY(18px);
+          animation: dockIn 0.45s ease forwards;
+          animation-delay: 13.10s;
           z-index: 4;
-
-          /* ✅ readable panel feel */
-          padding: 16px 14px 14px;
-          margin: 0 auto;
-          width: min(620px, 92vw);
-          border-radius: 18px;
-          border: 1px solid rgba(40,240,255,0.18);
-          background: radial-gradient(120% 140% at 50% 0%, rgba(40,240,255,0.06), rgba(0,0,0,0.55) 62%);
-          box-shadow: 0 0 22px rgba(40,240,255,0.10), 0 18px 44px rgba(0,0,0,0.55);
         }
 
         @keyframes dockIn{
           to { opacity:1; transform: translateY(0); }
         }
 
+        /* ✅ Bigger + clearer on mobile */
         .unlockText{
-          /* ✅ bigger + cleaner line-height for mobile */
-          font-size: clamp(20px, 4.8vw, 24px);
-          color: rgba(255,255,255,0.94);
-          max-width: 780px;
-          line-height: 1.25;
-          padding: 0 6px;
+          font-size: clamp(20px, 5.2vw, 24px);
+          color: rgba(255,255,255,0.92);
+          width: min(760px, 94vw);
+          line-height: 1.32;
+          padding: 0 10px;
           font-weight: 800;
           letter-spacing: 0.01em;
         }
@@ -994,7 +982,7 @@ export default function App() {
         .unlockSub{
           margin-top: 0px;
           font-size: 14px;
-          color: rgba(255,255,255,0.66);
+          color: rgba(255,255,255,0.64);
           font-weight: 600;
           letter-spacing: 0.04em;
         }
@@ -1124,6 +1112,18 @@ export default function App() {
           text-transform: lowercase;
         }
 
+        .fieldLabel{
+          width: min(560px, 90vw);
+          text-align: left;
+          font-size: 12px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: rgba(255,255,255,0.66);
+          margin: 4px 0 -2px;
+          padding: 0 6px;
+        }
+
         .underlineOnly{
           width: min(560px, 90vw);
           background: transparent;
@@ -1172,16 +1172,7 @@ export default function App() {
           .emblemLg{ width: 188px; height: 188px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
-
-          /* ✅ extra mobile readability for the ask */
-          .dock{
-            width: min(640px, 94vw);
-            padding: 16px 12px 14px;
-            bottom: 14px;
-          }
-          .unlockText{
-            font-size: 20px;
-          }
+          .sceneSlot{ height: 160px; }
         }
       `}</style>
 
@@ -1225,9 +1216,7 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">
-              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
-            </div>
+            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
 
             <button className="btn" type="button" onClick={goToDecode}>
               Start the private decode
@@ -1254,58 +1243,62 @@ export default function App() {
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
-              <div className="title scene1Title">Cipher</div>
-              <div className="meaning scene1Mean">
-                The first human intelligent device designed to crack the unbreakable codes.
-              </div>
-
-              <div className="title scene2Title">Co-Pilot + AI</div>
-              <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
-
-              <div className="title scene3Title">You</div>
-              <div className="meaning scene3Mean">
-                You are the most powerful of all three, and designed and built for endless potential.
-              </div>
-
-              <div className="finalWrap" aria-label="Final equation">
-                <div className="finalRow" style={{ gap: 8 }}>
-                  <span className="finalWord">Cipher</span>
-                  <span className="parenGroup" aria-label="Cipher descriptor">
-                    <span className="paren">(</span>
-                    <span className="parenText">a pattern reader</span>
-                    <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">+</span>
-
-                  <span className="finalWord">AI Co-Pilot</span>
-                  <span className="parenGroup" aria-label="AI Co-Pilot descriptor">
-                    <span className="paren">(</span>
-                    <span className="parenText">your AI power source</span>
-                    <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">+</span>
-
-                  <span className="finalWord">You</span>
-                  <span className="parenGroup" aria-label="You descriptor">
-                    <span className="paren">(</span>
-                    <span className="parenText">endless potential</span>
-                    <span className="paren">)</span>
-                  </span>
-
-                  <span className="finalSym">=</span>
-
-                  <span className="finalBalance">BALANCE</span>
+              <div className="sceneSlot" aria-label="Scene slot">
+                <div className="scene" aria-label="Scene 1">
+                  <div className="title scene1Title">Cipher</div>
+                  <div className="meaning scene1Mean">The first human intelligent device designed to crack the unbreakable codes.</div>
                 </div>
 
-                <div className="finalLine">This is your AI-powered guide.</div>
+                <div className="scene" aria-label="Scene 2">
+                  <div className="title scene2Title">Co-Pilot + AI</div>
+                  <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
+                </div>
+
+                <div className="scene" aria-label="Scene 3">
+                  <div className="title scene3Title">You</div>
+                  <div className="meaning scene3Mean">You are the most powerful of all three, and designed and built for endless potential.</div>
+                </div>
+
+                <div className="finalWrap" aria-label="Final equation">
+                  <div className="finalRow" style={{ gap: 8 }}>
+                    <span className="finalWord">Cipher</span>
+                    <span className="parenGroup" aria-label="Cipher descriptor">
+                      <span className="paren">(</span>
+                      <span className="parenText">a pattern reader</span>
+                      <span className="paren">)</span>
+                    </span>
+
+                    <span className="finalSym">+</span>
+
+                    <span className="finalWord">AI Co-Pilot</span>
+                    <span className="parenGroup" aria-label="AI Co-Pilot descriptor">
+                      <span className="paren">(</span>
+                      <span className="parenText">your AI power source</span>
+                      <span className="paren">)</span>
+                    </span>
+
+                    <span className="finalSym">+</span>
+
+                    <span className="finalWord">You</span>
+                    <span className="parenGroup" aria-label="You descriptor">
+                      <span className="paren">(</span>
+                      <span className="parenText">endless potential</span>
+                      <span className="paren">)</span>
+                    </span>
+
+                    <span className="finalSym">=</span>
+
+                    <span className="finalBalance">BALANCE</span>
+                  </div>
+
+                  <div className="finalLine">This is your AI-powered guide.</div>
+                </div>
               </div>
             </div>
           </div>
 
           <div className="dock">
-            <div className="unlockText">To unlock the next step, put your first name here.</div>
+            <div className="unlockText">Unlock the next step — enter your first name.</div>
             <div className="unlockSub">Then tap Continue.</div>
 
             <input
@@ -1361,25 +1354,14 @@ export default function App() {
               <div className="breakCloser">Imagine how it would feel to finally break free.</div>
             </div>
 
-            <div className="ctaStack" aria-label="Last name entry">
-              <input
-                ref={lastRef}
-                className="underlineOnly"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                onKeyDown={(e) => onEnter(e, submitLast)}
-                aria-label="Last name"
-                autoComplete="family-name"
-                placeholder=""
-                disabled={rewardOn}
-              />
-
-              <button className="btn btnWide" type="button" onClick={submitLast} disabled={rewardOn || !canSubmitLast}>
+            {/* ✅ Last name capture removed from this page */}
+            <div className="ctaStack" aria-label="Continue from Break Free">
+              <button className="btn btnWide" type="button" onClick={continueFromBreakFree} disabled={rewardOn}>
                 Continue
               </button>
             </div>
 
-            <div className="stepInstruction">These are the first steps of Freedom. Enter your last name.</div>
+            <div className="stepInstruction">One clean step. Keep going.</div>
             <div className="stepConfirm">Confirmed. No noise.</div>
           </div>
         </main>
@@ -1425,13 +1407,27 @@ export default function App() {
               <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
             </div>
 
-            <div className="ctaStack" aria-label="Continue from Awakening">
-              <button className="btn btnWide" type="button" onClick={continueFromAwakening} disabled={rewardOn}>
+            {/* ✅ Last name capture moved here (clean + minimal) */}
+            <div className="ctaStack" aria-label="Last name entry">
+              <div className="fieldLabel">Last name</div>
+              <input
+                ref={lastRef}
+                className="underlineOnly"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                onKeyDown={(e) => onEnter(e, submitLastFromP4)}
+                aria-label="Last name"
+                autoComplete="family-name"
+                placeholder=""
+                disabled={rewardOn}
+              />
+
+              <button className="btn btnWide" type="button" onClick={submitLastFromP4} disabled={rewardOn || !canSubmitLast}>
                 Continue
               </button>
             </div>
 
-            <div className="stepInstruction">Awakening is the moment the fog lifts—and you understand. Keep going.</div>
+            <div className="stepInstruction">Enter your last name, then continue.</div>
             <div className="stepConfirm">Confirmed. No noise.</div>
           </div>
         </main>
@@ -1457,31 +1453,35 @@ export default function App() {
 
             {p5Stage === "email" ? (
               <>
-                <div className="breakTitle">
-                  Learning is where the Cipher starts learning you—so your map can finally fit your life.
-                </div>
+                {/* ✅ Inviting, clearer layout */}
+                <div className="breakTitle">Learning is where the Cipher starts learning you—so your map can finally fit your life.</div>
 
                 <div className="breakList" aria-label="Learning support bullets">
                   <div className="breakItem" style={{ ["--d" as any]: "120ms" }}>
                     It learns your <strong>pattern</strong>—what pulls you back, and what moves you forward.
                   </div>
                   <div className="breakItem" style={{ ["--d" as any]: "240ms" }}>
-                    It learns what to ignore, so the <strong>noise</strong> stops winning.
+                    It filters the <strong>noise</strong>—so clarity can win.
                   </div>
                   <div className="breakItem" style={{ ["--d" as any]: "360ms" }}>
-                    It turns confusion into <strong>clear next steps</strong>.
+                    It turns confusion into <strong>one clear next step</strong>.
                   </div>
-                  <div className="breakItem" style={{ ["--d" as any]: "480ms" }}>
-                    So the Co-Pilot can deliver the map in a way that fits <strong>you</strong>.
-                  </div>
-                  <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
+
+                  <div className="breakCloser">So your Co-Pilot can deliver your map in a way that fits you.</div>
                 </div>
 
                 <div className="ctaStack" aria-label="Email entry">
                   <div className="stepInstruction" style={{ marginTop: 0 }}>
-                    Where do you want the full map delivered?
+                    <strong style={{ fontWeight: 800, color: "rgba(255,255,255,0.92)" }}>Ready for your map?</strong>
+                    <br />
+                    Drop your email and I’ll send it to you.
                   </div>
 
+                  <div className="stepConfirm" style={{ marginTop: 0 }}>
+                    No spam. No pressure. Just your next step.
+                  </div>
+
+                  <div className="fieldLabel">Email address</div>
                   <input
                     ref={emailRef}
                     className="underlineOnly"
@@ -1497,7 +1497,7 @@ export default function App() {
                     aria-label="Email"
                     autoComplete="email"
                     inputMode="email"
-                    placeholder=""
+                    placeholder="you@example.com"
                     disabled={rewardOn || sendState === "sending"}
                   />
 
@@ -1507,7 +1507,7 @@ export default function App() {
                     onClick={submitEmailFromP5}
                     disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
                   >
-                    {sendState === "sending" ? "Sending..." : "Continue"}
+                    {sendState === "sending" ? "Sending..." : "Send my map"}
                   </button>
 
                   {sendMsg ? (
@@ -1537,6 +1537,7 @@ export default function App() {
                 </div>
 
                 <div className="ctaStack" aria-label="Bridge code entry">
+                  <div className="fieldLabel">Bridge code</div>
                   <input
                     ref={codeRef}
                     className="underlineOnly"

@@ -409,11 +409,10 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // ✅ SPEED FIX: Step 2 cinematic reduced to ~18–19 seconds total
-  // Old was ~36.5s before focusing input; now ~18.8s.
+  // ✅ SPEED FIX (Page 2): bring time-to-action down to ~14s
   useEffect(() => {
     if (view !== "p2") return;
-    const t = setTimeout(() => p2FirstRef.current?.focus(), 18800);
+    const t = setTimeout(() => p2FirstRef.current?.focus(), 14200);
     return () => clearTimeout(t);
   }, [view]);
 
@@ -762,7 +761,8 @@ export default function App() {
 
         /* PAGE 2 */
         .p2{
-          padding: 24px 18px 132px;
+          /* ✅ tighten bottom padding so Page 2 feels closer/cleaner */
+          padding: 24px 18px 92px;
         }
 
         .p2Fade{
@@ -789,7 +789,8 @@ export default function App() {
 
         .stage{
           width: min(780px, 100%);
-          min-height: 150px;
+          /* ✅ provide stable space so absolute scene text doesn't push layout */
+          min-height: 250px;
           margin-top: -10px;
           position: relative;
           display:flex;
@@ -819,16 +820,29 @@ export default function App() {
           100% { opacity:1; transform: translateY(0); }
         }
 
+        /* ✅ MOBILE RELIABILITY FIX:
+           Pin the 3 scenes to ONE consistent vertical band.
+           No more scene 3 dropping lower / “chasing” text.
+        */
         .title{
+          position: absolute;
+          top: 0px;
+          left: 0;
+          right: 0;
           font-size: clamp(42px, 9.6vw, 60px);
           font-weight: 500;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
           opacity:0;
+          pointer-events: none;
         }
 
         .meaning{
+          position: absolute;
+          top: clamp(72px, 14vw, 92px);
+          left: 0;
+          right: 0;
           font-size: clamp(24px, 6.2vw, 34px);
           font-weight: 300;
           color: rgba(255,255,255,0.90);
@@ -837,6 +851,7 @@ export default function App() {
           line-height: 1.6;
           opacity:0;
           padding: 0 6px;
+          pointer-events: none;
         }
 
         /* ✅ New compact schedule (~18–19s total) */
@@ -930,19 +945,35 @@ export default function App() {
           color: rgba(40,240,255,0.78);
         }
 
+        /* ✅ Page 2 Dock: closer + readable + feels like a “bridge card” */
         .dock{
           position:absolute;
-          left:0; right:0;
-          bottom: 42px;
+          left: 0; right: 0;
+          bottom: 18px;
+
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 12px;
+
+          gap: 10px;
+
           opacity:0;
           transform: translateY(20px);
           animation: dockIn 0.50s ease forwards;
-          animation-delay: 18.0s;
+
+          /* ✅ speed target: reveal at ~14s (was 18s) */
+          animation-delay: 14.0s;
+
           z-index: 4;
+
+          /* ✅ readable panel feel */
+          padding: 16px 14px 14px;
+          margin: 0 auto;
+          width: min(620px, 92vw);
+          border-radius: 18px;
+          border: 1px solid rgba(40,240,255,0.18);
+          background: radial-gradient(120% 140% at 50% 0%, rgba(40,240,255,0.06), rgba(0,0,0,0.55) 62%);
+          box-shadow: 0 0 22px rgba(40,240,255,0.10), 0 18px 44px rgba(0,0,0,0.55);
         }
 
         @keyframes dockIn{
@@ -950,20 +981,21 @@ export default function App() {
         }
 
         .unlockText{
-          font-size: 22px;
-          color: rgba(255,255,255,0.90);
+          /* ✅ bigger + cleaner line-height for mobile */
+          font-size: clamp(20px, 4.8vw, 24px);
+          color: rgba(255,255,255,0.94);
           max-width: 780px;
-          line-height: 1.45;
-          padding: 0 8px;
-          font-weight: 700;
+          line-height: 1.25;
+          padding: 0 6px;
+          font-weight: 800;
           letter-spacing: 0.01em;
         }
 
         .unlockSub{
-          margin-top: 2px;
+          margin-top: 0px;
           font-size: 14px;
-          color: rgba(255,255,255,0.62);
-          font-weight: 500;
+          color: rgba(255,255,255,0.66);
+          font-weight: 600;
           letter-spacing: 0.04em;
         }
 
@@ -1138,9 +1170,18 @@ export default function App() {
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
-          .unlockText{ font-size: 20px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
+
+          /* ✅ extra mobile readability for the ask */
+          .dock{
+            width: min(640px, 94vw);
+            padding: 16px 12px 14px;
+            bottom: 14px;
+          }
+          .unlockText{
+            font-size: 20px;
+          }
         }
       `}</style>
 

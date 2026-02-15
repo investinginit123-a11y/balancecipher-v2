@@ -86,7 +86,7 @@ export default function App() {
   const [accessCode, setAccessCode] = useState("");
   const [codeInput, setCodeInput] = useState("");
 
-  // Page 2 inputs (now First + Last)
+  // Page 2 inputs (First + Last)
   const [p2First, setP2First] = useState("");
   const [p2Last, setP2Last] = useState("");
 
@@ -168,7 +168,12 @@ export default function App() {
     try {
       const origFetch = window.fetch.bind(window);
       window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
-        const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : (input as Request).url;
+        const url =
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
         if (url.includes("submit-application")) {
           setFatalError(
             `Tripwire: a request attempted "/api/submit-application"\n\nURL:\n${url}\n\nThis build is not using the correct relay route.\nSearch your project for "submit-application" and replace with "/api/applications".`
@@ -407,7 +412,7 @@ export default function App() {
     }
   }, [view, rewardOn, p5Stage]);
 
-  // Page 2: focus first name after cinematic completes (≈15s)
+  // Page 2: focus first name after cinematic completes (~15s)
   useEffect(() => {
     if (view !== "p2") return;
     const t = setTimeout(() => p2FirstRef.current?.focus(), 15000);
@@ -455,21 +460,11 @@ export default function App() {
           -moz-osx-font-smoothing: grayscale;
         }
 
-        button, input {
-          font: inherit;
-          -webkit-font-smoothing: inherit;
-          -moz-osx-font-smoothing: inherit;
-        }
+        button, input { font: inherit; -webkit-font-smoothing: inherit; -moz-osx-font-smoothing: inherit; }
 
         @keyframes corePulse{
-          0%, 100%{
-            box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
-            transform: scale(1.00);
-          }
-          50%{
-            box-shadow: 0 0 90px rgba(40,240,255,0.32), inset 0 0 34px rgba(40,240,255,0.20);
-            transform: scale(1.03);
-          }
+          0%, 100%{ box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14); transform: scale(1.00); }
+          50%{ box-shadow: 0 0 90px rgba(40,240,255,0.32), inset 0 0 34px rgba(40,240,255,0.20); transform: scale(1.03); }
         }
 
         @keyframes slowDrift{
@@ -478,16 +473,8 @@ export default function App() {
         }
 
         @keyframes balancePulseAI{
-          0%, 100%{
-            transform: scale(1.00);
-            opacity: 0.94;
-            filter: drop-shadow(0 0 14px rgba(245,200,106,0.32));
-          }
-          50%{
-            transform: scale(1.14);
-            opacity: 1;
-            filter: drop-shadow(0 0 26px rgba(245,200,106,0.62));
-          }
+          0%, 100%{ transform: scale(1.00); opacity: 0.94; filter: drop-shadow(0 0 14px rgba(245,200,106,0.32)); }
+          50%{ transform: scale(1.14); opacity: 1; filter: drop-shadow(0 0 26px rgba(245,200,106,0.62)); }
         }
 
         @keyframes btnPulseAI {
@@ -505,15 +492,8 @@ export default function App() {
 
         /* Fatal error overlay */
         .fatalOverlay{
-          position: fixed;
-          inset: 0;
-          background: rgba(0,0,0,0.92);
-          z-index: 10000;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          padding: 18px;
-          text-align:left;
+          position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 10000;
+          display:flex; align-items:center; justify-content:center; padding: 18px; text-align:left;
         }
         .fatalCard{
           width: min(860px, 96vw);
@@ -523,21 +503,10 @@ export default function App() {
           box-shadow: 0 0 40px rgba(40,240,255,0.12);
           padding: 16px;
         }
-        .fatalTitle{
-          font-weight: 700;
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          margin-bottom: 10px;
-        }
-        .fatalText{
-          white-space: pre-wrap;
-          font-size: 13px;
-          line-height: 1.45;
-          color: rgba(255,255,255,0.88);
-        }
+        .fatalTitle{ font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+        .fatalText{ white-space: pre-wrap; font-size: 13px; line-height: 1.45; color: rgba(255,255,255,0.88); }
         .fatalBtn{
-          margin-top: 12px;
-          border-radius: 12px;
+          margin-top: 12px; border-radius: 12px;
           border: 1px solid rgba(40,240,255,0.55);
           background: rgba(40,240,255,0.06);
           color: rgba(255,255,255,0.92);
@@ -548,22 +517,15 @@ export default function App() {
 
         /* Reward overlay */
         .rewardOverlay{
-          position: fixed;
-          inset: 0;
-          background: #000;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-direction: column;
-          z-index: 9999;
-          pointer-events: none;
-          padding: 18px;
+          position: fixed; inset: 0; background: #000;
+          display: flex; align-items: center; justify-content: center; flex-direction: column;
+          z-index: 9999; pointer-events: none; padding: 18px;
         }
 
         @keyframes slamIn {
-          0%   { opacity: 0; transform: translateY(18px) scale(0.86); filter: blur(2px); }
-          45%  { opacity: 1; transform: translateY(0) scale(1.10); filter: blur(0px); }
-          72%  { opacity: 1; transform: translateY(0) scale(0.99); }
+          0% { opacity: 0; transform: translateY(18px) scale(0.86); filter: blur(2px); }
+          45% { opacity: 1; transform: translateY(0) scale(1.10); filter: blur(0px); }
+          72% { opacity: 1; transform: translateY(0) scale(0.99); }
           100% { opacity: 1; transform: translateY(0) scale(1.00); }
         }
 
@@ -577,7 +539,6 @@ export default function App() {
           animation: slamIn 520ms cubic-bezier(0.18, 0.9, 0.22, 1) both;
           margin: 0;
         }
-
         .rewardCopy{
           margin-top: 12px;
           max-width: min(820px, 94vw);
@@ -606,85 +567,36 @@ export default function App() {
 
         .p1{ background: transparent; padding: 34px 18px 60px; }
 
-        .p1Wrap{
-          width: min(820px, 100%);
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 16px;
-        }
+        .p1Wrap{ width: min(820px, 100%); display:flex; flex-direction:column; align-items:center; gap: 16px; }
 
         .core{
-          width: 275px;
-          height: 275px;
-          border-radius: 999px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
+          width: 275px; height: 275px; border-radius: 999px;
+          display:flex; align-items:center; justify-content:center;
           background: radial-gradient(circle, var(--tealSoft), transparent 68%);
           box-shadow: 0 0 62px rgba(40,240,255,0.20), inset 0 0 28px rgba(40,240,255,0.14);
-          position: relative;
-          overflow: hidden;
+          position: relative; overflow: hidden;
           animation: corePulse 3.8s ease-in-out infinite;
         }
-
         .core::before{
-          content:"";
-          position:absolute;
-          inset:-40%;
+          content:""; position:absolute; inset:-40%;
           background: radial-gradient(circle, rgba(40,240,255,0.16), transparent 55%);
-          transform: rotate(15deg);
-          filter: blur(2px);
-          opacity: 0.9;
+          transform: rotate(15deg); filter: blur(2px); opacity: 0.9;
           animation: slowDrift 9.5s ease-in-out infinite;
           pointer-events:none;
         }
 
-        .coreSm{
-          width: 220px;
-          height: 220px;
-          opacity: 0.86;
-          animation: corePulse 3.5s ease-in-out infinite;
-        }
+        .coreSm{ width: 220px; height: 220px; opacity: 0.86; animation: corePulse 3.5s ease-in-out infinite; }
 
         .emblemLg{
-          width: 220px;
-          height: 220px;
-          object-fit: contain;
+          width: 220px; height: 220px; object-fit: contain;
           filter: drop-shadow(0 0 20px rgba(40,240,255,0.60));
-          position: relative;
-          z-index: 2;
+          position: relative; z-index: 2;
         }
+        .emblemSm{ width: 178px; height: 178px; opacity: 0.92; filter: drop-shadow(0 0 18px rgba(40,240,255,0.58)); }
 
-        .emblemSm{
-          width: 178px;
-          height: 178px;
-          opacity: 0.92;
-          filter: drop-shadow(0 0 18px rgba(40,240,255,0.58));
-        }
-
-        .equation{
-          display:flex;
-          align-items: baseline;
-          justify-content:center;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 6px;
-        }
-
-        .eqText{
-          font-size: 16px;
-          letter-spacing: 0.12em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.86);
-          font-weight: 700;
-        }
-
-        .eqSym{
-          font-size: 18px;
-          color: rgba(255,255,255,0.62);
-          font-weight: 700;
-        }
+        .equation{ display:flex; align-items: baseline; justify-content:center; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+        .eqText{ font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.86); font-weight: 700; }
+        .eqSym{ font-size: 18px; color: rgba(255,255,255,0.62); font-weight: 700; }
 
         .balance{
           font-size: 24px;
@@ -701,26 +613,9 @@ export default function App() {
           text-shadow: 0 0 24px var(--brassGlow);
         }
 
-        .cornerstone{
-          margin-top: 6px;
-          font-size: 15px;
-          color: rgba(255,255,255,0.88);
-          font-weight: 500;
-        }
-
-        .cornerstone strong{
-          font-weight: 700;
-          color: rgba(255,255,255,0.98);
-        }
-
-        .sub{
-          width: min(640px, 100%);
-          color: rgba(255,255,255,0.72);
-          font-size: 16px;
-          line-height: 1.55;
-          margin-top: 8px;
-          font-weight: 300;
-        }
+        .cornerstone{ margin-top: 6px; font-size: 15px; color: rgba(255,255,255,0.88); font-weight: 500; }
+        .cornerstone strong{ font-weight: 700; color: rgba(255,255,255,0.98); }
+        .sub{ width: min(640px, 100%); color: rgba(255,255,255,0.72); font-size: 16px; line-height: 1.55; margin-top: 8px; font-weight: 300; }
 
         .btn{
           padding: 16px 22px;
@@ -741,50 +636,35 @@ export default function App() {
           justify-content: center;
           gap: 10px;
         }
-
         .btn:hover{
           transform: translateY(-1px);
           box-shadow: 0 0 34px rgba(40,240,255,0.28), 0 14px 34px rgba(0,0,0,0.42);
           background: linear-gradient(180deg, rgba(40,240,255,0.12), rgba(40,240,255,0.04));
         }
-
         .btn:disabled{
           opacity: 0.55;
           cursor: not-allowed;
           transform: none !important;
           box-shadow: 0 0 18px rgba(40,240,255,0.10), 0 10px 26px rgba(0,0,0,0.30);
         }
-
-        .btnWide{
-          width: min(560px, 90vw);
-        }
-
-        .btnPulse{
-          animation: btnPulseAI 3.6s ease-in-out infinite;
-        }
-
-        .hint{
-          margin-top: 10px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.58);
-          font-weight: 300;
-        }
+        .btnWide{ width: min(560px, 90vw); }
+        .btnPulse{ animation: btnPulseAI 3.6s ease-in-out infinite; }
+        .hint{ margin-top: 10px; font-size: 13px; color: rgba(255,255,255,0.58); font-weight: 300; }
 
         /* PAGE 2 */
         .p2{
-          padding: 24px 18px 152px;
+          padding: 18px 18px 46px;
+          justify-content: flex-start;
         }
 
         .p2Fade{
-          position:absolute;
-          inset:0;
+          position:absolute; inset:0;
           background:#000;
           opacity:1;
           animation: fadeOut 0.7s ease forwards;
           z-index: 20;
           pointer-events:none;
         }
-
         @keyframes fadeOut{ to { opacity: 0; } }
 
         .p2Wrap{
@@ -792,7 +672,7 @@ export default function App() {
           display:flex;
           flex-direction:column;
           align-items:center;
-          gap: 6px;
+          gap: 8px;
           position: relative;
           z-index: 3;
         }
@@ -800,7 +680,7 @@ export default function App() {
         .stage{
           width: min(780px, 100%);
           height: 240px;
-          margin-top: -8px;
+          margin-top: 6px;
           position: relative;
           display:block;
         }
@@ -930,25 +810,14 @@ export default function App() {
           white-space: nowrap;
         }
 
-        .paren{
-          font-size: 22px;
-          color: rgba(255,255,255,0.78);
-          font-weight: 700;
-          margin: 0;
-          padding: 0;
-        }
+        .paren{ font-size: 22px; color: rgba(255,255,255,0.78); font-weight: 700; margin: 0; padding: 0; }
+        .parenText{ font-size: 20px; font-weight: 500; letter-spacing: 0.02em; color: rgba(40,240,255,0.78); }
 
-        .parenText{
-          font-size: 20px;
-          font-weight: 500;
-          letter-spacing: 0.02em;
-          color: rgba(40,240,255,0.78);
-        }
-
+        /* ✅ FIX: Dock is NOT an overlay anymore */
         .dock{
-          position:absolute;
-          left:0; right:0;
-          bottom: 34px;
+          position: relative;
+          left: auto; right: auto; bottom: auto;
+          width: 100%;
           display:flex;
           flex-direction:column;
           align-items:center;
@@ -958,28 +827,29 @@ export default function App() {
           animation: dockIn 0.48s ease forwards;
           animation-delay: 14.1s;
           z-index: 4;
-          padding: 0 8px;
+          padding: 14px 8px 0px;
+          margin-top: 10px;
         }
 
-        @keyframes dockIn{
-          to { opacity:1; transform: translateY(0); }
-        }
+        @keyframes dockIn{ to { opacity:1; transform: translateY(0); } }
 
         .unlockText{
-          font-size: 22px;
+          font-size: 20px;
           color: rgba(255,255,255,0.92);
           max-width: 780px;
-          line-height: 1.35;
+          line-height: 1.28;
           font-weight: 800;
           letter-spacing: 0.01em;
+          padding: 0 8px;
         }
 
         .unlockSub{
           margin-top: 0px;
           font-size: 13px;
           color: rgba(255,255,255,0.62);
-          font-weight: 500;
-          letter-spacing: 0.04em;
+          font-weight: 600;
+          letter-spacing: 0.03em;
+          padding: 0 10px;
         }
 
         .contentLayer{
@@ -991,14 +861,7 @@ export default function App() {
           align-items:center;
         }
 
-        .letterHeader{
-          margin-top: 18px;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          gap: 4px;
-        }
-
+        .letterHeader{ margin-top: 18px; display:flex; flex-direction:column; align-items:center; gap: 4px; }
         .bigLetter{
           font-size: clamp(88px, 20vw, 170px);
           line-height: 0.90;
@@ -1008,7 +871,6 @@ export default function App() {
           text-shadow: 0 0 26px rgba(40,240,255,0.14);
           margin: 0;
         }
-
         .bigSubline{
           font-size: 16px;
           letter-spacing: 0.14em;
@@ -1051,11 +913,7 @@ export default function App() {
           font-weight: 300;
           letter-spacing: 0.01em;
         }
-
-        .breakItem strong{
-          font-weight: 700;
-          color: rgba(255,255,255,0.92);
-        }
+        .breakItem strong{ font-weight: 700; color: rgba(255,255,255,0.92); }
 
         .breakCloser{
           margin-top: 10px;
@@ -1111,9 +969,9 @@ export default function App() {
           background: transparent;
           border: none;
           border-bottom: 2px solid rgba(40,240,255,0.46);
-          padding: 16px 10px 12px;
+          padding: 14px 10px 10px;
           color: rgba(255,255,255,0.94);
-          font-size: 22px;
+          font-size: 20px;
           font-weight: 500;
           text-align: center;
           outline: none;
@@ -1136,7 +994,7 @@ export default function App() {
         .fieldHint{
           font-size: 12px;
           color: rgba(255,255,255,0.62);
-          font-weight: 700;
+          font-weight: 800;
           letter-spacing: 0.10em;
           text-transform: uppercase;
           margin-top: 2px;
@@ -1167,13 +1025,7 @@ export default function App() {
           text-shadow: 0 0 18px rgba(40,240,255,0.12);
           user-select: text;
         }
-        .codeActions{
-          margin-top: 12px;
-          display:flex;
-          gap: 10px;
-          justify-content:center;
-          flex-wrap: wrap;
-        }
+        .codeActions{ margin-top: 12px; display:flex; gap: 10px; justify-content:center; flex-wrap: wrap; }
 
         .sendStatus{
           margin-top: 10px;
@@ -1186,26 +1038,27 @@ export default function App() {
           background: rgba(40,240,255,0.05);
           color: rgba(255,255,255,0.75);
         }
-        .sendStatusError{
-          border-color: rgba(255, 80, 80, 0.35);
-          background: rgba(255, 80, 80, 0.08);
-          color: rgba(255,255,255,0.82);
-        }
-        .sendStatusGood{
-          border-color: rgba(40,240,255,0.38);
-          background: rgba(40,240,255,0.06);
-          color: rgba(255,255,255,0.86);
-        }
+        .sendStatusError{ border-color: rgba(255, 80, 80, 0.35); background: rgba(255, 80, 80, 0.08); color: rgba(255,255,255,0.82); }
+        .sendStatusGood{ border-color: rgba(40,240,255,0.38); background: rgba(40,240,255,0.06); color: rgba(255,255,255,0.86); }
 
+        /* ✅ Mobile tightening */
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
-          .unlockText{ font-size: 20px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
-          .stage{ height: 224px; }
-          .meaning{ top: 72px; }
-          .p2{ padding-bottom: 170px; }
+          .stage{ height: 210px; }
+          .meaning{ top: 70px; }
+          .unlockText{ font-size: 18px; }
+          .underlineOnly{ font-size: 19px; padding: 12px 10px 9px; }
+        }
+
+        /* ✅ Short viewport (iPhone Safari UI eats height) */
+        @media (max-height: 760px){
+          .stage{ height: 205px; }
+          .finalBalance{ font-size: 34px; }
+          .finalLine{ font-size: 16px; }
+          .dock{ padding-top: 10px; margin-top: 6px; }
         }
       `}</style>
 
@@ -1249,7 +1102,9 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
+            <div className="sub">
+              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
+            </div>
 
             <button className="btn btnPulse" type="button" onClick={goToDecode}>
               Start the private decode
@@ -1320,52 +1175,50 @@ export default function App() {
                 <div className="finalLine">This is your AI-powered guide.</div>
               </div>
             </div>
-          </div>
 
-          {/* ✅ Page 2 now captures First + Last name */}
-          <div className="dock">
-            <div className="unlockText">Unlock the next stage — confirm your name.</div>
-            <div className="unlockSub">First name, then last name. Then tap Continue.</div>
+            {/* ✅ Dock is now part of normal flow (no overlap) */}
+            <div className="dock">
+              <div className="unlockText">Unlock the next stage — confirm your name.</div>
+              <div className="unlockSub">First name, then last name. Then tap Continue.</div>
 
-            <div className="twoUp" aria-label="Name fields">
-              <div>
-                <div className="fieldHint">First name</div>
-                <input
-                  ref={p2FirstRef}
-                  className="underlineOnly"
-                  value={p2First}
-                  onChange={(e) => setP2First(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter"
-                      ? (e.preventDefault(), p2LastRef.current?.focus())
-                      : undefined
-                  }
-                  aria-label="First name"
-                  autoComplete="given-name"
-                  placeholder=""
-                  disabled={rewardOn}
-                />
+              <div className="twoUp" aria-label="Name fields">
+                <div>
+                  <div className="fieldHint">First name</div>
+                  <input
+                    ref={p2FirstRef}
+                    className="underlineOnly"
+                    value={p2First}
+                    onChange={(e) => setP2First(e.target.value)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" ? (e.preventDefault(), p2LastRef.current?.focus()) : undefined
+                    }
+                    aria-label="First name"
+                    autoComplete="given-name"
+                    placeholder=""
+                    disabled={rewardOn}
+                  />
+                </div>
+
+                <div>
+                  <div className="fieldHint">Last name</div>
+                  <input
+                    ref={p2LastRef}
+                    className="underlineOnly"
+                    value={p2Last}
+                    onChange={(e) => setP2Last(e.target.value)}
+                    onKeyDown={(e) => onEnter(e, submitP2NamePair)}
+                    aria-label="Last name"
+                    autoComplete="family-name"
+                    placeholder=""
+                    disabled={rewardOn}
+                  />
+                </div>
               </div>
 
-              <div>
-                <div className="fieldHint">Last name</div>
-                <input
-                  ref={p2LastRef}
-                  className="underlineOnly"
-                  value={p2Last}
-                  onChange={(e) => setP2Last(e.target.value)}
-                  onKeyDown={(e) => onEnter(e, submitP2NamePair)}
-                  aria-label="Last name"
-                  autoComplete="family-name"
-                  placeholder=""
-                  disabled={rewardOn}
-                />
-              </div>
+              <button className="btn btnWide btnPulse" type="button" onClick={submitP2NamePair} disabled={rewardOn || !canSubmitP2}>
+                Continue
+              </button>
             </div>
-
-            <button className="btn btnWide btnPulse" type="button" onClick={submitP2NamePair} disabled={rewardOn || !canSubmitP2}>
-              Continue
-            </button>
           </div>
         </main>
       ) : null}
@@ -1428,7 +1281,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.9 }}
+              />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1458,7 +1317,6 @@ export default function App() {
               <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
             </div>
 
-            {/* ✅ Awakening is CTA-only now */}
             <div className="ctaStack" aria-label="Continue to Learning">
               <button
                 className="btn btnWide btnPulse"
@@ -1492,7 +1350,13 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
+              <img
+                className="emblemLg emblemSm"
+                src="/brand/cipher-emblem.png"
+                alt="BALANCE Cipher Core"
+                loading="eager"
+                style={{ opacity: 0.88 }}
+              />
             </div>
 
             {p5Stage === "email" ? (
@@ -1520,7 +1384,6 @@ export default function App() {
                   <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
                 </div>
 
-                {/* ✅ Email capture stays on L (and only here) */}
                 <div className="ctaStack" aria-label="Email entry">
                   <div className="stepInstruction" style={{ marginTop: 0 }}>
                     Where should we send your full map?
@@ -1671,7 +1534,8 @@ export default function App() {
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>
-              Destination: <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
+              Destination:{" "}
+              <strong style={{ fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{FINAL_APP_URL}</strong>
             </div>
 
             <div className="stepConfirm" style={{ marginTop: 10 }}>

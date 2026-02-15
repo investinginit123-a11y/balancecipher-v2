@@ -433,13 +433,15 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
-          /* ✅ BRASS (premium, darker, less “cheap gold”) */
-          --brassHi:#f3d59a;     /* highlight */
-          --brass:#cf9b3a;       /* main brass */
-          --brassMid:#b57f23;    /* depth */
-          --brassLo:#7a5315;     /* shadow */
-          --brassGlow: rgba(207, 155, 58, 0.42);
-          --brassGlowHot: rgba(243, 213, 154, 0.24);
+          /* ✅ BRASS — “alive”, polished, cipher-energy */
+          --brassChrome0:#fff6d7;
+          --brassChrome1:#ffe2a6;
+          --brassChrome2:#f2c765;
+          --brassChrome3:#d39a2e;
+          --brassChrome4:#9a6517;
+
+          --brassGlow: rgba(242, 199, 101, 0.38);
+          --brassGlowHot: rgba(255, 246, 215, 0.22);
 
           --text: rgba(255,255,255,0.96);
 
@@ -476,22 +478,29 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
-        /* ✅ Brass pulse tuned to read “metal glow”, not neon */
+        /* ✅ Brass “sheen sweep” (polished metal highlight moving across the letters) */
+        @keyframes brassSheen {
+          0%   { background-position: 0% 50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        /* ✅ Brass pulse tuned to feel “powered”, closer to Cipher energy */
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
-            opacity: 0.96;
+            opacity: 0.97;
             filter:
-              drop-shadow(0 0 10px var(--brassGlow))
-              drop-shadow(0 0 18px rgba(0,0,0,0.35));
+              drop-shadow(0 0 12px var(--brassGlow))
+              drop-shadow(0 0 22px rgba(0,0,0,0.40));
           }
           50%{
-            transform: scale(1.10);
+            transform: scale(1.12);
             opacity: 1;
             filter:
-              drop-shadow(0 0 16px var(--brassGlow))
-              drop-shadow(0 0 28px var(--brassGlowHot))
-              drop-shadow(0 0 22px rgba(0,0,0,0.45));
+              drop-shadow(0 0 18px var(--brassGlow))
+              drop-shadow(0 0 34px var(--brassGlowHot))
+              drop-shadow(0 0 28px rgba(0,0,0,0.48));
           }
         }
 
@@ -616,33 +625,39 @@ export default function App() {
         .eqText{ font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.86); font-weight: 700; }
         .eqSym{ font-size: 18px; color: rgba(255,255,255,0.62); font-weight: 700; }
 
+        /* ✅ Bigger + more “alive” (sheen sweep + stronger glow) */
         .balance{
-          font-size: 24px;
+          font-size: 28px; /* was 24 */
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          font-weight: 800;
+          font-weight: 900;
           padding: 2px 6px;
           border-radius: 10px;
-          animation: balancePulseAI 3.2s ease-in-out infinite;
 
-          /* ✅ richer “brass metal” gradient */
           background:
             linear-gradient(
-              180deg,
-              var(--brassHi) 0%,
-              var(--brass) 28%,
-              var(--brassMid) 62%,
-              var(--brassLo) 100%
+              110deg,
+              var(--brassChrome4) 0%,
+              var(--brassChrome3) 18%,
+              var(--brassChrome2) 34%,
+              var(--brassChrome0) 50%,
+              var(--brassChrome2) 66%,
+              var(--brassChrome3) 82%,
+              var(--brassChrome4) 100%
             );
+          background-size: 220% 100%;
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
 
-          /* ✅ less “yellow fog”, more controlled brass glow */
           text-shadow:
             0 0 10px rgba(0,0,0,0.30),
-            0 0 18px var(--brassGlow),
-            0 0 28px rgba(0,0,0,0.40);
+            0 0 20px var(--brassGlow),
+            0 0 38px var(--brassGlowHot);
+
+          animation:
+            balancePulseAI 3.0s ease-in-out infinite,
+            brassSheen 2.8s linear infinite;
         }
 
         .cornerstone{ margin-top: 6px; font-size: 15px; color: rgba(255,255,255,0.88); font-weight: 500; }
@@ -812,33 +827,40 @@ export default function App() {
           font-weight: 700;
         }
 
+        /* ✅ Bigger + sheen + stronger glow */
         .finalBalance{
-          font-size: 38px;
+          font-size: 44px; /* was 38 */
           letter-spacing: 0.16em;
           text-transform: uppercase;
-          font-weight: 900;
+          font-weight: 950;
 
-          /* ✅ richer “brass metal” gradient */
           background:
             linear-gradient(
-              180deg,
-              var(--brassHi) 0%,
-              var(--brass) 28%,
-              var(--brassMid) 62%,
-              var(--brassLo) 100%
+              110deg,
+              var(--brassChrome4) 0%,
+              var(--brassChrome3) 18%,
+              var(--brassChrome2) 34%,
+              var(--brassChrome0) 50%,
+              var(--brassChrome2) 66%,
+              var(--brassChrome3) 82%,
+              var(--brassChrome4) 100%
             );
+          background-size: 240% 100%;
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
 
           text-shadow:
             0 0 10px rgba(0,0,0,0.30),
-            0 0 18px var(--brassGlow),
-            0 0 28px rgba(0,0,0,0.40);
+            0 0 22px var(--brassGlow),
+            0 0 44px var(--brassGlowHot);
 
           padding: 2px 10px;
           border-radius: 10px;
-          animation: balancePulseAI 2.2s ease-in-out infinite;
+
+          animation:
+            balancePulseAI 2.4s ease-in-out infinite,
+            brassSheen 2.6s linear infinite;
         }
 
         .finalLine{
@@ -1097,12 +1119,14 @@ export default function App() {
           .meaning{ top: 70px; }
           .unlockText{ font-size: 18px; }
           .underlineOnly{ font-size: 19px; padding: 12px 10px 9px; }
+          .balance{ font-size: 26px; } /* keep strong but avoid wrap on tiny screens */
+          .finalBalance{ font-size: 40px; }
         }
 
         /* ✅ Short viewport (iPhone Safari UI eats height) */
         @media (max-height: 760px){
           .stage{ height: 205px; }
-          .finalBalance{ font-size: 34px; }
+          .finalBalance{ font-size: 40px; }
           .finalLine{ font-size: 16px; }
           .dock{ padding-top: 10px; margin-top: 6px; }
         }
@@ -1222,7 +1246,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* ✅ Dock is now part of normal flow (no overlap) */}
             <div className="dock">
               <div className="unlockText">Unlock the next stage — confirm your name.</div>
               <div className="unlockSub">First name, then last name. Then tap Continue.</div>

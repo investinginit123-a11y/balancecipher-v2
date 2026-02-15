@@ -432,6 +432,8 @@ export default function App() {
 
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
+          --tealRim: rgba(40,240,255,0.18);
+          --tealRimHot: rgba(40,240,255,0.28);
 
           /* ✅ BRASS — “alive”, polished, cipher-energy */
           --brassChrome0:#fff6d7;
@@ -478,29 +480,31 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
-        /* ✅ Brass “sheen sweep” (polished metal highlight moving across the letters) */
+        /* ✅ Brass “sheen sweep” */
         @keyframes brassSheen {
           0%   { background-position: 0% 50%; }
           50%  { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
 
-        /* ✅ Brass pulse tuned to feel “powered”, closer to Cipher energy */
+        /* ✅ Brass pulse with teal rim response (still brass, but “connected” to Cipher) */
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
             opacity: 0.97;
             filter:
-              drop-shadow(0 0 12px var(--brassGlow))
-              drop-shadow(0 0 22px rgba(0,0,0,0.40));
+              drop-shadow(0 0 10px var(--brassGlow))
+              drop-shadow(0 0 12px rgba(0,0,0,0.40))
+              drop-shadow(0 0 10px var(--tealRim));
           }
           50%{
             transform: scale(1.12);
             opacity: 1;
             filter:
-              drop-shadow(0 0 18px var(--brassGlow))
-              drop-shadow(0 0 34px var(--brassGlowHot))
-              drop-shadow(0 0 28px rgba(0,0,0,0.48));
+              drop-shadow(0 0 16px var(--brassGlow))
+              drop-shadow(0 0 28px var(--brassGlowHot))
+              drop-shadow(0 0 14px var(--tealRimHot))
+              drop-shadow(0 0 20px rgba(0,0,0,0.48));
           }
         }
 
@@ -625,9 +629,9 @@ export default function App() {
         .eqText{ font-size: 16px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.86); font-weight: 700; }
         .eqSym{ font-size: 18px; color: rgba(255,255,255,0.62); font-weight: 700; }
 
-        /* ✅ Bigger + more “alive” (sheen sweep + stronger glow) */
+        /* ✅ BIG + POLISHED + TEAL RIM (Cipher-linked) */
         .balance{
-          font-size: 28px; /* was 24 */
+          font-size: 28px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
           font-weight: 900;
@@ -650,10 +654,12 @@ export default function App() {
           background-clip: text;
           color: transparent;
 
+          /* brass glow + teal rim edge */
           text-shadow:
             0 0 10px rgba(0,0,0,0.30),
-            0 0 20px var(--brassGlow),
-            0 0 38px var(--brassGlowHot);
+            0 0 18px var(--brassGlow),
+            0 0 34px var(--brassGlowHot),
+            0 0 14px var(--tealRim);
 
           animation:
             balancePulseAI 3.0s ease-in-out infinite,
@@ -827,9 +833,9 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* ✅ Bigger + sheen + stronger glow */
+        /* ✅ Bigger + sheen + brass glow + teal rim */
         .finalBalance{
-          font-size: 44px; /* was 38 */
+          font-size: 44px;
           letter-spacing: 0.16em;
           text-transform: uppercase;
           font-weight: 950;
@@ -853,7 +859,8 @@ export default function App() {
           text-shadow:
             0 0 10px rgba(0,0,0,0.30),
             0 0 22px var(--brassGlow),
-            0 0 44px var(--brassGlowHot);
+            0 0 44px var(--brassGlowHot),
+            0 0 16px var(--tealRim);
 
           padding: 2px 10px;
           border-radius: 10px;
@@ -881,7 +888,7 @@ export default function App() {
         .paren{ font-size: 22px; color: rgba(255,255,255,0.78); font-weight: 700; margin: 0; padding: 0; }
         .parenText{ font-size: 20px; font-weight: 500; letter-spacing: 0.02em; color: rgba(40,240,255,0.78); }
 
-        /* ✅ FIX: Dock is NOT an overlay anymore */
+        /* ✅ Dock is NOT an overlay anymore */
         .dock{
           position: relative;
           left: auto; right: auto; bottom: auto;
@@ -1109,7 +1116,6 @@ export default function App() {
         .sendStatusError{ border-color: rgba(255, 80, 80, 0.35); background: rgba(255, 80, 80, 0.08); color: rgba(255,255,255,0.82); }
         .sendStatusGood{ border-color: rgba(40,240,255,0.38); background: rgba(40,240,255,0.06); color: rgba(255,255,255,0.86); }
 
-        /* ✅ Mobile tightening */
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
@@ -1119,11 +1125,10 @@ export default function App() {
           .meaning{ top: 70px; }
           .unlockText{ font-size: 18px; }
           .underlineOnly{ font-size: 19px; padding: 12px 10px 9px; }
-          .balance{ font-size: 26px; } /* keep strong but avoid wrap on tiny screens */
+          .balance{ font-size: 26px; }
           .finalBalance{ font-size: 40px; }
         }
 
-        /* ✅ Short viewport (iPhone Safari UI eats height) */
         @media (max-height: 760px){
           .stage{ height: 205px; }
           .finalBalance{ font-size: 40px; }
@@ -1258,9 +1263,7 @@ export default function App() {
                     className="underlineOnly"
                     value={p2First}
                     onChange={(e) => setP2First(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" ? (e.preventDefault(), p2LastRef.current?.focus()) : undefined
-                    }
+                    onKeyDown={(e) => (e.key === "Enter" ? (e.preventDefault(), p2LastRef.current?.focus()) : undefined)}
                     aria-label="First name"
                     autoComplete="given-name"
                     placeholder=""
@@ -1350,13 +1353,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.9 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1419,13 +1416,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.88 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
             </div>
 
             {p5Stage === "email" ? (

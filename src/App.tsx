@@ -433,9 +433,13 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
-          --brass:#f5c86a;
-          --brass2:#d7a84a;
-          --brassGlow: rgba(245, 200, 106, 0.48);
+          /* ✅ BRASS (premium, darker, less “cheap gold”) */
+          --brassHi:#f3d59a;     /* highlight */
+          --brass:#cf9b3a;       /* main brass */
+          --brassMid:#b57f23;    /* depth */
+          --brassLo:#7a5315;     /* shadow */
+          --brassGlow: rgba(207, 155, 58, 0.42);
+          --brassGlowHot: rgba(243, 213, 154, 0.24);
 
           --text: rgba(255,255,255,0.96);
 
@@ -472,9 +476,23 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
+        /* ✅ Brass pulse tuned to read “metal glow”, not neon */
         @keyframes balancePulseAI{
-          0%, 100%{ transform: scale(1.00); opacity: 0.94; filter: drop-shadow(0 0 14px rgba(245,200,106,0.32)); }
-          50%{ transform: scale(1.14); opacity: 1; filter: drop-shadow(0 0 26px rgba(245,200,106,0.62)); }
+          0%, 100%{
+            transform: scale(1.00);
+            opacity: 0.96;
+            filter:
+              drop-shadow(0 0 10px var(--brassGlow))
+              drop-shadow(0 0 18px rgba(0,0,0,0.35));
+          }
+          50%{
+            transform: scale(1.10);
+            opacity: 1;
+            filter:
+              drop-shadow(0 0 16px var(--brassGlow))
+              drop-shadow(0 0 28px var(--brassGlowHot))
+              drop-shadow(0 0 22px rgba(0,0,0,0.45));
+          }
         }
 
         @keyframes btnPulseAI {
@@ -606,11 +624,25 @@ export default function App() {
           padding: 2px 6px;
           border-radius: 10px;
           animation: balancePulseAI 3.2s ease-in-out infinite;
-          background: linear-gradient(180deg, var(--brass), var(--brass2));
+
+          /* ✅ richer “brass metal” gradient */
+          background:
+            linear-gradient(
+              180deg,
+              var(--brassHi) 0%,
+              var(--brass) 28%,
+              var(--brassMid) 62%,
+              var(--brassLo) 100%
+            );
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
-          text-shadow: 0 0 24px var(--brassGlow);
+
+          /* ✅ less “yellow fog”, more controlled brass glow */
+          text-shadow:
+            0 0 10px rgba(0,0,0,0.30),
+            0 0 18px var(--brassGlow),
+            0 0 28px rgba(0,0,0,0.40);
         }
 
         .cornerstone{ margin-top: 6px; font-size: 15px; color: rgba(255,255,255,0.88); font-weight: 500; }
@@ -785,11 +817,25 @@ export default function App() {
           letter-spacing: 0.16em;
           text-transform: uppercase;
           font-weight: 900;
-          background: linear-gradient(180deg, var(--brass), var(--brass2));
+
+          /* ✅ richer “brass metal” gradient */
+          background:
+            linear-gradient(
+              180deg,
+              var(--brassHi) 0%,
+              var(--brass) 28%,
+              var(--brassMid) 62%,
+              var(--brassLo) 100%
+            );
           -webkit-background-clip: text;
           background-clip: text;
           color: transparent;
-          text-shadow: 0 0 26px var(--brassGlow);
+
+          text-shadow:
+            0 0 10px rgba(0,0,0,0.30),
+            0 0 18px var(--brassGlow),
+            0 0 28px rgba(0,0,0,0.40);
+
           padding: 2px 10px;
           border-radius: 10px;
           animation: balancePulseAI 2.2s ease-in-out infinite;

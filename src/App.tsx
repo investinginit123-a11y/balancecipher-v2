@@ -97,12 +97,9 @@ export default function App() {
   const [sendMsg, setSendMsg] = useState<string>("");
 
   const p2FirstRef = useRef<HTMLInputElement | null>(null);
-  const lastNameRef = useRef<HTMLInputElement | null>(null);
+  const lastRef = useRef<HTMLInputElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
   const codeRef = useRef<HTMLInputElement | null>(null);
-
-  // A-stage helper (copy feedback)
-  const [copyMsg, setCopyMsg] = useState<string>("");
 
   // Receivable overlay (B / A / L)
   const [rewardOn, setRewardOn] = useState(false);
@@ -204,7 +201,6 @@ export default function App() {
     setP5Stage("email");
     setSendState("idle");
     setSendMsg("");
-    setCopyMsg("");
     clearRewardTimer();
     setRewardOn(false);
     setRewardLetter(null);
@@ -310,26 +306,30 @@ export default function App() {
     if (!fn) return;
 
     setFirstName(fn);
-    showReward("B", "", 900, () => goTo("p3"));
+
+    // quick reward hit, then move
+    showReward("B", "", 720, () => goTo("p3"));
   }
 
-  function continueFromBreakFree() {
+  function submitLastFromP4() {
     if (rewardOn) return;
-    goTo("p4");
-  }
-
-  function continueFromAwakening() {
-    if (rewardOn) return;
-
     const ln = safeTrimMax(lastName, 60);
     if (!ln) return;
 
     setLastName(ln);
-    setP5Stage("email");
-    setSendState("idle");
-    setSendMsg("");
-    setCopyMsg("");
-    goTo("p5");
+
+    // Awakening “hit” then Learning
+    showReward(
+      "A",
+      "When the fog lifts, you don’t feel fixed.\nYou feel awake.\nAnd you can finally see the pattern.",
+      1650,
+      () => {
+        setP5Stage("email");
+        setSendState("idle");
+        setSendMsg("");
+        goTo("p5");
+      }
+    );
   }
 
   async function submitEmailFromP5() {
@@ -360,7 +360,7 @@ export default function App() {
       setSendState("sent");
       setSendMsg(`Request sent.${rid}`);
 
-      showReward("L", "Map delivery unlocked.", 980, () => {
+      showReward("L", "Map delivery unlocked.", 1050, () => {
         setP5Stage("code");
         setTimeout(() => codeRef.current?.focus(), 80);
       });
@@ -382,24 +382,27 @@ export default function App() {
     goTo("info");
   }
 
-  async function copyTempCode() {
-    const v = (accessCode || "").trim();
-    if (!v) return;
-    try {
-      await navigator.clipboard.writeText(v);
-      setCopyMsg("Copied.");
-      setTimeout(() => setCopyMsg(""), 1200);
-    } catch {
-      setCopyMsg("Copy failed.");
-      setTimeout(() => setCopyMsg(""), 1200);
-    }
-  }
-
   function openFullMapApp() {
     try {
       window.location.assign(FINAL_APP_URL);
     } catch {
       window.location.href = FINAL_APP_URL;
+    }
+  }
+
+  async function copyAccessCode() {
+    const code = (accessCode || "").trim();
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      setSendState("sent");
+      setSendMsg("Code copied.");
+      setTimeout(() => {
+        setSendState("idle");
+        setSendMsg("");
+      }, 900);
+    } catch {
+      // ignore
     }
   }
 
@@ -414,17 +417,21 @@ export default function App() {
   useEffect(() => {
     if (rewardOn) return;
 
+    if (view === "p3") {
+      // no input on p3 now
+    }
+
     if (view === "p4") {
-      setTimeout(() => lastNameRef.current?.focus(), 80);
+      setTimeout(() => lastRef.current?.focus(), 90);
     }
 
     if (view === "p5") {
-      if (p5Stage === "email") setTimeout(() => emailRef.current?.focus(), 80);
-      if (p5Stage === "code") setTimeout(() => codeRef.current?.focus(), 80);
+      if (p5Stage === "email") setTimeout(() => emailRef.current?.focus(), 90);
+      if (p5Stage === "code") setTimeout(() => codeRef.current?.focus(), 90);
     }
   }, [view, rewardOn, p5Stage]);
 
-  // ✅ SPEED FIX: Page 2 cinematic down to ~15 seconds total
+  // ✅ SPEED FIX: Page 2 total ~15s until input focus + dock
   useEffect(() => {
     if (view !== "p2") return;
     const t = setTimeout(() => p2FirstRef.current?.focus(), 15000);
@@ -432,7 +439,7 @@ export default function App() {
   }, [view]);
 
   const canSubmitP2 = !!safeTrimMax(p2First, 40);
-  const canContinueP4 = !!safeTrimMax(lastName, 60);
+  const canSubmitLast = !!safeTrimMax(lastName, 60);
   const canSubmitEmail = isValidEmail(email);
   const canSubmitCode = !!codeInput.trim();
 
@@ -446,6 +453,7 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
+          /* ✅ Richer gold */
           --brass:#f5c86a;
           --brass2:#d7a84a;
           --brassGlow: rgba(245, 200, 106, 0.48);
@@ -495,6 +503,7 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
+        /* ✅ Punchier BALANCE pulse + gold depth */
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
@@ -508,6 +517,21 @@ export default function App() {
           }
         }
 
+        /* ✅ Cipher-style CTA pulse */
+        @keyframes btnPulseAI {
+          0%, 100%{
+            transform: translateY(0) scale(1.00);
+            box-shadow: 0 0 22px rgba(40,240,255,0.18), 0 12px 30px rgba(0,0,0,0.35);
+            border-color: rgba(40,240,255,0.72);
+          }
+          50%{
+            transform: translateY(-1px) scale(1.03);
+            box-shadow: 0 0 40px rgba(40,240,255,0.32), 0 16px 36px rgba(0,0,0,0.44);
+            border-color: rgba(40,240,255,0.92);
+          }
+        }
+
+        /* Fatal error overlay */
         .fatalOverlay{
           position: fixed;
           inset: 0;
@@ -550,6 +574,7 @@ export default function App() {
           font-weight: 700;
         }
 
+        /* Receivable overlay (B / A / L) */
         .rewardOverlay{
           position: fixed;
           inset: 0;
@@ -593,6 +618,7 @@ export default function App() {
           padding: 0 10px;
         }
 
+        /* Shared layout */
         .p1, .p2, .pX{
           min-height:100vh;
           display:flex;
@@ -761,6 +787,10 @@ export default function App() {
           width: min(560px, 90vw);
         }
 
+        .btnPulse{
+          animation: btnPulseAI 3.6s ease-in-out infinite;
+        }
+
         .hint{
           margin-top: 10px;
           font-size: 13px;
@@ -768,6 +798,7 @@ export default function App() {
           font-weight: 300;
         }
 
+        /* PAGE 2 */
         .p2{
           padding: 24px 18px 132px;
         }
@@ -777,7 +808,7 @@ export default function App() {
           inset:0;
           background:#000;
           opacity:1;
-          animation: fadeOut 0.65s ease forwards;
+          animation: fadeOut 0.7s ease forwards;
           z-index: 20;
           pointer-events:none;
         }
@@ -794,77 +825,86 @@ export default function App() {
           z-index: 3;
         }
 
+        /* ✅ Stage is now a fixed overlay zone so text never “pushes down” on mobile */
         .stage{
           width: min(780px, 100%);
-          height: 170px;
-          margin-top: -10px;
+          height: 240px;
+          margin-top: -8px;
           position: relative;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          overflow: hidden;
+          display:block;
         }
 
-        .sceneLayer{
-          position: absolute;
-          inset: 0;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          gap: 10px;
-          opacity: 0;
-          transform: translateY(10px);
-          pointer-events:none;
+        @keyframes titleInOut{
+          0%   { opacity:0; transform: translate(-50%, 10px); }
+          16%  { opacity:1; transform: translate(-50%, 0); }
+          78%  { opacity:1; transform: translate(-50%, 0); }
+          100% { opacity:0; transform: translate(-50%, -8px); }
+        }
+
+        @keyframes meaningInOut{
+          0%   { opacity:0; transform: translate(-50%, 10px); }
+          12%  { opacity:1; transform: translate(-50%, 0); }
+          92%  { opacity:1; transform: translate(-50%, 0); }
+          100% { opacity:0; transform: translate(-50%, -8px); }
+        }
+
+        @keyframes sceneInStay{
+          0%   { opacity:0; transform: translate(-50%, 10px); }
+          100% { opacity:1; transform: translate(-50%, 0); }
         }
 
         .title{
-          font-size: clamp(42px, 9.6vw, 60px);
+          position:absolute;
+          left: 50%;
+          top: 0px;
+          width: min(780px, 100%);
+          font-size: clamp(42px, 9.2vw, 60px);
           font-weight: 500;
           letter-spacing: 0.12em;
           text-transform: uppercase;
           color: rgba(255,255,255,0.96);
-          margin: 0;
+          opacity:0;
+          transform: translate(-50%, 10px);
         }
 
         .meaning{
-          font-size: clamp(22px, 5.8vw, 34px);
+          position:absolute;
+          left: 50%;
+          top: 78px;
+          width: min(780px, 100%);
+          font-size: clamp(22px, 6.0vw, 34px);
           font-weight: 300;
           color: rgba(255,255,255,0.90);
           text-shadow: 0 0 22px rgba(40,240,255,0.10);
-          max-width: 780px;
-          line-height: 1.55;
+          line-height: 1.6;
+          opacity:0;
           padding: 0 6px;
-          margin: 0;
+          transform: translate(-50%, 10px);
         }
 
-        @keyframes layerInOut{
-          0%   { opacity: 0; transform: translateY(10px); }
-          14%  { opacity: 1; transform: translateY(0); }
-          86%  { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-8px); }
-        }
+        /* ✅ New compact schedule (~15s total) */
+        .scene1Title { animation: titleInOut 1.7s ease forwards; animation-delay: 0.7s; }
+        .scene1Mean  { animation: meaningInOut 3.2s ease forwards; animation-delay: 2.0s; }
 
-        @keyframes layerInStay{
-          0%   { opacity: 0; transform: translateY(10px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
+        .scene2Title { animation: titleInOut 1.7s ease forwards; animation-delay: 5.3s; }
+        .scene2Mean  { animation: meaningInOut 3.1s ease forwards; animation-delay: 6.6s; }
 
-        .s1 { animation: layerInOut 4.2s ease forwards; animation-delay: 0.6s; }
-        .s2 { animation: layerInOut 3.9s ease forwards; animation-delay: 4.9s; }
-        .s3 { animation: layerInOut 3.6s ease forwards; animation-delay: 8.9s; }
+        .scene3Title { animation: titleInOut 1.7s ease forwards; animation-delay: 9.6s; }
+        .scene3Mean  { animation: meaningInOut 3.1s ease forwards; animation-delay: 10.9s; }
 
         .finalWrap{
           position:absolute;
-          inset: 0;
+          left: 50%;
+          top: 0;
+          width: min(780px, 100%);
           display:flex;
           flex-direction:column;
           align-items:center;
-          justify-content:center;
-          gap: 12px;
+          gap: 14px;
           opacity:0;
-          animation: layerInStay 0.65s ease forwards;
-          animation-delay: 12.8s;
+          transform: translate(-50%, 10px);
+          animation: sceneInStay 0.70s ease forwards;
+          animation-delay: 12.9s;
           pointer-events:none;
         }
 
@@ -944,34 +984,36 @@ export default function App() {
           align-items:center;
           gap: 10px;
           opacity:0;
-          transform: translateY(18px);
-          animation: dockIn 0.50s ease forwards;
-          animation-delay: 14.0s;
+          transform: translateY(16px);
+          animation: dockIn 0.48s ease forwards;
+          animation-delay: 14.1s;
           z-index: 4;
-          padding: 0 10px;
+          padding: 0 8px;
         }
 
         @keyframes dockIn{
           to { opacity:1; transform: translateY(0); }
         }
 
+        /* ✅ Bigger + tighter prompt */
         .unlockText{
-          font-size: clamp(22px, 5.2vw, 28px);
-          color: rgba(255,255,255,0.94);
+          font-size: 24px;
+          color: rgba(255,255,255,0.92);
           max-width: 780px;
-          line-height: 1.25;
+          line-height: 1.35;
           font-weight: 800;
           letter-spacing: 0.01em;
         }
 
         .unlockSub{
           margin-top: 0px;
-          font-size: 14px;
-          color: rgba(255,255,255,0.66);
+          font-size: 13px;
+          color: rgba(255,255,255,0.62);
           font-weight: 500;
-          letter-spacing: 0.02em;
+          letter-spacing: 0.04em;
         }
 
+        /* Pages 3–6 */
         .contentLayer{
           position: relative;
           z-index: 2;
@@ -1071,28 +1113,20 @@ export default function App() {
         .stepInstruction{
           margin-top: 10px;
           font-size: 16px;
-          color: rgba(255,255,255,0.80);
+          color: rgba(255,255,255,0.78);
           max-width: 620px;
           line-height: 1.45;
-          font-weight: 800;
+          font-weight: 700;
           letter-spacing: 0.01em;
         }
 
         .stepConfirm{
           margin-top: 6px;
           font-size: 14px;
-          color: rgba(255,255,255,0.58);
+          color: rgba(255,255,255,0.56);
           max-width: 520px;
           line-height: 1.45;
           font-weight: 300;
-        }
-
-        .microReassure{
-          margin-top: 6px;
-          font-size: 13px;
-          color: rgba(255,255,255,0.60);
-          font-weight: 500;
-          letter-spacing: 0.01em;
         }
 
         .tinyLink{
@@ -1124,6 +1158,41 @@ export default function App() {
           box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
+        /* Code emphasis */
+        .codeCard{
+          width: min(560px, 90vw);
+          border: 1px solid rgba(40,240,255,0.28);
+          background: rgba(40,240,255,0.05);
+          border-radius: 18px;
+          padding: 14px 14px 12px;
+          box-shadow: 0 0 28px rgba(40,240,255,0.10);
+        }
+        .codeLabel{
+          font-size: 12px;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          color: rgba(255,255,255,0.70);
+          font-weight: 700;
+          margin-bottom: 10px;
+        }
+        .codeValue{
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+          font-size: 26px;
+          letter-spacing: 0.20em;
+          font-weight: 800;
+          color: rgba(255,255,255,0.92);
+          text-shadow: 0 0 18px rgba(40,240,255,0.12);
+          user-select: text;
+        }
+        .codeActions{
+          margin-top: 12px;
+          display:flex;
+          gap: 10px;
+          justify-content:center;
+          flex-wrap: wrap;
+        }
+
+        /* Send status */
         .sendStatus{
           margin-top: 10px;
           font-size: 13px;
@@ -1146,73 +1215,14 @@ export default function App() {
           color: rgba(255,255,255,0.86);
         }
 
-        .codeCard{
-          width: min(560px, 92vw);
-          border-radius: 18px;
-          border: 1px solid rgba(40,240,255,0.30);
-          background: rgba(40,240,255,0.05);
-          box-shadow: 0 0 30px rgba(40,240,255,0.10);
-          padding: 14px 14px 12px;
-          margin-top: 10px;
-        }
-
-        .codeLabel{
-          font-size: 13px;
-          letter-spacing: 0.10em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.70);
-          font-weight: 800;
-        }
-
-        .codeRow{
-          margin-top: 10px;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          gap: 10px;
-          flex-wrap: wrap;
-        }
-
-        .codeValue{
-          font-size: 22px;
-          letter-spacing: 0.18em;
-          font-weight: 900;
-          color: rgba(255,255,255,0.96);
-          padding: 10px 12px;
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,0.10);
-          background: rgba(0,0,0,0.28);
-          min-width: 220px;
-          text-align:center;
-        }
-
-        .miniBtn{
-          border-radius: 999px;
-          border: 1px solid rgba(40,240,255,0.55);
-          background: rgba(40,240,255,0.06);
-          color: rgba(255,255,255,0.92);
-          padding: 10px 14px;
-          cursor:pointer;
-          font-weight: 800;
-          letter-spacing: 0.02em;
-        }
-
-        .copyMsg{
-          margin-top: 8px;
-          font-size: 12px;
-          color: rgba(40,240,255,0.75);
-          font-weight: 700;
-          letter-spacing: 0.04em;
-        }
-
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
           .unlockText{ font-size: 22px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
-          .stage{ height: 160px; }
-          .meaning{ font-size: clamp(20px, 5.6vw, 30px); }
+          .stage{ height: 224px; }
+          .meaning{ top: 72px; }
         }
       `}</style>
 
@@ -1256,11 +1266,9 @@ export default function App() {
               <strong>Are you ready to start decoding?</strong>
             </div>
 
-            <div className="sub">
-              The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.
-            </div>
+            <div className="sub">The Cipher shows the pattern. The Co-Pilot makes it simple. You take the next step with clear direction.</div>
 
-            <button className="btn" type="button" onClick={goToDecode}>
+            <button className="btn btnPulse" type="button" onClick={goToDecode}>
               Start the private decode
             </button>
 
@@ -1285,20 +1293,14 @@ export default function App() {
             </div>
 
             <div className="stage" aria-label="Cinematic sequence">
-              <div className="sceneLayer s1" aria-label="Scene 1">
-                <div className="title">Cipher</div>
-                <div className="meaning">The first human intelligent device designed to crack the unbreakable codes.</div>
-              </div>
+              <div className="title scene1Title">Cipher</div>
+              <div className="meaning scene1Mean">The first human intelligent device designed to crack the unbreakable codes.</div>
 
-              <div className="sceneLayer s2" aria-label="Scene 2">
-                <div className="title">Co-Pilot + AI</div>
-                <div className="meaning">AI. Built to complete once-impossible tasks in mere seconds.</div>
-              </div>
+              <div className="title scene2Title">Co-Pilot + AI</div>
+              <div className="meaning scene2Mean">AI. Built to complete once-impossible tasks in mere seconds.</div>
 
-              <div className="sceneLayer s3" aria-label="Scene 3">
-                <div className="title">You</div>
-                <div className="meaning">You are the most powerful of all three—built for endless potential.</div>
-              </div>
+              <div className="title scene3Title">You</div>
+              <div className="meaning scene3Mean">You are the most powerful of all three—built for endless potential.</div>
 
               <div className="finalWrap" aria-label="Final equation">
                 <div className="finalRow" style={{ gap: 8 }}>
@@ -1338,8 +1340,8 @@ export default function App() {
           </div>
 
           <div className="dock">
-            <div className="unlockText">What should I call you?</div>
-            <div className="unlockSub">First name is perfect. Then tap Continue.</div>
+            <div className="unlockText">Unlock the next stage — what’s your first name?</div>
+            <div className="unlockSub">Then tap Continue.</div>
 
             <input
               ref={p2FirstRef}
@@ -1353,7 +1355,7 @@ export default function App() {
               disabled={rewardOn}
             />
 
-            <button className="btn btnWide" type="button" onClick={submitFirstFromP2} disabled={rewardOn || !canSubmitP2}>
+            <button className="btn btnWide btnPulse" type="button" onClick={submitFirstFromP2} disabled={rewardOn || !canSubmitP2}>
               Continue
             </button>
           </div>
@@ -1394,12 +1396,22 @@ export default function App() {
               <div className="breakCloser">Imagine how it would feel to finally break free.</div>
             </div>
 
-            <div className="ctaStack" aria-label="Continue from Break Free">
-              <button className="btn btnWide" type="button" onClick={continueFromBreakFree} disabled={rewardOn}>
+            {/* ✅ Page 3 is now CTA-only (no last name capture) */}
+            <div className="ctaStack" aria-label="Continue">
+              <button
+                className="btn btnWide btnPulse"
+                type="button"
+                onClick={() => {
+                  if (rewardOn) return;
+                  showReward("B", "", 650, () => goTo("p4"));
+                }}
+                disabled={rewardOn}
+              >
                 Continue
               </button>
             </div>
 
+            <div className="stepInstruction">Keep going. One clean step.</div>
             <div className="stepConfirm">Confirmed. No noise.</div>
           </div>
         </main>
@@ -1445,32 +1457,33 @@ export default function App() {
               <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
             </div>
 
-            {/* ✅ FIX: capture last name here (required), before continuing */}
-            <div className="ctaStack" aria-label="Last name capture + continue">
+            {/* ✅ Last name capture lives here now */}
+            <div className="ctaStack" aria-label="Last name entry">
               <div className="stepInstruction" style={{ marginTop: 0 }}>
-                Before we continue—what’s your last name?
+                One more step to unlock the next stage.
               </div>
-              <div className="microReassure">This keeps your map tied to you. No noise.</div>
+              <div className="stepConfirm" style={{ marginTop: 0 }}>
+                Add your last name so your map stays yours.
+              </div>
 
               <input
-                ref={lastNameRef}
+                ref={lastRef}
                 className="underlineOnly"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                onKeyDown={(e) => onEnter(e, continueFromAwakening)}
+                onKeyDown={(e) => onEnter(e, submitLastFromP4)}
                 aria-label="Last name"
                 autoComplete="family-name"
                 placeholder=""
                 disabled={rewardOn}
               />
 
-              <button className="btn btnWide" type="button" onClick={continueFromAwakening} disabled={rewardOn || !canContinueP4}>
+              <button className="btn btnWide btnPulse" type="button" onClick={submitLastFromP4} disabled={rewardOn || !canSubmitLast}>
                 Continue
               </button>
             </div>
 
-            <div className="stepInstruction">Awakening is the moment the fog lifts—and you understand. Keep going.</div>
-            <div className="stepConfirm">Confirmed. No noise.</div>
+            <div className="stepConfirm">This keeps your map tied to you. No noise.</div>
           </div>
         </main>
       ) : null}
@@ -1488,13 +1501,13 @@ export default function App() {
               />
             </div>
 
-            <div className="letterHeader" aria-label="Stage header">
-              <div className="bigLetter">{p5Stage === "email" ? "L" : "A"}</div>
-              <div className="bigSubline">{p5Stage === "email" ? "Learning" : "Action"}</div>
-            </div>
-
             {p5Stage === "email" ? (
               <>
+                <div className="letterHeader" aria-label="Learning header">
+                  <div className="bigLetter">L</div>
+                  <div className="bigSubline">Learning</div>
+                </div>
+
                 <div className="breakTitle">Learning is where the Cipher starts learning you—so your map can finally fit your life.</div>
 
                 <div className="breakList" aria-label="Learning support bullets">
@@ -1513,11 +1526,14 @@ export default function App() {
                   <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
                 </div>
 
+                {/* ✅ Clearer, more inviting email ask */}
                 <div className="ctaStack" aria-label="Email entry">
                   <div className="stepInstruction" style={{ marginTop: 0 }}>
-                    Where should we send your map?
+                    Where should we send your full map?
                   </div>
-                  <div className="microReassure">No spam. No noise. Just your next step.</div>
+                  <div className="stepConfirm" style={{ marginTop: 0 }}>
+                    Use the email you want your map delivered to.
+                  </div>
 
                   <input
                     ref={emailRef}
@@ -1539,7 +1555,7 @@ export default function App() {
                   />
 
                   <button
-                    className="btn btnWide"
+                    className="btn btnWide btnPulse"
                     type="button"
                     onClick={submitEmailFromP5}
                     disabled={rewardOn || !canSubmitEmail || sendState === "sending"}
@@ -1558,35 +1574,40 @@ export default function App() {
                       {sendMsg}
                     </div>
                   ) : null}
-                </div>
 
-                <div className="stepConfirm">Confirmed. No noise.</div>
-                <div className="tinyLink">app.balancecipher.info</div>
+                  <div className="stepConfirm">Confirmed. No noise.</div>
+                  <div className="tinyLink">app.balancecipher.info</div>
+                </div>
               </>
             ) : (
               <>
-                <div className="breakTitle" style={{ marginTop: 14 }}>
-                  Action unlocked.
+                {/* ✅ “L again” becomes A / Action */}
+                <div className="letterHeader" aria-label="Action header">
+                  <div className="bigLetter">A</div>
+                  <div className="bigSubline">Action</div>
                 </div>
+
+                <div className="breakTitle">Now take action—cross the bridge into your map.</div>
 
                 <div className="stepConfirm" style={{ marginTop: 0 }}>
-                  Paste your temporary code below to cross into the app.
+                  Your temporary code is the bridge between the decode and the app.
                 </div>
 
+                {/* ✅ Code made prominent */}
                 <div className="codeCard" aria-label="Temporary code">
-                  <div className="codeLabel">Temporary code</div>
-                  <div className="codeRow">
-                    <div className="codeValue">{accessCode || "--------"}</div>
-                    <button className="miniBtn" type="button" onClick={copyTempCode} disabled={!accessCode}>
-                      Copy
+                  <div className="codeLabel">Your temporary code</div>
+                  <div className="codeValue">{accessCode || "—"}</div>
+
+                  <div className="codeActions">
+                    <button className="btn btnPulse" type="button" onClick={copyAccessCode} disabled={!accessCode}>
+                      Copy code
                     </button>
                   </div>
-                  {copyMsg ? <div className="copyMsg">{copyMsg}</div> : null}
                 </div>
 
                 <div className="ctaStack" aria-label="Bridge code entry">
-                  <div className="stepInstruction" style={{ marginTop: 2 }}>
-                    Enter it here:
+                  <div className="stepInstruction" style={{ marginTop: 0 }}>
+                    Paste your temporary code below to move forward.
                   </div>
 
                   <input
@@ -1601,16 +1622,16 @@ export default function App() {
                     disabled={rewardOn}
                   />
 
-                  <button className="btn btnWide" type="button" onClick={submitCode} disabled={rewardOn || !canSubmitCode}>
+                  <button className="btn btnWide btnPulse" type="button" onClick={submitCode} disabled={rewardOn || !canSubmitCode}>
                     Cross the bridge
                   </button>
-                </div>
 
-                <div className="stepConfirm" style={{ marginTop: 10 }}>
-                  One clean step. No noise.
-                </div>
+                  <div className="stepConfirm" style={{ marginTop: 8 }}>
+                    One clean step. No noise.
+                  </div>
 
-                <div className="tinyLink">app.balancecipher.info</div>
+                  <div className="tinyLink">app.balancecipher.info</div>
+                </div>
               </>
             )}
           </div>
@@ -1648,7 +1669,7 @@ export default function App() {
             </div>
 
             <div className="ctaStack" aria-label="Map actions">
-              <button className="btn btnWide" type="button" onClick={openFullMapApp}>
+              <button className="btn btnWide btnPulse" type="button" onClick={openFullMapApp}>
                 Open the full map page
               </button>
 

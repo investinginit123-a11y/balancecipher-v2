@@ -38,13 +38,8 @@ function genRequestId(): string {
   return `req_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-// STAGE 5 CONVERSION — single source of truth for the app destination
 const FINAL_APP_URL = "https://app.balancecipher.info/";
-
-// ✅ CRM relay route (Vercel Serverless Function at /api/applications.js)
 const RELAY_ROUTE = "/api/applications";
-
-// Canon source for this funnel
 const CRM_SOURCE = "balance-cypher-v2-clean";
 
 type CrmCanonPayload = {
@@ -84,24 +79,31 @@ export default function App() {
   const [view, setView] = useState<View>("landing");
   const [fatalError, setFatalError] = useState<string | null>(null);
 
+  // Core captured values
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [codeInput, setCodeInput] = useState("");
 
+  // Page 2 inputs (now First + Last)
   const [p2First, setP2First] = useState("");
+  const [p2Last, setP2Last] = useState("");
+
+  // Page 5 stage
   const [p5Stage, setP5Stage] = useState<P5Stage>("email");
 
+  // Send state
   const [sendState, setSendState] = useState<SendState>("idle");
   const [sendMsg, setSendMsg] = useState<string>("");
 
+  // Refs
   const p2FirstRef = useRef<HTMLInputElement | null>(null);
-  const lastRef = useRef<HTMLInputElement | null>(null);
+  const p2LastRef = useRef<HTMLInputElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
   const codeRef = useRef<HTMLInputElement | null>(null);
 
-  // Receivable overlay (B / A / L)
+  // Reward overlay (B / A / L)
   const [rewardOn, setRewardOn] = useState(false);
   const [rewardLetter, setRewardLetter] = useState<"B" | "A" | "L" | null>(null);
   const [rewardCopy, setRewardCopy] = useState<string>("");
@@ -133,7 +135,7 @@ export default function App() {
     return () => clearRewardTimer();
   }, []);
 
-  // Runtime crash catcher (shows the real error on the page)
+  // Runtime crash catcher
   useEffect(() => {
     const onError = (e: ErrorEvent) => {
       const msg = [
@@ -161,7 +163,7 @@ export default function App() {
     };
   }, []);
 
-  // Tripwire: if ANY code path tries to hit submit-application, show it immediately.
+  // Tripwire for wrong relay route
   useEffect(() => {
     try {
       const origFetch = window.fetch.bind(window);
@@ -193,6 +195,7 @@ export default function App() {
 
   function resetFlow() {
     setP2First("");
+    setP2Last("");
     setFirstName("");
     setLastName("");
     setEmail("");
@@ -300,36 +303,17 @@ export default function App() {
     }
   }
 
-  function submitFirstFromP2() {
+  function submitP2NamePair() {
     if (rewardOn) return;
+
     const fn = safeTrimMax(p2First, 40);
-    if (!fn) return;
+    const ln = safeTrimMax(p2Last, 60);
+    if (!fn || !ln) return;
 
     setFirstName(fn);
-
-    // quick reward hit, then move
-    showReward("B", "", 720, () => goTo("p3"));
-  }
-
-  function submitLastFromP4() {
-    if (rewardOn) return;
-    const ln = safeTrimMax(lastName, 60);
-    if (!ln) return;
-
     setLastName(ln);
 
-    // Awakening “hit” then Learning
-    showReward(
-      "A",
-      "When the fog lifts, you don’t feel fixed.\nYou feel awake.\nAnd you can finally see the pattern.",
-      1650,
-      () => {
-        setP5Stage("email");
-        setSendState("idle");
-        setSendMsg("");
-        goTo("p5");
-      }
-    );
+    showReward("B", "", 720, () => goTo("p3"));
   }
 
   async function submitEmailFromP5() {
@@ -417,29 +401,20 @@ export default function App() {
   useEffect(() => {
     if (rewardOn) return;
 
-    if (view === "p3") {
-      // no input on p3 now
-    }
-
-    if (view === "p4") {
-      setTimeout(() => lastRef.current?.focus(), 90);
-    }
-
     if (view === "p5") {
       if (p5Stage === "email") setTimeout(() => emailRef.current?.focus(), 90);
       if (p5Stage === "code") setTimeout(() => codeRef.current?.focus(), 90);
     }
   }, [view, rewardOn, p5Stage]);
 
-  // ✅ SPEED FIX: Page 2 total ~15s until input focus + dock
+  // Page 2: focus first name after cinematic completes (≈15s)
   useEffect(() => {
     if (view !== "p2") return;
     const t = setTimeout(() => p2FirstRef.current?.focus(), 15000);
     return () => clearTimeout(t);
   }, [view]);
 
-  const canSubmitP2 = !!safeTrimMax(p2First, 40);
-  const canSubmitLast = !!safeTrimMax(lastName, 60);
+  const canSubmitP2 = !!safeTrimMax(p2First, 40) && !!safeTrimMax(p2Last, 60);
   const canSubmitEmail = isValidEmail(email);
   const canSubmitCode = !!codeInput.trim();
 
@@ -453,7 +428,6 @@ export default function App() {
           --teal: rgba(40, 240, 255, 1);
           --tealSoft: rgba(40, 240, 255, 0.18);
 
-          /* ✅ Richer gold */
           --brass:#f5c86a;
           --brass2:#d7a84a;
           --brassGlow: rgba(245, 200, 106, 0.48);
@@ -503,7 +477,6 @@ export default function App() {
           50%{ transform: translate(2%, 1%) rotate(18deg); opacity: 0.92; }
         }
 
-        /* ✅ Punchier BALANCE pulse + gold depth */
         @keyframes balancePulseAI{
           0%, 100%{
             transform: scale(1.00);
@@ -517,7 +490,6 @@ export default function App() {
           }
         }
 
-        /* ✅ Cipher-style CTA pulse */
         @keyframes btnPulseAI {
           0%, 100%{
             transform: translateY(0) scale(1.00);
@@ -574,7 +546,7 @@ export default function App() {
           font-weight: 700;
         }
 
-        /* Receivable overlay (B / A / L) */
+        /* Reward overlay */
         .rewardOverlay{
           position: fixed;
           inset: 0;
@@ -800,7 +772,7 @@ export default function App() {
 
         /* PAGE 2 */
         .p2{
-          padding: 24px 18px 132px;
+          padding: 24px 18px 152px;
         }
 
         .p2Fade{
@@ -825,7 +797,6 @@ export default function App() {
           z-index: 3;
         }
 
-        /* ✅ Stage is now a fixed overlay zone so text never “pushes down” on mobile */
         .stage{
           width: min(780px, 100%);
           height: 240px;
@@ -882,7 +853,6 @@ export default function App() {
           transform: translate(-50%, 10px);
         }
 
-        /* ✅ New compact schedule (~15s total) */
         .scene1Title { animation: titleInOut 1.7s ease forwards; animation-delay: 0.7s; }
         .scene1Mean  { animation: meaningInOut 3.2s ease forwards; animation-delay: 2.0s; }
 
@@ -978,7 +948,7 @@ export default function App() {
         .dock{
           position:absolute;
           left:0; right:0;
-          bottom: 40px;
+          bottom: 34px;
           display:flex;
           flex-direction:column;
           align-items:center;
@@ -995,9 +965,8 @@ export default function App() {
           to { opacity:1; transform: translateY(0); }
         }
 
-        /* ✅ Bigger + tighter prompt */
         .unlockText{
-          font-size: 24px;
+          font-size: 22px;
           color: rgba(255,255,255,0.92);
           max-width: 780px;
           line-height: 1.35;
@@ -1013,7 +982,6 @@ export default function App() {
           letter-spacing: 0.04em;
         }
 
-        /* Pages 3–6 */
         .contentLayer{
           position: relative;
           z-index: 2;
@@ -1143,7 +1111,7 @@ export default function App() {
           background: transparent;
           border: none;
           border-bottom: 2px solid rgba(40,240,255,0.46);
-          padding: 18px 10px 12px;
+          padding: 16px 10px 12px;
           color: rgba(255,255,255,0.94);
           font-size: 22px;
           font-weight: 500;
@@ -1158,7 +1126,22 @@ export default function App() {
           box-shadow: 0 14px 34px rgba(40,240,255,0.12);
         }
 
-        /* Code emphasis */
+        .twoUp{
+          width: min(560px, 90vw);
+          display:flex;
+          flex-direction:column;
+          gap: 10px;
+        }
+
+        .fieldHint{
+          font-size: 12px;
+          color: rgba(255,255,255,0.62);
+          font-weight: 700;
+          letter-spacing: 0.10em;
+          text-transform: uppercase;
+          margin-top: 2px;
+        }
+
         .codeCard{
           width: min(560px, 90vw);
           border: 1px solid rgba(40,240,255,0.28);
@@ -1192,7 +1175,6 @@ export default function App() {
           flex-wrap: wrap;
         }
 
-        /* Send status */
         .sendStatus{
           margin-top: 10px;
           font-size: 13px;
@@ -1218,11 +1200,12 @@ export default function App() {
         @media (max-width: 420px){
           .core{ width: 236px; height: 236px; }
           .emblemLg{ width: 188px; height: 188px; }
-          .unlockText{ font-size: 22px; }
+          .unlockText{ font-size: 20px; }
           .coreSm{ width: 206px; height: 206px; }
           .emblemSm{ width: 166px; height: 166px; }
           .stage{ height: 224px; }
           .meaning{ top: 72px; }
+          .p2{ padding-bottom: 170px; }
         }
       `}</style>
 
@@ -1339,23 +1322,48 @@ export default function App() {
             </div>
           </div>
 
+          {/* ✅ Page 2 now captures First + Last name */}
           <div className="dock">
-            <div className="unlockText">Unlock the next stage — what’s your first name?</div>
-            <div className="unlockSub">Then tap Continue.</div>
+            <div className="unlockText">Unlock the next stage — confirm your name.</div>
+            <div className="unlockSub">First name, then last name. Then tap Continue.</div>
 
-            <input
-              ref={p2FirstRef}
-              className="underlineOnly"
-              value={p2First}
-              onChange={(e) => setP2First(e.target.value)}
-              onKeyDown={(e) => onEnter(e, submitFirstFromP2)}
-              aria-label="First name"
-              autoComplete="given-name"
-              placeholder=""
-              disabled={rewardOn}
-            />
+            <div className="twoUp" aria-label="Name fields">
+              <div>
+                <div className="fieldHint">First name</div>
+                <input
+                  ref={p2FirstRef}
+                  className="underlineOnly"
+                  value={p2First}
+                  onChange={(e) => setP2First(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter"
+                      ? (e.preventDefault(), p2LastRef.current?.focus())
+                      : undefined
+                  }
+                  aria-label="First name"
+                  autoComplete="given-name"
+                  placeholder=""
+                  disabled={rewardOn}
+                />
+              </div>
 
-            <button className="btn btnWide btnPulse" type="button" onClick={submitFirstFromP2} disabled={rewardOn || !canSubmitP2}>
+              <div>
+                <div className="fieldHint">Last name</div>
+                <input
+                  ref={p2LastRef}
+                  className="underlineOnly"
+                  value={p2Last}
+                  onChange={(e) => setP2Last(e.target.value)}
+                  onKeyDown={(e) => onEnter(e, submitP2NamePair)}
+                  aria-label="Last name"
+                  autoComplete="family-name"
+                  placeholder=""
+                  disabled={rewardOn}
+                />
+              </div>
+            </div>
+
+            <button className="btn btnWide btnPulse" type="button" onClick={submitP2NamePair} disabled={rewardOn || !canSubmitP2}>
               Continue
             </button>
           </div>
@@ -1396,7 +1404,6 @@ export default function App() {
               <div className="breakCloser">Imagine how it would feel to finally break free.</div>
             </div>
 
-            {/* ✅ Page 3 is now CTA-only (no last name capture) */}
             <div className="ctaStack" aria-label="Continue">
               <button
                 className="btn btnWide btnPulse"
@@ -1421,13 +1428,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 4">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.9 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.9 }} />
             </div>
 
             <div className="letterHeader" aria-label="Awakening header">
@@ -1457,33 +1458,32 @@ export default function App() {
               <div className="breakCloser">Not because life just got easier. Because you can finally see it.</div>
             </div>
 
-            {/* ✅ Last name capture lives here now */}
-            <div className="ctaStack" aria-label="Last name entry">
-              <div className="stepInstruction" style={{ marginTop: 0 }}>
-                One more step to unlock the next stage.
-              </div>
-              <div className="stepConfirm" style={{ marginTop: 0 }}>
-                Add your last name so your map stays yours.
-              </div>
-
-              <input
-                ref={lastRef}
-                className="underlineOnly"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                onKeyDown={(e) => onEnter(e, submitLastFromP4)}
-                aria-label="Last name"
-                autoComplete="family-name"
-                placeholder=""
+            {/* ✅ Awakening is CTA-only now */}
+            <div className="ctaStack" aria-label="Continue to Learning">
+              <button
+                className="btn btnWide btnPulse"
+                type="button"
+                onClick={() => {
+                  if (rewardOn) return;
+                  showReward(
+                    "A",
+                    "When the fog lifts, you don’t feel fixed.\nYou feel awake.\nAnd you can finally see the pattern.",
+                    1250,
+                    () => {
+                      setP5Stage("email");
+                      setSendState("idle");
+                      setSendMsg("");
+                      goTo("p5");
+                    }
+                  );
+                }}
                 disabled={rewardOn}
-              />
-
-              <button className="btn btnWide btnPulse" type="button" onClick={submitLastFromP4} disabled={rewardOn || !canSubmitLast}>
+              >
                 Continue
               </button>
             </div>
 
-            <div className="stepConfirm">This keeps your map tied to you. No noise.</div>
+            <div className="stepConfirm">Confirmed. No noise.</div>
           </div>
         </main>
       ) : null}
@@ -1492,13 +1492,7 @@ export default function App() {
         <main className="pX" aria-label="Private decode — Page 5">
           <div className="contentLayer">
             <div className="core coreSm" aria-label="Cipher core">
-              <img
-                className="emblemLg emblemSm"
-                src="/brand/cipher-emblem.png"
-                alt="BALANCE Cipher Core"
-                loading="eager"
-                style={{ opacity: 0.88 }}
-              />
+              <img className="emblemLg emblemSm" src="/brand/cipher-emblem.png" alt="BALANCE Cipher Core" loading="eager" style={{ opacity: 0.88 }} />
             </div>
 
             {p5Stage === "email" ? (
@@ -1526,7 +1520,7 @@ export default function App() {
                   <div className="breakCloser">The Cipher learns you so the Co-Pilot can deliver the map.</div>
                 </div>
 
-                {/* ✅ Clearer, more inviting email ask */}
+                {/* ✅ Email capture stays on L (and only here) */}
                 <div className="ctaStack" aria-label="Email entry">
                   <div className="stepInstruction" style={{ marginTop: 0 }}>
                     Where should we send your full map?
@@ -1581,7 +1575,6 @@ export default function App() {
               </>
             ) : (
               <>
-                {/* ✅ “L again” becomes A / Action */}
                 <div className="letterHeader" aria-label="Action header">
                   <div className="bigLetter">A</div>
                   <div className="bigSubline">Action</div>
@@ -1593,7 +1586,6 @@ export default function App() {
                   Your temporary code is the bridge between the decode and the app.
                 </div>
 
-                {/* ✅ Code made prominent */}
                 <div className="codeCard" aria-label="Temporary code">
                   <div className="codeLabel">Your temporary code</div>
                   <div className="codeValue">{accessCode || "—"}</div>
